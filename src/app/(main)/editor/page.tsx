@@ -232,7 +232,7 @@ export default function CodeEditorPage() {
     setPyodideState('loading')
     setProgressMsg('Loading WebAssembly core inside background thread...')
 
-    const worker = new Worker('/pyodide-worker.js')
+    const worker = new Worker('/pyodide-worker.js?v=' + Date.now())
     workerRef.current = worker
 
     worker.onmessage = (e) => {
@@ -256,7 +256,7 @@ export default function CodeEditorPage() {
         }))
       } else if (data.type === 'RUN_SUCCESS') {
         setIsRunning(false)
-        if (data.plotData) {
+        if (data.plotData && typeof data.plotData === 'string' && data.plotData.length > 100) {
           setPlotUrl(`data:image/png;base64,${data.plotData}`)
           setShowPlotModal(true)
         }

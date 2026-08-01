@@ -11,11 +11,66 @@ function SignupContent() {
   const supabase = createClient() as any
   
   const [username, setUsername] = useState('')
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
+  const [usernameMessage, setUsernameMessage] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  // Real-time optimized debounced username checker
+  useEffect(() => {
+    const trimmed = username.trim().toLowerCase()
+    if (!trimmed) {
+      setUsernameStatus('idle')
+      setUsernameMessage('')
+      return
+    }
+
+    if (trimmed.length < 3) {
+      setUsernameStatus('invalid')
+      setUsernameMessage('Username must be at least 3 characters long.')
+      return
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
+      setUsernameStatus('invalid')
+      setUsernameMessage('Username can only contain letters, numbers, and underscores.')
+      return
+    }
+
+    setUsernameStatus('checking')
+    setUsernameMessage('Checking availability...')
+
+    const timer = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', trimmed)
+          .maybeSingle()
+
+        if (error) {
+          console.error("Availability check error:", error)
+          return
+        }
+
+        if (data) {
+          setUsernameStatus('taken')
+          setUsernameMessage('✗ This username is already taken.')
+        } else {
+          setUsernameStatus('available')
+          setUsernameMessage('✓ Username is available!')
+        }
+      } catch (err) {
+        console.error("Availability check exception:", err)
+      }
+    }, 350) // 350ms debounce ensures optimal database read-query load
+
+    return () => clearTimeout(timer)
+  }, [username])
+
   // Force dark theme on this page always
   useEffect(() => {
     document.documentElement.classList.add('dark')
@@ -52,34 +107,22 @@ function SignupContent() {
       return
     }
 
-    if (trimmedUsername.length < 3) {
-      setError('Username must be at least 3 characters long.')
+    if (usernameStatus === 'taken') {
+      setError('This username is already taken. Please choose another one.')
       return
     }
 
-    if (!/^[a-zA-Z0-9_]+$/.test(trimmedUsername)) {
-      setError('Username can only contain letters, numbers, and underscores.')
+    if (usernameStatus === 'checking') {
+      setError('Checking username availability... Please wait.')
+      return
+    }
+
+    if (usernameStatus === 'invalid') {
+      setError(usernameMessage)
       return
     }
 
     setLoading(true)
-
-    // 2. Check if username is already taken in the profiles table
-    try {
-      const { data, error: checkErr } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('username', trimmedUsername)
-        .maybeSingle()
-
-      if (data) {
-        setError('This username is already taken. Please choose another one.')
-        setLoading(false)
-        return
-      }
-    } catch (err) {
-      console.error("Username check error:", err)
-    }
 
     // 3. Save pending username to localStorage for callback recovery
     try {
@@ -110,33 +153,26 @@ function SignupContent() {
     const trimmedUsername = username.trim().toLowerCase()
     const trimmedEmail = email.trim().toLowerCase()
 
-    if (trimmedUsername.length < 3) {
-      setError('Username must be at least 3 characters long.')
+    if (usernameStatus === 'taken') {
+      setError('This username is already taken. Please choose another one.')
       setLoading(false)
       return
     }
 
-    if (!/^[a-zA-Z0-9_]+$/.test(trimmedUsername)) {
-      setError('Username can only contain letters, numbers, and underscores.')
+    if (usernameStatus === 'checking') {
+      setError('Checking username availability... Please wait.')
+      setLoading(false)
+      return
+    }
+
+    if (usernameStatus === 'invalid') {
+      setError(usernameMessage)
       setLoading(false)
       return
     }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters long.')
-      setLoading(false)
-      return
-    }
-
-    // 1. Check if username is taken
-    const { data: usernameExists } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('username', trimmedUsername)
-      .maybeSingle()
-
-    if (usernameExists) {
-      setError('This username is already taken. Please choose another one.')
       setLoading(false)
       return
     }
@@ -227,6 +263,15 @@ function SignupContent() {
               className="w-full px-4 py-2.5 bg-canvas border border-hairline rounded-xl text-ink placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm font-light"
               required
             />
+            {usernameMessage && (
+              <p className={`text-[11px] mt-1.5 font-mono font-medium ${
+                usernameStatus === 'available' ? 'text-emerald-600 dark:text-emerald-400 animate-scale-in' :
+                usernameStatus === 'checking' ? 'text-gray-500 animate-pulse' :
+                'text-red-500 animate-scale-in'
+              }`}>
+                {usernameMessage}
+              </p>
+            )}
           </div>
 
           <div>

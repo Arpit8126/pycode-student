@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Award, Calendar, BookOpen, CheckCircle, ChevronLeft, ChevronRight, Code2, Play, Camera, Settings } from 'lucide-react'
+import { Award, Calendar, BookOpen, CheckCircle, ChevronLeft, ChevronRight, Code2, Play, Camera, Settings, Search } from 'lucide-react'
 import { LOCAL_QUESTIONS } from '@/lib/localQuestions'
 
 // Helper to generate rule-based explanations for common Python/Pandas functions
@@ -66,6 +66,7 @@ export default function ProfilePage() {
 
   // Avatar preview/crop states
   const [showAvatarModal, setShowAvatarModal] = useState(false)
+  const [showLightbox, setShowLightbox] = useState(false)
   const [tempAvatarSrc, setTempAvatarSrc] = useState<string>('')
   const [scale, setScale] = useState<number>(1.0)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
@@ -88,6 +89,119 @@ export default function ProfilePage() {
 
   // Heatmap states (365 days counts)
   const [heatmapData, setHeatmapData] = useState<Record<string, number>>({})
+
+  // Search & viewing other user profiles states
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const latestSearchQuery = useRef('')
+  const [viewedProfile, setViewedProfile] = useState<any>(null)
+  const [viewedSubmissions, setViewedSubmissions] = useState<any[]>([])
+  const [viewedHeatmapData, setViewedHeatmapData] = useState<Record<string, number>>({})
+  const [viewedRank, setViewedRank] = useState<number>(1)
+  const [viewedPercentile, setViewedPercentile] = useState<number>(100)
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query)
+    latestSearchQuery.current = query
+    
+    if (query.trim().length < 1) {
+      setSearchResults([])
+      return
+    }
+    
+    const { data, error } = await (supabase.from('profiles') as any)
+      .select('id, username, full_name, avatar_url')
+      .or(`username.ilike.%${query}%,full_name.ilike.%${query}%`)
+      .limit(5)
+    
+    // Only update search results if the query is still the latest one typed by the user
+    if (!error && data && latestSearchQuery.current === query) {
+      setSearchResults(data)
+    }
+  }
+
+  const handleSelectSearchedUser = async (targetUserId: string) => {
+    setSearchQuery('')
+    setSearchResults([])
+    setLoading(true)
+    try {
+      // 1. Fetch target profile
+      const { data: prof } = await (supabase.from('profiles') as any)
+        .select('*')
+        .eq('id', targetUserId)
+        .maybeSingle()
+      
+      if (prof) {
+        setViewedProfile(prof)
+        
+        // 2. Fetch target user's submissions
+        const { data: subs } = await (supabase.from('coding_submissions') as any)
+          .select('*, coding_questions(title, points, difficulty)')
+          .eq('user_id', targetUserId)
+          .order('created_at', { ascending: false })
+        
+        if (subs) {
+          setViewedSubmissions(subs)
+          // Populate heatmap
+          const counts: Record<string, number> = {}
+          subs.forEach((s: any) => {
+            const dateStr = new Date(s.created_at).toISOString().split('T')[0]
+            counts[dateStr] = (counts[dateStr] || 0) + 1
+          })
+          setViewedHeatmapData(counts)
+        }
+
+        // 3. Compute dynamic rank for this target user
+        const { data: allSubs } = await (supabase.from('coding_submissions') as any)
+          .select('user_id, question_id, coding_questions(points)')
+          .eq('status', 'accepted')
+
+        const { count: profilesCount } = await (supabase.from('profiles') as any)
+          .select('*', { count: 'exact', head: true })
+
+        if (allSubs) {
+          const userScores: Record<string, number> = {}
+          const userUniqueSolved: Record<string, Set<number>> = {}
+
+          allSubs.forEach((sub: any) => {
+            const uid = sub.user_id
+            const qid = sub.question_id
+            const pts = sub.coding_questions?.points || 0
+
+            if (!userUniqueSolved[uid]) {
+              userUniqueSolved[uid] = new Set()
+              userScores[uid] = 0
+            }
+
+            if (!userUniqueSolved[uid].has(qid)) {
+              userUniqueSolved[uid].add(qid)
+              userScores[uid] += pts
+            }
+          })
+
+          const sortedScores = Object.values(userScores).sort((a, b) => b - a)
+          const targetScore = userScores[targetUserId] || 0
+          const rankIndex = sortedScores.indexOf(targetScore)
+          const finalRank = rankIndex !== -1 ? rankIndex + 1 : sortedScores.length + 1
+          const totalUsers = Math.max(profilesCount || 1, Object.keys(userScores).length, 1)
+          const topPercent = Math.max(1, Math.min(100, Math.round((finalRank / totalUsers) * 100)))
+
+          setViewedRank(finalRank)
+          setViewedPercentile(topPercent)
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCloseViewedProfile = () => {
+    setViewedProfile(null)
+    setViewedSubmissions([])
+    setViewedHeatmapData({})
+  }
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -344,54 +458,54 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto space-y-8 animate-pulse p-4">
+      <div className="max-w-5xl mx-auto space-y-8 animate-pulse p-4">
         {/* Header Skeleton */}
         <div className="space-y-2">
-          <div className="h-7 w-48 bg-gray-200 dark:bg-surface-soft rounded-lg" />
-          <div className="h-4 w-72 bg-gray-100 dark:bg-surface-card rounded-md" />
+          <div className="h-7 w-48 bg-hairline rounded-lg" />
+          <div className="h-4 w-72 bg-hairline-soft rounded-md" />
         </div>
 
         {/* Two Card Grid Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Card 1: Solved Problems Skeleton */}
-          <div className="p-6 rounded-3xl bg-block-mint/20 border border-hairline min-h-[200px] space-y-4">
-            <div className="h-4 w-28 bg-gray-200 dark:bg-surface-soft rounded-md" />
+          <div className="p-6 rounded-3xl bg-canvas border border-hairline min-h-[200px] space-y-4 flex flex-col justify-between">
+            <div className="h-4 w-28 bg-hairline rounded-md" />
             <div className="flex items-center gap-8 py-2">
-              <div className="w-24 h-24 rounded-full bg-gray-200 dark:bg-surface-soft shrink-0" />
+              <div className="w-24 h-24 rounded-full bg-hairline shrink-0" />
               <div className="flex-1 space-y-4">
                 <div className="space-y-1.5">
-                  <div className="h-3 w-16 bg-gray-200 dark:bg-surface-soft rounded" />
-                  <div className="h-2 bg-gray-200 dark:bg-surface-soft rounded" />
+                  <div className="h-3 w-16 bg-hairline rounded" />
+                  <div className="h-2 bg-hairline-soft rounded" />
                 </div>
                 <div className="space-y-1.5">
-                  <div className="h-3 w-16 bg-gray-200 dark:bg-surface-soft rounded" />
-                  <div className="h-2 bg-gray-200 dark:bg-surface-soft rounded" />
+                  <div className="h-3 w-16 bg-hairline rounded" />
+                  <div className="h-2 bg-hairline-soft rounded" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Card 2: Profile Card Skeleton */}
-          <div className="p-6 rounded-3xl bg-block-lilac/20 border border-hairline min-h-[200px] flex flex-col justify-between">
+          <div className="p-6 rounded-3xl bg-block-lilac/30 border border-hairline min-h-[200px] flex flex-col justify-between">
             <div className="flex justify-between items-center">
-              <div className="h-4 w-20 bg-gray-200 dark:bg-surface-soft rounded-md" />
-              <div className="h-4 w-16 bg-gray-200 dark:bg-surface-soft rounded-full" />
+              <div className="h-4 w-20 bg-hairline rounded-md" />
+              <div className="h-4 w-16 bg-hairline rounded-full" />
             </div>
             <div className="flex items-center gap-5 my-4">
-              <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-surface-soft shrink-0" />
+              <div className="w-16 h-16 rounded-full bg-hairline shrink-0" />
               <div className="space-y-2 flex-1">
-                <div className="h-4 w-32 bg-gray-200 dark:bg-surface-soft rounded" />
-                <div className="h-3 w-48 bg-gray-200 dark:bg-surface-soft rounded" />
+                <div className="h-4 w-32 bg-hairline rounded" />
+                <div className="h-3 w-48 bg-hairline-soft rounded" />
               </div>
             </div>
             <div className="flex items-center gap-8 pt-2">
               <div className="space-y-1.5">
-                <div className="h-2.5 w-16 bg-gray-200 dark:bg-surface-soft rounded" />
-                <div className="h-5 w-12 bg-gray-200 dark:bg-surface-soft rounded" />
+                <div className="h-2.5 w-16 bg-hairline rounded" />
+                <div className="h-5 w-12 bg-hairline rounded" />
               </div>
               <div className="space-y-1.5">
-                <div className="h-2.5 w-16 bg-gray-200 dark:bg-surface-soft rounded" />
-                <div className="h-5 w-12 bg-gray-200 dark:bg-surface-soft rounded" />
+                <div className="h-2.5 w-16 bg-hairline rounded" />
+                <div className="h-5 w-12 bg-hairline rounded" />
               </div>
             </div>
           </div>
@@ -399,39 +513,46 @@ export default function ProfilePage() {
 
         {/* Heatmap Skeleton */}
         <div className="space-y-3">
-          <div className="h-5 w-40 bg-gray-200 dark:bg-surface-soft rounded-md" />
-          <div className="h-32 w-full bg-gray-100 dark:bg-surface-card rounded-3xl" />
+          <div className="h-5 w-40 bg-hairline rounded-md" />
+          <div className="h-32 w-full bg-hairline-soft rounded-3xl" />
         </div>
 
         {/* Bottom Split Column Skeleton */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-4">
-            <div className="h-5 w-48 bg-gray-200 dark:bg-surface-soft rounded-md" />
+            <div className="h-5 w-48 bg-hairline rounded-md" />
             <div className="space-y-3">
               {[1, 2, 3].map(i => (
-                <div key={i} className="p-4 border border-hairline rounded-2xl bg-white dark:bg-surface-card h-16 flex items-center justify-between">
+                <div key={i} className="p-4 border border-hairline rounded-2xl bg-canvas h-16 flex items-center justify-between">
                   <div className="space-y-2">
-                    <div className="h-3.5 w-36 bg-gray-200 dark:bg-surface-soft rounded" />
-                    <div className="h-2 w-24 bg-gray-200 dark:bg-surface-soft rounded" />
+                    <div className="h-3.5 w-36 bg-hairline rounded" />
+                    <div className="h-2 w-24 bg-hairline-soft rounded" />
                   </div>
-                  <div className="h-6 w-16 bg-gray-200 dark:bg-surface-soft rounded-full" />
+                  <div className="h-6 w-16 bg-hairline rounded-full" />
                 </div>
               ))}
             </div>
           </div>
           <div className="space-y-4">
-            <div className="h-5 w-48 bg-gray-200 dark:bg-surface-soft rounded-md" />
-            <div className="h-56 bg-white dark:bg-surface-card border border-hairline rounded-2xl animate-pulse" />
+            <div className="h-5 w-48 bg-hairline rounded-md" />
+            <div className="h-56 bg-canvas border border-hairline rounded-2xl animate-pulse" />
           </div>
         </div>
       </div>
     )
   }
 
-  // Calculate unique accepted submissions (latest per question)
+  // Active variables (switch dynamically based on whether we are viewing another user's profile)
+  const activeProfile = viewedProfile || profile
+  const activeSubmissions = viewedProfile ? viewedSubmissions : submissions
+  const activeHeatmapData = viewedProfile ? viewedHeatmapData : heatmapData
+  const activeRank = viewedProfile ? viewedRank : globalRank
+  const activePercentile = viewedProfile ? viewedPercentile : globalPercentile
+
+  // Calculate unique accepted submissions (latest per question) from active submissions
   const uniqueAcceptedSubs = Array.from(
     new Map(
-      submissions
+      activeSubmissions
         .filter(s => s.status === 'accepted')
         .map(s => [s.question_id, s])
     ).values()
@@ -440,7 +561,7 @@ export default function ProfilePage() {
   // Calculate points
   const totalPoints = uniqueAcceptedSubs.reduce((acc, curr: any) => acc + (curr.coding_questions?.points || 0), 0)
 
-  const solvedCount = new Set(submissions.filter(s => s.status === 'accepted').map(s => s.question_id)).size
+  const solvedCount = new Set(activeSubmissions.filter(s => s.status === 'accepted').map(s => s.question_id)).size
 
   // Heatmap rendering grid constructor (LeetCode Standard 2026 Year-View Segmented by Month)
   const renderHeatmapGrid = () => {
@@ -474,7 +595,7 @@ export default function ProfilePage() {
         const mm = String(currentDate.getMonth() + 1).padStart(2, '0')
         const dd = String(currentDate.getDate()).padStart(2, '0')
         const dateStr = `${yyyy}-${mm}-${dd}`
-        const count = heatmapData[dateStr] || 0
+        const count = activeHeatmapData[dateStr] || 0
 
         let color = 'bg-hairline-soft border-transparent hover:border-gray-400'
         if (count === 1) color = 'bg-block-mint border-emerald-100 hover:border-emerald-400'
@@ -566,15 +687,15 @@ export default function ProfilePage() {
     )
   }
 
-  // Count questions by difficulty
+  // Count questions by difficulty from active user's submissions
   const totalEasy = LOCAL_QUESTIONS.filter(q => q.difficulty === 'easy').length
-  const solvedEasy = new Set(submissions.filter(s => s.status === 'accepted' && s.coding_questions?.difficulty === 'easy').map(s => s.question_id)).size
+  const solvedEasy = new Set(activeSubmissions.filter(s => s.status === 'accepted' && s.coding_questions?.difficulty === 'easy').map(s => s.question_id)).size
 
   const totalMedium = LOCAL_QUESTIONS.filter(q => q.difficulty === 'medium').length
-  const solvedMedium = new Set(submissions.filter(s => s.status === 'accepted' && s.coding_questions?.difficulty === 'medium').map(s => s.question_id)).size
+  const solvedMedium = new Set(activeSubmissions.filter(s => s.status === 'accepted' && s.coding_questions?.difficulty === 'medium').map(s => s.question_id)).size
 
   const totalHard = LOCAL_QUESTIONS.filter(q => q.difficulty === 'hard').length
-  const solvedHard = new Set(submissions.filter(s => s.status === 'accepted' && s.coding_questions?.difficulty === 'hard').map(s => s.question_id)).size
+  const solvedHard = new Set(activeSubmissions.filter(s => s.status === 'accepted' && s.coding_questions?.difficulty === 'hard').map(s => s.question_id)).size
 
   const totalSolvedCount = solvedEasy + solvedMedium + solvedHard
   const totalQuestionsCount = totalEasy + totalMedium + totalHard
@@ -588,6 +709,71 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen p-8 bg-canvas text-ink">
       <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
+        
+        {/* Search & Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-hairline pb-6">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-extrabold tracking-tight text-ink">
+              {viewedProfile ? `${viewedProfile.full_name || viewedProfile.username}'s Profile` : 'My Coding Profile'}
+            </h1>
+            <p className="text-gray-500 text-xs font-light">
+              {viewedProfile ? 'Viewing student performance analytics and submission logs' : 'Track your practice telemetry, solved problems, and submission heatmap'}
+            </p>
+          </div>
+
+          {/* Search Input bar */}
+          <div className="relative w-full md:w-80 shrink-0">
+            <div className="flex items-center gap-2 px-3.5 py-2 bg-white dark:bg-surface-card border border-hairline rounded-2xl focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all shadow-sm">
+              <Search className="w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Search student handle or name..."
+                className="bg-transparent border-none outline-none text-xs text-ink placeholder-gray-400 w-full"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('')
+                    setSearchResults([])
+                  }}
+                  className="text-gray-400 hover:text-ink text-[10px] font-bold cursor-pointer"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Search Dropdown list */}
+            {searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-surface-card border border-hairline rounded-2xl shadow-xl z-30 max-h-60 overflow-y-auto p-1.5 space-y-1">
+                {searchResults.map((userRes: any) => (
+                  <button
+                    key={userRes.id}
+                    onClick={() => handleSelectSearchedUser(userRes.id)}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-soft dark:hover:bg-canvas text-left transition-all cursor-pointer"
+                  >
+                    <div className="w-8 h-8 rounded-full border border-hairline overflow-hidden bg-primary flex items-center justify-center font-bold text-on-primary text-xs shrink-0">
+                      {userRes.avatar_url ? (
+                        <img src={userRes.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        userRes.username.substring(0, 2).toUpperCase()
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-ink truncate">{userRes.full_name || `@${userRes.username}`}</p>
+                      {userRes.full_name && (
+                        <p className="text-[10px] text-gray-500 font-mono truncate">@{userRes.username}</p>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Top Section - Side-by-Side Cards (LeetCode Style Solved Problems + Profile) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Card 1: Solved Problems Card */}
@@ -673,63 +859,84 @@ export default function ProfilePage() {
           </div>
 
           {/* Card 2: My Profile Card */}
-          <div className="p-6 rounded-3xl bg-block-lilac border border-hairline flex flex-col justify-between shadow-[0_4px_16px_rgba(0,0,0,0.06)] min-h-[200px]">
+          <div className="p-6 rounded-3xl bg-block-lilac border border-hairline flex flex-col justify-between shadow-[0_4px_16px_rgba(0,0,0,0.06)] min-h-[200px] relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest font-mono">My Profile</h3>
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest font-mono">
+                  {viewedProfile ? 'Student Profile' : 'My Profile'}
+                </h3>
+                {!viewedProfile && (
+                  <button
+                    onClick={() => setShowEditModal(true)}
+                    title="Edit Profile Details"
+                    className="p-1 rounded-full hover:bg-white/40 dark:hover:bg-black/20 text-gray-500 hover:text-ink cursor-pointer transition-colors"
+                  >
+                    <Settings className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              
+              {/* Show Close (cross) button at top-right if viewing another user's profile */}
+              {viewedProfile && (
                 <button
-                  onClick={() => setShowEditModal(true)}
-                  title="Edit Profile Details"
-                  className="p-1 rounded-full hover:bg-white/40 dark:hover:bg-black/20 text-gray-500 hover:text-ink cursor-pointer transition-colors"
+                  onClick={handleCloseViewedProfile}
+                  title="Back to My Profile"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white/60 dark:bg-canvas/60 hover:bg-white dark:hover:bg-surface-card hover:text-primary hover:border-primary/30 border border-hairline text-gray-500 hover:text-ink text-[10px] font-extrabold uppercase tracking-wider transition-all shadow-sm cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  <Settings className="w-3.5 h-3.5" />
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  My Profile
                 </button>
-              </div>
-              <div className="flex items-center gap-1 text-[10px] text-semantic-success font-mono font-bold uppercase tracking-wider bg-white/40 border border-emerald-500/10 px-2.5 py-0.5 rounded-full">
-                <Award className="w-3.5 h-3.5" />
-                Learner
-              </div>
+              )}
             </div>
 
             <div className="flex items-center gap-5 my-4">
               {/* Clickable / Hoverable Avatar Container */}
-              <div className="relative w-16 h-16 rounded-full border border-hairline overflow-hidden shadow-md group shrink-0 transition-transform duration-300 hover:scale-[1.03]">
-                {profile?.avatar_url ? (
+              <div 
+                onClick={() => setShowLightbox(true)}
+                title="View Full Size Photo"
+                className="relative w-16 h-16 rounded-full border border-hairline overflow-hidden shadow-md group shrink-0 transition-transform duration-300 hover:scale-[1.04] cursor-pointer"
+              >
+                {activeProfile?.avatar_url ? (
                   <img
-                    src={profile.avatar_url}
+                    src={activeProfile.avatar_url}
                     alt="avatar"
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full bg-primary flex items-center justify-center font-bold text-on-primary text-2xl">
-                    {profile?.username ? profile.username.substring(0, 2).toUpperCase() : 'PY'}
+                    {activeProfile?.username ? activeProfile.username.substring(0, 2).toUpperCase() : 'PY'}
                   </div>
                 )}
-                {/* Overlay with Upload Input - Improved premium transition */}
-                <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white text-[9px] font-bold cursor-pointer transition-opacity duration-300 backdrop-blur-md">
-                  <Camera className="w-4 h-4 mb-1 text-white/90 animate-pulse" />
-                  <span className="tracking-wider uppercase text-[8px]">{uploading ? 'Updating' : 'Upload'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarUpload}
-                    disabled={uploading}
-                    className="hidden"
-                  />
-                </label>
+                {/* Overlay with Upload Input - only visible if viewing own profile */}
+                {!viewedProfile && (
+                  <label 
+                    onClick={(e) => e.stopPropagation()} // Prevent lightbox from opening when clicking file input
+                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white text-[9px] font-bold cursor-pointer transition-opacity duration-300 backdrop-blur-md"
+                  >
+                    <Camera className="w-4 h-4 mb-1 text-white/90 animate-pulse" />
+                    <span className="tracking-wider uppercase text-[8px]">{uploading ? 'Updating' : 'Upload'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                  </label>
+                )}
               </div>
 
               <div className="space-y-1 min-w-0 flex-1">
                 <div className="flex items-baseline gap-1.5 min-w-0">
                   <h1 className="text-lg font-extrabold tracking-tight text-ink truncate">
-                    {profile?.full_name || `@${profile?.username || 'developer'}`}
+                    {activeProfile?.full_name || `@${activeProfile?.username || 'developer'}`}
                   </h1>
-                  {profile?.full_name && (
-                    <span className="text-[10px] text-gray-500 font-mono truncate shrink-0">(@{profile.username})</span>
+                  {activeProfile?.full_name && (
+                    <span className="text-[10px] text-gray-500 font-mono truncate shrink-0">(@{activeProfile.username})</span>
                   )}
                 </div>
                 <p className="text-gray-600 dark:text-gray-300 text-xs font-medium italic line-clamp-1">
-                  {profile?.bio || 'No bio written yet. Click settings icon to write one.'}
+                  {activeProfile?.bio || (viewedProfile ? 'No bio written yet.' : 'No bio written yet. Click settings icon to write one.')}
                 </p>
                 <p className="text-gray-500 text-[10px] font-mono leading-none pt-0.5">PyCode Python Programmer</p>
               </div>
@@ -743,9 +950,9 @@ export default function ProfilePage() {
               <div>
                 <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold font-mono">Sandbox Rank</p>
                 <div className="flex items-baseline gap-1.5 mt-0.5">
-                  <span className="text-2xl font-extrabold text-ink">#{globalRank}</span>
+                  <span className="text-2xl font-extrabold text-ink">#{activeRank}</span>
                   <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold font-mono">
-                    (Top {globalPercentile}%)
+                    (Top {activePercentile}%)
                   </span>
                 </div>
               </div>
@@ -786,12 +993,12 @@ export default function ProfilePage() {
             </h2>
             
             <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
-              {submissions.length === 0 ? (
+              {activeSubmissions.length === 0 ? (
                 <div className="py-12 text-center text-gray-500 bg-canvas rounded-2xl border border-hairline">
                   <p className="text-sm">No submissions recorded yet.</p>
                 </div>
               ) : (
-                submissions.map((sub) => {
+                activeSubmissions.map((sub) => {
                   const dateStr = new Date(sub.created_at).toLocaleDateString()
                   const isAccepted = sub.status === 'accepted'
 
@@ -995,6 +1202,43 @@ export default function ProfilePage() {
                 >
                   {uploading ? 'Uploading...' : 'Save Photo'}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Fullscreen Avatar Lightbox Modal */}
+        {showLightbox && (
+          <div 
+            onClick={() => setShowLightbox(false)}
+            className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in cursor-zoom-out"
+          >
+            {/* Close Button */}
+            <button 
+              onClick={() => setShowLightbox(false)}
+              className="absolute top-6 right-6 text-white/70 hover:text-white hover:bg-white/10 border border-white/10 bg-black/40 px-4 py-2 rounded-full transition-all text-xs font-extrabold uppercase tracking-wider cursor-pointer font-mono shadow-lg"
+              title="Close image"
+            >
+              ✕ Close
+            </button>
+
+            {/* Centered Image Card */}
+            <div 
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image wrapper itself
+              className="relative max-w-md w-full aspect-square flex justify-center items-center p-2 cursor-default animate-scale-in"
+            >
+              <div className="relative w-72 h-72 md:w-[400px] md:h-[400px] rounded-full border-4 border-white/15 overflow-hidden shadow-[0_24px_50px_-12px_rgba(0,0,0,0.8)] select-none bg-zinc-900 transition-transform duration-300 hover:scale-[1.01]">
+                {activeProfile?.avatar_url ? (
+                  <img 
+                    src={activeProfile.avatar_url} 
+                    alt="Avatar Full View" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-primary flex items-center justify-center font-bold text-on-primary text-8xl uppercase select-none font-mono">
+                    {activeProfile?.username ? activeProfile.username.substring(0, 2).toUpperCase() : 'PY'}
+                  </div>
+                )}
               </div>
             </div>
           </div>

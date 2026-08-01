@@ -47,6 +47,11 @@ function LoginContent() {
     setError('')
     setLoading(true)
     
+    // Clear any leftover signup state to enforce a pure login flow check
+    try {
+      localStorage.removeItem('pycode_signup_username')
+    } catch {}
+    
     const client_id = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""
     const redirect_uri = `${window.location.origin}/auth/callback/google`
     const response_type = "id_token"

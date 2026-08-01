@@ -116,32 +116,52 @@ def input_mock(prompt=""):
 builtins.input = input_mock
 `);
 
-      // Matplotlib agg backend
+      // Matplotlib agg backend and show() mock to prevent clearing active figures
       await pyodide.runPythonAsync(`
 import matplotlib
 matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+def show_mock(*args, **kwargs):
+    pass
+plt.show = show_mock
 `);
 
       // Run user code
       await pyodide.runPythonAsync(code);
-      
-      // Check for plots
-      const plotData = await pyodide.runPythonAsync(`
+
+      // Capture all matplotlib figures as base64 PNG images
+      let plotData = null;
+      try {
+        const result = await pyodide.runPythonAsync(`
 import matplotlib.pyplot as plt
+import matplotlib._pylab_helpers as _helpers
 import io
 import base64
-fig = plt.gcf()
-if fig.get_axes():
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight')
-    buf.seek(0)
-    img_data = base64.b64encode(buf.read()).decode('utf-8')
-    plt.close('all')
-    img_data
-else:
-    ""
+
+# Get all open figure managers
+managers = _helpers.Gcf.get_all_fig_managers()
+imgs = []
+for mgr in managers:
+    fig = mgr.canvas.figure
+    if fig.get_axes():
+        buf = io.BytesIO()
+        fig.savefig(buf, format='png', bbox_inches='tight', dpi=120)
+        buf.seek(0)
+        imgs.append(base64.b64encode(buf.read()).decode('utf-8'))
+
+plt.close('all')
+imgs[0] if imgs else ""
 `);
-      postMessage({ type: 'RUN_SUCCESS', plotData });
+        // Convert PyProxy to plain JS string
+        plotData = result && typeof result.toString === 'function' ? result.toString() : String(result || '');
+        if (result && typeof result.destroy === 'function') result.destroy();
+      } catch(plotErr) {
+        // Plot capture failed - not fatal, just log
+        console.warn('[pyodide-worker] plot capture error:', plotErr);
+        plotData = '';
+      }
+
+      postMessage({ type: 'RUN_SUCCESS', plotData: plotData || null });
     } catch (err) {
       postMessage({ type: 'RUN_ERROR', message: err.message || String(err) });
     }
