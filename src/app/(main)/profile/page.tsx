@@ -597,7 +597,7 @@ export default function ProfilePage() {
         const dateStr = `${yyyy}-${mm}-${dd}`
         const count = activeHeatmapData[dateStr] || 0
 
-        let color = 'bg-gray-100 dark:bg-zinc-800 border-transparent hover:border-gray-300 dark:hover:border-zinc-600'
+        let color = 'bg-gray-200 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600'
         if (count === 1) color = 'bg-emerald-200 dark:bg-emerald-900/80 border-emerald-300 dark:border-emerald-700 hover:border-emerald-400 dark:hover:border-emerald-500'
         if (count === 2) color = 'bg-emerald-400 dark:bg-emerald-700 border-emerald-500 dark:border-emerald-600 hover:border-emerald-600 dark:hover:border-emerald-400'
         if (count >= 3) color = 'bg-emerald-600 dark:bg-emerald-500 border-emerald-700 dark:border-emerald-400 hover:border-emerald-700 dark:hover:border-emerald-300'
@@ -974,7 +974,7 @@ export default function ProfilePage() {
             <p>Submission history logs for the year 2026</p>
             <div className="flex items-center gap-1.5 font-semibold">
               <span>Less</span>
-              <div className="w-3 h-3 rounded-sm bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700" />
+              <div className="w-3 h-3 rounded-sm bg-gray-200 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700" />
               <div className="w-3 h-3 rounded-sm bg-emerald-200 dark:bg-emerald-900" />
               <div className="w-3 h-3 rounded-sm bg-emerald-400 dark:bg-emerald-700" />
               <div className="w-3 h-3 rounded-sm bg-emerald-600 dark:bg-emerald-500" />
