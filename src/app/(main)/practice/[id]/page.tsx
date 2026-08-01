@@ -46,6 +46,7 @@ export default function PracticeWorkspacePage() {
   // Submit preconditions modal state
   const [showGuestModal, setShowGuestModal] = useState(false)
   const [showPracticeFailureModal, setShowPracticeFailureModal] = useState(false)
+  const [showCongratsModal, setShowCongratsModal] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -285,11 +286,10 @@ export default function PracticeWorkspacePage() {
         score_points: question.points
       })
       if (error) throw error
-      alert("Congratulations! Your solution has been submitted and progress recorded.")
-      router.push('/practice')
+      setShowCongratsModal(true)
     } catch (err: any) {
       console.error(err)
-      alert(`Submission failed: ${err.message || err}`)
+      console.error('Submission failed:', err.message || err)
     } finally {
       setIsSubmitting(false)
     }
@@ -795,6 +795,49 @@ export default function PracticeWorkspacePage() {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Congratulations Submission Modal */}
+      {showCongratsModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-canvas border border-hairline p-10 rounded-3xl max-w-sm w-full space-y-6 text-center shadow-2xl animate-scale-in">
+            {/* Animated success ring */}
+            <div className="relative w-20 h-20 mx-auto">
+              <div className="absolute inset-0 rounded-full bg-emerald-500/10 animate-ping" style={{ animationDuration: '1.5s' }}></div>
+              <div className="relative w-20 h-20 rounded-full bg-emerald-500/15 border-2 border-emerald-500/40 flex items-center justify-center">
+                <CheckCircle className="w-9 h-9 text-emerald-500" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-2xl font-extrabold text-ink tracking-tight">Congratulations! 🎉</h3>
+              <p className="text-sm text-muted font-light leading-relaxed">
+                Your solution has been submitted and your progress has been recorded.
+              </p>
+              {question?.points && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full mt-2">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">+{question.points} pts</span>
+                  <span className="text-xs text-muted">earned</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => { setShowCongratsModal(false); router.push('/practice') }}
+                className="w-full py-2.5 rounded-full bg-primary hover:opacity-90 text-on-primary text-xs font-bold transition-all cursor-pointer"
+              >
+                Back to Practice
+              </button>
+              <button
+                onClick={() => setShowCongratsModal(false)}
+                className="w-full py-2.5 rounded-full bg-surface-soft hover:bg-surface-card border border-hairline text-ink text-xs font-semibold transition-all cursor-pointer"
+              >
+                Stay on Problem
+              </button>
+            </div>
           </div>
         </div>
       )}
