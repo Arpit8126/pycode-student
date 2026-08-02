@@ -14,13 +14,19 @@ export async function GET(request: Request) {
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";
 
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`);
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
-      } else {
-        return NextResponse.redirect(`${origin}${next}`);
+      const targetOrigin = isLocalEnv ? origin : (forwardedHost ? `https://${forwardedHost}` : origin);
+      const response = NextResponse.redirect(`${targetOrigin}${next}`);
+
+      if (next.startsWith('/reset-password')) {
+        response.cookies.set('recovery_flow', 'true', {
+          maxAge: 60, // 1 minute
+          path: '/',
+          httpOnly: false,
+          sameSite: 'lax',
+        });
       }
+
+      return response;
     }
   }
 

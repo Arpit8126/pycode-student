@@ -10,12 +10,24 @@ export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
   const [warningMsg, setWarningMsg] = useState('')
+  const [isVerified, setIsVerified] = useState(false)
+  const [infoMsg, setInfoMsg] = useState('')
   const supabase = createClient()
-
-  const handleResetRequest = async (e: React.FormEvent) => {
+  // Force dark theme on this page always
+  useEffect(() => {
+    document.documentElement.classList.add('dark')
+    return () => {
+      const savedTheme = localStorage.getItem('theme')
+      if (savedTheme === 'light') {
+        document.documentElement.classList.remove('dark')
+      }
+    }
+  }, [])
+  const handleVerifyEmail = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setWarningMsg('')
+    setInfoMsg('')
 
     const trimmedEmail = email.trim().toLowerCase()
 
@@ -23,6 +35,39 @@ export default function ForgotPasswordPage() {
       setError('Please enter a valid email address.')
       return
     }
+
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/auth/verify-email?email=${encodeURIComponent(trimmedEmail)}`)
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "Email verification failed.")
+      }
+
+      if (!data.exists) {
+        setError("This email address is not registered in our records.")
+        setIsVerified(false)
+      } else {
+        setIsVerified(true)
+        setInfoMsg("Email verified successfully! You can now request your recovery link.")
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to verify email. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSendResetLink = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!isVerified) return
+
+    setError('')
+    setWarningMsg('')
+    setInfoMsg('')
+
+    const trimmedEmail = email.trim().toLowerCase()
 
     // Rate Limiting: Max 2 attempts in 2 hours
     const now = Date.now()
@@ -54,23 +99,8 @@ export default function ForgotPasswordPage() {
     }
 
     setLoading(true)
-
     try {
-      // 1. Pre-flight check: Verify if email exists
-      const res = await fetch(`/api/auth/verify-email?email=${encodeURIComponent(trimmedEmail)}`)
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || "Email verification failed.")
-      }
-
-      if (!data.exists) {
-        setWarningMsg("This email address is not registered in our database.")
-        setLoading(false)
-        return
-      }
-
-      // 2. Trigger Supabase Password Reset
+      // Trigger Supabase Password Reset
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
         redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
       })
@@ -79,7 +109,6 @@ export default function ForgotPasswordPage() {
         throw resetError
       }
 
-      // Log successful attempt for rate limiting
       activeAttempts.push(now)
       localStorage.setItem("forgot_password_attempts", JSON.stringify(activeAttempts))
 
@@ -136,16 +165,29 @@ export default function ForgotPasswordPage() {
           </div>
         )}
 
-        <form onSubmit={handleResetRequest} className="space-y-4">
+        {infoMsg && (
+          <div className="mb-4 p-3 rounded-xl bg-success/10 border border-success/25 text-success text-sm animate-scale-in font-light">
+            {infoMsg}
+          </div>
+        )}
+
+        <form onSubmit={isVerified ? handleSendResetLink : handleVerifyEmail} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider font-mono">Email Address</label>
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (isVerified) {
+                  setIsVerified(false)
+                  setInfoMsg('')
+                }
+              }}
               placeholder="Enter your registered email"
               className="w-full px-4 py-2.5 bg-canvas border border-hairline rounded-xl text-ink placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm font-light"
               required
+              disabled={loading && !isVerified}
             />
           </div>
 
@@ -154,7 +196,9 @@ export default function ForgotPasswordPage() {
             disabled={loading}
             className="w-full py-3 rounded-full bg-primary hover:opacity-90 text-on-primary font-semibold transition-all text-sm cursor-pointer disabled:opacity-50"
           >
-            {loading ? 'Sending link...' : 'Send Recovery Link'}
+            {loading 
+              ? (isVerified ? 'Sending link...' : 'Verifying...') 
+              : (isVerified ? 'Send Recovery Link' : 'Verify Email')}
           </button>
         </form>
 
