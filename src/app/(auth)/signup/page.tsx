@@ -21,7 +21,8 @@ function SignupContent() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showOtp, setShowOtp] = useState(false)
-  const [otp, setOtp] = useState('')
+  const [otpValues, setOtpValues] = useState<string[]>(Array(8).fill(''))
+  const inputRefs = React.useRef<(HTMLInputElement | null)[]>([])
   const [otpError, setOtpError] = useState('')
   const [otpLoading, setOtpLoading] = useState(false)
   const [resendTimer, setResendTimer] = useState(60)
@@ -218,6 +219,50 @@ function SignupContent() {
     setLoading(false)
   }
 
+  const handleOtpChange = (val: string, index: number) => {
+    const cleanVal = val.replace(/\D/g, '').slice(-1)
+    const newOtp = [...otpValues]
+    newOtp[index] = cleanVal
+    setOtpValues(newOtp)
+
+    if (cleanVal && index < 7) {
+      inputRefs.current[index + 1]?.focus()
+    }
+  }
+
+  const handleOtpKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Backspace') {
+      const newOtp = [...otpValues]
+      if (!otpValues[index] && index > 0) {
+        newOtp[index - 1] = ''
+        setOtpValues(newOtp)
+        inputRefs.current[index - 1]?.focus()
+      } else {
+        newOtp[index] = ''
+        setOtpValues(newOtp)
+      }
+    }
+  }
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 8)
+    if (pastedData.length === 8) {
+      const newOtp = pastedData.split('')
+      setOtpValues(newOtp)
+      inputRefs.current[7]?.focus()
+    } else {
+      const newOtp = [...otpValues]
+      const digits = pastedData.split('')
+      digits.forEach((digit, idx) => {
+        newOtp[idx] = digit
+      })
+      setOtpValues(newOtp)
+      const nextFocusIndex = Math.min(digits.length, 7)
+      inputRefs.current[nextFocusIndex]?.focus()
+    }
+  }
+
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault()
     setOtpError('')
@@ -225,10 +270,10 @@ function SignupContent() {
 
     const trimmedEmail = email.trim().toLowerCase()
     const trimmedUsername = username.trim().toLowerCase()
-    const trimmedOtp = otp.trim()
+    const trimmedOtp = otpValues.join('').trim()
 
-    if (trimmedOtp.length !== 6) {
-      setOtpError('Please enter a valid 6-digit verification code.')
+    if (trimmedOtp.length !== 8) {
+      setOtpError('Please enter a valid 8-digit verification code.')
       setOtpLoading(false)
       return
     }
@@ -294,7 +339,7 @@ function SignupContent() {
 
   const handleBackToSignup = () => {
     setShowOtp(false)
-    setOtp('')
+    setOtpValues(Array(8).fill(''))
     setOtpError('')
     setResendTimer(60)
     setCanResend(false)
@@ -309,7 +354,7 @@ function SignupContent() {
               Verify Your Email
             </h1>
             <p className="text-gray-500 text-sm mt-2 font-light leading-relaxed">
-              We have sent a 6-digit verification code to <span className="text-ink font-semibold">{email}</span>. Please enter it below to activate your account.
+              We have sent an 8-digit verification code to <span className="text-ink font-semibold">{email}</span>. Please enter it below to activate your account.
             </p>
           </div>
 
@@ -321,19 +366,26 @@ function SignupContent() {
 
           <form onSubmit={handleVerifyOtp} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider font-mono">Verification Code</label>
-              <input
-                type="text"
-                maxLength={6}
-                pattern="[0-9]*"
-                inputMode="numeric"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                placeholder="Enter 6-digit code"
-                className="w-full px-4 py-2.5 bg-canvas border border-hairline rounded-xl text-ink placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm font-mono tracking-widest text-center text-lg"
-                required
-                disabled={otpLoading}
-              />
+              <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider font-mono text-center">Verification Code</label>
+              <div className="flex justify-between gap-1.5 my-6">
+                {otpValues.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => { inputRefs.current[index] = el }}
+                    type="text"
+                    maxLength={1}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(e.target.value, index)}
+                    onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                    onPaste={handleOtpPaste}
+                    className="w-10 h-12 bg-canvas border border-hairline rounded-xl text-center text-lg font-bold text-ink focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all font-mono"
+                    required
+                    disabled={otpLoading}
+                  />
+                ))}
+              </div>
             </div>
 
             <button
