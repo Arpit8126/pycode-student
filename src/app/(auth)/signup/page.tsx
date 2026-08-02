@@ -24,6 +24,19 @@ function SignupContent() {
   const [otp, setOtp] = useState('')
   const [otpError, setOtpError] = useState('')
   const [otpLoading, setOtpLoading] = useState(false)
+  const [resendTimer, setResendTimer] = useState(60)
+  const [canResend, setCanResend] = useState(false)
+
+  // Countdown timer for resending OTP code
+  useEffect(() => {
+    if (!showOtp) return
+    if (resendTimer > 0) {
+      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000)
+      return () => clearTimeout(timer)
+    } else {
+      setCanResend(true)
+    }
+  }, [showOtp, resendTimer])
 
   // Real-time optimized debounced username checker
   useEffect(() => {
@@ -256,10 +269,35 @@ function SignupContent() {
     }
   }
 
+  const handleResendOtp = async () => {
+    if (!canResend) return
+    setOtpError('')
+    setResendTimer(60)
+    setCanResend(false)
+
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: email.trim().toLowerCase(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        }
+      })
+
+      if (resendError) {
+        throw resendError
+      }
+    } catch (err: any) {
+      setOtpError(err.message || 'Failed to resend verification code.')
+    }
+  }
+
   const handleBackToSignup = () => {
     setShowOtp(false)
     setOtp('')
     setOtpError('')
+    setResendTimer(60)
+    setCanResend(false)
   }
 
   if (showOtp) {
@@ -307,7 +345,23 @@ function SignupContent() {
             </button>
           </form>
 
-          <div className="text-center mt-6">
+          <div className="text-center mt-4">
+            {canResend ? (
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                className="text-xs text-primary font-bold hover:underline cursor-pointer"
+              >
+                Didn't receive the code? Resend Code
+              </button>
+            ) : (
+              <span className="text-xs text-gray-500 font-light">
+                Resend code in <strong className="font-bold text-ink">{resendTimer}s</strong>
+              </span>
+            )}
+          </div>
+
+          <div className="text-center mt-6 pt-2 border-t border-hairline">
             <button
               type="button"
               onClick={handleBackToSignup}
