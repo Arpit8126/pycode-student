@@ -124,7 +124,7 @@ function LoginContent() {
       return
     }
 
-    router.push('/dashboard')
+    router.push('/practice')
   }
 
   return (

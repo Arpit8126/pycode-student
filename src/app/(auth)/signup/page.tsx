@@ -306,8 +306,8 @@ function SignupContent() {
         console.error("Error setting username:", err)
       }
 
-      // Redirect to dashboard
-      router.push('/dashboard')
+      // Redirect to practice sandbox
+      router.push('/practice')
     } catch (err: any) {
       setOtpError(err.message || 'OTP verification failed. Please check the code and try again.')
       setOtpLoading(false)
