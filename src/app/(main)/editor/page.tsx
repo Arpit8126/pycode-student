@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronRight, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 
@@ -106,10 +106,72 @@ export default function CodeEditorPage() {
   const router = useRouter()
   const [savedFiles, setSavedFiles] = useState<{ name: string; code: string; lastModified: string }[]>([])
   const [leftSidebarTab, setLeftSidebarTab] = useState<'savedFiles' | 'datasets'>('savedFiles')
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [showGuestSaveModal, setShowGuestSaveModal] = useState(false)
   const [saveFileName, setSaveFileName] = useState('')
   const [activeDropdownFile, setActiveDropdownFile] = useState<string | null>(null)
+  const [activeFileName, setActiveFileName] = useState<string | null>(null)
+  const [autosaveStatus, setAutosaveStatus] = useState<'saved' | 'saving' | null>(null)
+  const [fileSearch, setFileSearch] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [deletingFileName, setDeletingFileName] = useState<string | null>(null)
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null)
+  const [fileToDelete, setFileToDelete] = useState<string | null>(null)
+
+  // Autosave when code changes for an opened file
+  useEffect(() => {
+    if (!activeFileName) {
+      setAutosaveStatus(null)
+      return
+    }
+
+    setAutosaveStatus('saving')
+    const timer = setTimeout(async () => {
+      try {
+        const lastModified = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        
+        // 1. Update in memory / state
+        setSavedFiles(prev => prev.map(f => {
+          if (f.name === activeFileName) {
+            return { ...f, code, lastModified }
+          }
+          return f
+        }))
+
+        // 2. Update database if user is logged in
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          await (supabase.from('saved_scripts') as any)
+            .update({
+              code,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id)
+            .eq('name', activeFileName)
+        } else {
+          // 3. Fallback/Local storage for guests
+          const filesStr = localStorage.getItem('pycode_saved_files')
+          if (filesStr) {
+            const files = JSON.parse(filesStr)
+            const updated = files.map((f: any) => {
+              if (f.name === activeFileName) {
+                return { ...f, code, lastModified }
+              }
+              return f
+            })
+            localStorage.setItem('pycode_saved_files', JSON.stringify(updated))
+          }
+        }
+        setAutosaveStatus('saved')
+      } catch (err) {
+        console.error('Autosave failed:', err)
+        setAutosaveStatus(null)
+      }
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [code, activeFileName])
 
   // Resizing output terminal panel
   const [terminalHeight, setTerminalHeight] = useState(240)
@@ -284,7 +346,7 @@ export default function CodeEditorPage() {
   }
 
   // Load saved files
-  const loadSavedFiles = async () => {
+  const loadSavedFiles = async (keepActive?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
@@ -299,8 +361,15 @@ export default function CodeEditorPage() {
             lastModified: new Date(d.last_modified).toLocaleString()
           }))
           setSavedFiles(formatted)
-          if (formatted.length > 0) {
-            setCode(formatted[0].code)
+          // Only restore a specific file if explicitly requested (e.g. after saving)
+          // On initial load (no keepActive) — stay on blank default workspace
+          if (keepActive) {
+            const target = formatted.find((f: any) => f.name === keepActive)
+            if (target) {
+              setCode(target.code)
+              setActiveFileName(target.name)
+              if (editorRef.current) editorRef.current.setValue(target.code)
+            }
           }
           return
         }
@@ -315,8 +384,13 @@ export default function CodeEditorPage() {
         try {
           const files = JSON.parse(filesStr)
           setSavedFiles(files)
-          if (files.length > 0) {
-            setCode(files[0].code)
+          if (keepActive) {
+            const target = files.find((f: any) => f.name === keepActive)
+            if (target) {
+              setCode(target.code)
+              setActiveFileName(target.name)
+              if (editorRef.current) editorRef.current.setValue(target.code)
+            }
           }
         } catch (e) {
           console.error(e)
@@ -342,6 +416,7 @@ export default function CodeEditorPage() {
       name += '.py'
     }
 
+    setIsSaving(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
@@ -354,9 +429,11 @@ export default function CodeEditorPage() {
           }, { onConflict: 'user_id, name' })
         
         if (!error) {
-          loadSavedFiles()
+          await loadSavedFiles(name)
+          setActiveFileName(name)
           setShowSaveModal(false)
           setSaveFileName('')
+          setIsSaving(false)
           return
         } else {
           console.error("Supabase save error:", error)
@@ -366,12 +443,12 @@ export default function CodeEditorPage() {
       console.warn("Supabase save failed, falling back to localStorage:", err)
     }
 
+    // Optimistic local save
     const newFile = {
       name,
       code,
       lastModified: new Date().toLocaleString()
     }
-
     const updatedFiles = [...savedFiles]
     const existingIndex = updatedFiles.findIndex(f => f.name.toLowerCase() === name.toLowerCase())
     if (existingIndex > -1) {
@@ -379,43 +456,54 @@ export default function CodeEditorPage() {
     } else {
       updatedFiles.push(newFile)
     }
-
     setSavedFiles(updatedFiles)
     localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
+    setActiveFileName(name)
     setShowSaveModal(false)
     setSaveFileName('')
+    setIsSaving(false)
   }
 
   const handleLoadFile = (file: { name: string; code: string }) => {
     setCode(file.code)
+    setActiveFileName(file.name)
     if (editorRef.current) {
       editorRef.current.setValue(file.code)
     }
   }
 
   const handleDeleteFile = async (name: string) => {
+    // Optimistic update — remove from UI immediately so sidebar feels instant
+    if (activeFileName === name) {
+      setActiveFileName(null)
+      setAutosaveStatus(null)
+      const blank = '# Write your code here\n'
+      setCode(blank)
+      if (editorRef.current) editorRef.current.setValue(blank)
+    }
+    setSavedFiles(prev => prev.filter(f => f.name !== name))
+    setActiveDropdownFile(null)
+    setDeletingFileName(name)
+
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const { error } = await (supabase.from('saved_scripts') as any)
+        await (supabase.from('saved_scripts') as any)
           .delete()
           .eq('user_id', user.id)
           .eq('name', name)
-        
-        if (!error) {
-          loadSavedFiles()
-          setActiveDropdownFile(null)
-          return
+      } else {
+        const filesStr = localStorage.getItem('pycode_saved_files')
+        if (filesStr) {
+          const files = JSON.parse(filesStr).filter((f: any) => f.name !== name)
+          localStorage.setItem('pycode_saved_files', JSON.stringify(files))
         }
       }
     } catch (err) {
-      console.warn("Supabase delete failed, falling back to localStorage:", err)
+      console.warn("Delete sync failed:", err)
+    } finally {
+      setDeletingFileName(null)
     }
-
-    const updatedFiles = savedFiles.filter(f => f.name !== name)
-    setSavedFiles(updatedFiles)
-    localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
-    setActiveDropdownFile(null)
   }
 
   const handleDownloadFile = (file: { name: string; code: string }) => {
@@ -444,7 +532,7 @@ export default function CodeEditorPage() {
   const handleResetFile = (filename: keyof typeof DATASETS) => {
     if (workerRef.current) {
       workerRef.current.postMessage({ type: 'RESET_FILE', filename, csv: DATASETS[filename].csv })
-      alert(`${filename} has been reset to default values.`)
+      setConsoleOutput(prev => prev + `\n[System Message]: Dataset "${filename}" has been reset to default values.\n`)
     }
   }
 
@@ -550,177 +638,210 @@ export default function CodeEditorPage() {
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left Explorer: Saved Files & Virtual CSV Files */}
-        <section className="w-64 border-r border-hairline flex flex-col bg-canvas p-4 space-y-4">
-          {/* Tab Selector Buttons */}
-          <div className="flex border-b border-hairline shrink-0">
-            <button
-              onClick={() => setLeftSidebarTab('savedFiles')}
-              className={`flex-1 pb-2 text-center text-xs font-extrabold tracking-tight border-b-2 cursor-pointer transition-all ${
-                leftSidebarTab === 'savedFiles'
-                  ? 'border-primary text-ink'
-                  : 'border-transparent text-gray-500 hover:text-ink'
-              }`}
-            >
-              Saved Files
-            </button>
-            <button
-              onClick={() => setLeftSidebarTab('datasets')}
-              className={`flex-1 pb-2 text-center text-xs font-extrabold tracking-tight border-b-2 cursor-pointer transition-all ${
-                leftSidebarTab === 'datasets'
-                  ? 'border-primary text-ink'
-                  : 'border-transparent text-gray-500 hover:text-ink'
-              }`}
-            >
-              Datasets
-            </button>
-          </div>
-
-          {leftSidebarTab === 'savedFiles' ? (
-            <div className="flex-1 flex flex-col min-h-0 space-y-3">
-              <div>
-                <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5 mb-1">
-                  <FileCode className="w-3.5 h-3.5 text-primary" />
-                  Your Saved Scripts
-                </h3>
-                <p className="text-[11px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
-                  Resumable Python code files saved locally in browser.
-                </p>
+        {!leftSidebarCollapsed && (
+          <section className="w-72 shrink-0 border-r border-hairline flex flex-col bg-canvas p-4 space-y-4">
+            {/* Tab Selector Buttons */}
+            <div className="flex border-b border-hairline shrink-0 items-center justify-between">
+              <div className="flex-1 flex">
+                <button
+                  onClick={() => setLeftSidebarTab('savedFiles')}
+                  className={`flex-1 pb-2 text-center text-xs font-extrabold tracking-tight border-b-2 cursor-pointer transition-all ${
+                    leftSidebarTab === 'savedFiles'
+                      ? 'border-primary text-ink'
+                      : 'border-transparent text-gray-500 hover:text-ink'
+                  }`}
+                >
+                  Saved Files
+                </button>
+                <button
+                  onClick={() => setLeftSidebarTab('datasets')}
+                  className={`flex-1 pb-2 text-center text-xs font-extrabold tracking-tight border-b-2 cursor-pointer transition-all ${
+                    leftSidebarTab === 'datasets'
+                      ? 'border-primary text-ink'
+                      : 'border-transparent text-gray-500 hover:text-ink'
+                  }`}
+                >
+                  Datasets
+                </button>
               </div>
+              <button
+                onClick={() => {
+                  setLeftSidebarCollapsed(true)
+                  setTimeout(() => {
+                    if (editorRef.current) editorRef.current.layout()
+                  }, 100)
+                }}
+                title="Minimize Explorer"
+                className="pb-2 pl-3 text-gray-500 hover:text-ink cursor-pointer transition-colors flex items-center justify-center"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
 
-              <div className="flex-1 space-y-1.5 overflow-y-auto min-h-0 relative pr-0.5">
-                {savedFiles.length === 0 ? (
-                  <div className="text-center py-8 px-2 border border-dashed border-hairline rounded-2xl bg-surface-soft">
-                    <p className="text-[11px] text-gray-700 dark:text-gray-300 font-semibold">No saved files yet.</p>
-                    <p className="text-[10px] text-gray-500 dark:text-gray-400 font-light mt-1">Click &quot;Save File&quot; in toolbar to store progress!</p>
+            {leftSidebarTab === 'savedFiles' ? (
+              <div className="flex-1 flex flex-col min-h-0 space-y-3">
+                <div>
+                  <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5 mb-1">
+                    <FileCode className="w-3.5 h-3.5 text-primary" />
+                    Your Saved Scripts
+                  </h3>
+                  <p className="text-[11px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
+                    Resumable Python code files saved locally in browser.
+                  </p>
+                </div>
+
+                {/* Search bar */}
+                {savedFiles.length > 0 && (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={fileSearch}
+                      onChange={e => setFileSearch(e.target.value)}
+                      placeholder="Search files..."
+                      className="w-full pl-7 pr-3 py-1.5 text-[11px] font-mono rounded-xl border border-hairline bg-surface-soft text-ink placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-colors"
+                    />
+                    <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    {fileSearch && (
+                      <button
+                        onClick={() => setFileSearch('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink cursor-pointer transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
-                ) : (
-                  savedFiles.map((file) => {
-                    const isActive = code === file.code
-                    const isDropdownOpen = activeDropdownFile === file.name
-                    return (
-                      <div key={file.name} className="relative group animate-fade-in">
-                        <button
-                          onClick={() => handleLoadFile(file)}
-                          className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 ${
-                            isActive
-                              ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
-                              : 'bg-canvas border-hairline text-gray-500 hover:text-ink hover:border-gray-400'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 overflow-hidden w-full">
-                            <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
-                            <div className="flex flex-col overflow-hidden">
-                              <span className="text-xs font-bold font-mono truncate">{file.name}</span>
-                              <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
-                            </div>
-                          </div>
-                        </button>
+                )}
 
-                        {/* Three-dot dropdown menu trigger */}
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
+                <div className="flex-1 space-y-1.5 overflow-y-auto min-h-0 relative pr-0.5">
+                  {savedFiles.length === 0 ? (
+                    <div className="text-center py-8 px-2 border border-dashed border-hairline rounded-2xl bg-surface-soft">
+                      <p className="text-[11px] text-gray-700 dark:text-gray-300 font-semibold">No saved files yet.</p>
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 font-light mt-1">Click &quot;Save&quot; in toolbar to store progress!</p>
+                    </div>
+                  ) : (() => {
+                    const filtered = savedFiles.filter(f =>
+                      f.name.toLowerCase().includes(fileSearch.toLowerCase())
+                    )
+                    return filtered.length === 0 ? (
+                      <div className="text-center py-6 px-2">
+                        <p className="text-[11px] text-gray-500 font-mono">No files match &quot;{fileSearch}&quot;</p>
+                      </div>
+                    ) : filtered.map((file) => {
+                      const isActive = activeFileName === file.name
+                      const isDropdownOpen = activeDropdownFile === file.name
+                      return (
+                        <div key={file.name} className="relative group animate-fade-in">
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setActiveDropdownFile(isDropdownOpen ? null : file.name)
-                            }}
-                            className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                            onClick={() => handleLoadFile(file)}
+                            className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 ${
+                              isActive
+                                ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
+                                : 'bg-canvas border-hairline text-gray-500 hover:text-ink hover:border-gray-400'
+                            }`}
                           >
-                            <MoreVertical className="w-3.5 h-3.5" />
+                            <div className="flex items-center gap-2.5 overflow-hidden w-full">
+                              <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
+                              <div className="flex flex-col overflow-hidden">
+                                <span className="text-xs font-bold font-mono truncate">{file.name}</span>
+                                <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
+                              </div>
+                            </div>
                           </button>
 
-                          {/* Dropdown Options */}
-                          {isDropdownOpen && (
-                            <>
-                              <div 
-                                className="fixed inset-0 z-10" 
-                                onClick={(e) => {
-                                  e.stopPropagation()
+                          {/* Three-dot trigger — dropdown rendered fixed outside scroll container */}
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                if (isDropdownOpen) {
                                   setActiveDropdownFile(null)
-                                }} 
-                              />
-                              <div className="absolute right-0 top-6 w-32 bg-canvas border border-hairline rounded-xl shadow-xl py-1.5 z-20 animate-scale-in">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleDownloadFile(file)
-                                  }}
-                                  className="w-full px-3 py-1.5 text-left text-[11px] font-bold text-gray-600 hover:text-ink hover:bg-surface-soft flex items-center gap-2 transition-colors cursor-pointer"
-                                >
-                                  <Download className="w-3.5 h-3.5 text-primary" />
-                                  Download
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleDeleteFile(file.name)
-                                  }}
-                                  className="w-full px-3 py-1.5 text-left text-[11px] font-bold text-red-600 hover:bg-red-500/10 flex items-center gap-2 transition-colors cursor-pointer"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                  Delete
-                                </button>
-                              </div>
-                            </>
-                          )}
+                                  setDropdownPos(null)
+                                } else {
+                                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                                  setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                                  setActiveDropdownFile(file.name)
+                                }
+                              }}
+                              className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                            >
+                              <MoreVertical className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    )
-                  })
-                )}
+                      )
+                    })
+                  })()}
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col min-h-0 space-y-3">
-              <div>
-                <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5 mb-1">
-                  <Database className="w-3.5 h-3.5 text-primary" />
-                  Virtual Datasets
-                </h3>
-                <p className="text-[11px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
-                  Pandas datasets pre-loaded in the browser VM workspace.
-                </p>
-              </div>
+            ) : (
+              <div className="flex-1 flex flex-col min-h-0 space-y-3">
+                <div>
+                  <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5 mb-1">
+                    <Database className="w-3.5 h-3.5 text-primary" />
+                    Available Datasets
+                  </h3>
+                  <p className="text-[11px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
+                    Virtual CSV datasets loaded in sandbox namespace.
+                  </p>
+                </div>
 
-              <div className="flex-1 space-y-1.5 overflow-y-auto min-h-0">
-                {Object.keys(DATASETS).map((key) => {
-                  const filename = key as keyof typeof DATASETS
-                  const active = selectedFile === filename
-                  return (
-                    <button
-                      key={filename}
-                      onClick={() => loadFilePreview(filename)}
-                      className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 ${
-                        active
-                          ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
-                          : 'bg-canvas border-hairline text-gray-700 dark:text-gray-400 hover:text-ink hover:border-gray-400'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 overflow-hidden">
-                        <FileCode className="w-4 h-4 shrink-0 text-primary" />
-                        <span className="text-xs font-bold font-mono truncate">{filename}</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 shrink-0 opacity-60" />
-                    </button>
-                  )
-                })}
+                <div className="flex-1 space-y-2 overflow-y-auto min-h-0 relative pr-0.5">
+                  {Object.keys(DATASETS).map((key) => {
+                    const filename = key as keyof typeof DATASETS
+                    const isSelected = selectedFile === filename
+                    return (
+                      <button
+                        key={filename}
+                        onClick={() => loadFilePreview(filename)}
+                        className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 ${
+                          isSelected
+                            ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
+                            : 'bg-canvas border-hairline text-gray-700 dark:text-gray-400 hover:text-ink hover:border-gray-400'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 overflow-hidden">
+                          <FileCode className="w-4 h-4 shrink-0 text-primary" />
+                          <span className="text-xs font-bold font-mono truncate">{filename}</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 shrink-0 opacity-60" />
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          )}
-        </section>
+            )}
+          </section>
+        )}
 
         {/* Right Coding Sandbox Section */}
-        <section className="flex-1 flex flex-col bg-canvas border-l border-hairline">
+        <section className="flex-1 min-w-0 flex flex-col bg-canvas border-l border-hairline">
           
           {/* Monaco Editor Header Bar */}
-          <div className="h-11 border-b border-hairline bg-surface-soft px-4 flex items-center justify-between animate-fade-in">
-            <div className="flex items-center gap-2">
+          <div className="h-11 border-b border-hairline bg-surface-soft px-4 flex items-center justify-between animate-fade-in overflow-hidden">
+            <div className="flex items-center gap-2 shrink-0">
+              {leftSidebarCollapsed && (
+                <button
+                  onClick={() => {
+                    setLeftSidebarCollapsed(false)
+                    setTimeout(() => {
+                      if (editorRef.current) editorRef.current.layout()
+                    }, 100)
+                  }}
+                  title="Expand Explorer"
+                  className="mr-2 p-1.5 rounded-full border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card cursor-pointer transition-colors flex items-center justify-center animate-fade-in"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              )}
               <span className="text-[9px] font-bold text-ink bg-canvas px-2.5 py-1 rounded-full border border-hairline flex items-center gap-1.5 uppercase tracking-widest font-mono">
                 <span className="w-1.5 h-1.5 rounded-full bg-semantic-success animate-pulse"></span>
                 Python 3
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => {
                   const isLight = document.documentElement.classList.contains('dark')
@@ -740,6 +861,42 @@ export default function CodeEditorPage() {
 
               <div className="h-4 w-[1px] bg-hairline mx-1"></div>
 
+              {/* Autosave status pill — only when a file is open, no filename shown */}
+              {activeFileName && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-hairline bg-surface-soft text-[10px] text-gray-500 font-mono select-none">
+                  {autosaveStatus === 'saving' ? (
+                    <>
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      <span>Autosaving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span>Autosaved</span>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Exit File — only shown when editing a saved file, takes user back to free scratch */}
+              {activeFileName && (
+                <button
+                  onClick={() => {
+                    setActiveFileName(null)
+                    setAutosaveStatus(null)
+                    const blank = '# Write your code here\n'
+                    setCode(blank)
+                    if (editorRef.current) editorRef.current.setValue(blank)
+                  }}
+                  title="Exit file — go to free scratch"
+                  className="px-3 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-red-50 dark:hover:bg-red-950/40 text-gray-500 hover:text-red-500 text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Exit File
+                </button>
+              )}
+
+              {/* Save File button — always visible */}
               <button
                 onClick={async () => {
                   const { data: { user } } = await supabase.auth.getUser()
@@ -750,10 +907,10 @@ export default function CodeEditorPage() {
                   }
                 }}
                 disabled={pyodideState !== 'ready'}
-                className="px-4 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 shadow-sm"
+                className="px-4 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-40"
               >
                 <Save className="w-3.5 h-3.5 text-primary" />
-                Save File
+                Save
               </button>
 
               <div className="h-4 w-[1px] bg-hairline mx-1"></div>
@@ -766,7 +923,7 @@ export default function CodeEditorPage() {
                   </div>
                   <button
                     onClick={handleTerminateCode}
-                    className="px-4 py-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 shadow-[0_4px_12px_rgba(220,38,38,0.2)]"
+                    className="px-4 py-1.5 rounded-full bg-red-600 hover:bg-red-700 hover:scale-[1.02] active:scale-[0.98] text-white text-[11px] font-extrabold cursor-pointer transition-all duration-200 flex items-center gap-1.5 shadow-[0_4px_12px_rgba(220,38,38,0.2)]"
                   >
                     <Square className="w-2.5 h-2.5 fill-current" stroke="none" />
                     Stop
@@ -776,7 +933,7 @@ export default function CodeEditorPage() {
                 <button
                   onClick={handleRunCode}
                   disabled={pyodideState !== 'ready'}
-                  className="px-5 py-1.5 rounded-full bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.15)]"
+                  className="px-5 py-1.5 rounded-full bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98] text-[11px] font-extrabold cursor-pointer transition-all duration-200 flex items-center gap-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.15)]"
                 >
                   <Play className="w-3 h-3 fill-current" />
                   Run Code
@@ -1015,10 +1172,15 @@ export default function CodeEditorPage() {
                 </button>
                 <button
                   onClick={handleSaveFile}
-                  disabled={!saveFileName.trim()}
-                  className="px-5 py-2 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-xs font-extrabold cursor-pointer transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
+                  disabled={!saveFileName.trim() || isSaving}
+                  className="px-5 py-2 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-xs font-extrabold cursor-pointer transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex items-center gap-2 min-w-[70px] justify-center"
                 >
-                  Save
+                  {isSaving ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : 'Save'}
                 </button>
               </div>
             </div>
@@ -1065,6 +1227,102 @@ export default function CodeEditorPage() {
         </div>
       )}
 
+      {/* Fixed-position Dropdown Menu for Saved Files (prevents scroll boundary clipping) */}
+      {activeDropdownFile && dropdownPos && (
+        <>
+          {/* Transparent full-screen backdrop to close menu when clicking outside */}
+          <div
+            className="fixed inset-0 z-40 bg-transparent cursor-default"
+            onClick={() => {
+              setActiveDropdownFile(null)
+              setDropdownPos(null)
+            }}
+          />
+          <div
+            className="fixed w-28 bg-canvas border border-hairline rounded-2xl p-1.5 shadow-2xl backdrop-blur-xl animate-scale-in z-50 space-y-0.5"
+            style={{
+              top: `${dropdownPos.top}px`,
+              right: `${dropdownPos.right}px`,
+            }}
+          >
+            {(() => {
+              const file = savedFiles.find((f) => f.name === activeDropdownFile)
+              if (!file) return null
+              return (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDownloadFile(file)
+                      setActiveDropdownFile(null)
+                      setDropdownPos(null)
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-gray-600 dark:text-gray-300 hover:bg-surface-soft hover:text-ink rounded-xl transition-colors cursor-pointer text-left"
+                  >
+                    <Download className="w-3 h-3" />
+                    Download
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setFileToDelete(file.name)
+                      setActiveDropdownFile(null)
+                      setDropdownPos(null)
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-accent-magenta hover:bg-accent-magenta/10 rounded-xl transition-colors cursor-pointer text-left disabled:opacity-50"
+                    disabled={deletingFileName === file.name}
+                  >
+                    {deletingFileName === file.name ? (
+                      <span className="w-3 h-3 border-2 border-accent-magenta border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Trash2 className="w-3 h-3" />
+                    )}
+                    {deletingFileName === file.name ? 'Deleting...' : 'Delete'}
+                  </button>
+                </>
+              )
+            })()}
+          </div>
+        </>
+      )}
+
+      {/* Delete Confirmation Modal Dialog */}
+      {fileToDelete && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-canvas border border-hairline rounded-3xl p-6 shadow-2xl space-y-4 animate-scale-in text-center">
+            <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 mx-auto">
+              <Trash2 className="w-5 h-5 animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-sm font-extrabold text-ink">Delete Script?</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+                Are you sure you want to delete <span className="font-mono text-primary font-bold">{fileToDelete}</span>? This action is permanent and cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setFileToDelete(null)}
+                className="flex-1 py-2 rounded-full border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-soft text-xs font-semibold cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleDeleteFile(fileToDelete)
+                  setFileToDelete(null)
+                }}
+                className="flex-1 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold cursor-pointer transition-all shadow-[0_4px_12px_rgba(220,38,38,0.2)]"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
+

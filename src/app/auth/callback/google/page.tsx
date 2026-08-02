@@ -179,13 +179,8 @@ export default function GoogleCallbackPage() {
             </button>
           </div>
         ) : (
-          <div className="py-6 space-y-6">
-            <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
-              {/* Spinning Outer Ring */}
-              <div className="absolute inset-0 border-4 border-white/5 border-t-[#c96a3a] rounded-full animate-spin"></div>
-              {/* Pulse Inner Circle */}
-              <div className="w-8 h-8 bg-[#c96a3a]/20 rounded-full animate-ping"></div>
-            </div>
+          <div className="py-6 space-y-6 animate-pulse">
+            <div className="w-12 h-12 bg-[#c96a3a]/20 rounded-full mx-auto"></div>
             <div className="space-y-2">
               <h2 className="text-lg font-bold tracking-tight text-white/90">Completing Sign In...</h2>
               <p className="text-white/45 text-xs font-light">Authenticating workspace session with secure databases...</p>

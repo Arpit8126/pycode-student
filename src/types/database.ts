@@ -94,7 +94,9 @@ export type QuizAttempt = {
   answers: any // JSONB
   student_details: any // JSONB e.g. { fullName, rollNumber }
   score: number
+  score_percentage: number
   is_disqualified: boolean
+  warnings_count: number
   started_at: string
   completed_at: string
 }

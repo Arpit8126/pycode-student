@@ -151,10 +151,11 @@ export default function ProfilePage() {
           setViewedHeatmapData(counts)
         }
 
-        // 3. Compute dynamic rank for this target user
+        // 3. Compute dynamic rank for this target user (Practice sandbox only)
         const { data: allSubs } = await (supabase.from('coding_submissions') as any)
           .select('user_id, question_id, coding_questions(points)')
           .eq('status', 'accepted')
+          .is('quiz_attempt_id', null)
 
         const { count: profilesCount } = await (supabase.from('profiles') as any)
           .select('*', { count: 'exact', head: true })
@@ -250,11 +251,12 @@ export default function ProfilePage() {
           setEditBio(prof.bio || '')
         }
 
-        // 2. Fetch all submissions to calculate global leaderboard statistics
+        // 2. Fetch all submissions to calculate global leaderboard statistics (Practice sandbox only)
         const { data: allSubs } = await supabase
           .from('coding_submissions')
           .select('user_id, question_id, coding_questions(points)')
           .eq('status', 'accepted')
+          .is('quiz_attempt_id', null)
 
         const { count: profilesCount } = await supabase
           .from('profiles')
@@ -367,59 +369,63 @@ export default function ProfilePage() {
     try {
       const img = new Image()
       img.onload = async () => {
+        // Use 600×600 so the stored image is crisp when displayed at any size
+        const SIZE = 600
         const canvas = document.createElement('canvas')
-        canvas.width = 150
-        canvas.height = 150
+        canvas.width = SIZE
+        canvas.height = SIZE
         const ctx = canvas.getContext('2d')
         if (!ctx) return
 
-        // Fill background
-        ctx.fillStyle = '#ffffff'
-        ctx.fillRect(0, 0, 150, 150)
-
-        // Make clipping path for circular crop
+        // Circular clip
         ctx.beginPath()
-        ctx.arc(75, 75, 75, 0, Math.PI * 2, true)
+        ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2, 0, Math.PI * 2, true)
         ctx.closePath()
         ctx.clip()
 
-        // Calculate drawing dimensions to capture zoomed/dragged preview portion
-        const dx = 75 + (dragOffset.x * (150 / 192)) - (75 * scale)
-        const dy = 75 + (dragOffset.y * (150 / 192)) - (75 * scale)
-        const dw = 150 * scale
-        const dh = 150 * scale
+        // Scale drag/offset from the 192px preview to 600px canvas
+        const ratio = SIZE / 192
+        const dx = SIZE / 2 + (dragOffset.x * ratio) - (SIZE / 2 * scale)
+        const dy = SIZE / 2 + (dragOffset.y * ratio) - (SIZE / 2 * scale)
+        const dw = SIZE * scale
+        const dh = SIZE * scale
 
         ctx.drawImage(img, dx, dy, dw, dh)
 
-        const base64Data = canvas.toDataURL('image/jpeg', 0.85)
+        // Convert canvas → Blob (JPEG @ 92% quality — sharp, ~50–80 KB)
+        canvas.toBlob(async (blob) => {
+          if (!blob) { setUploading(false); return }
 
-        // Upload compressed cropped avatar
-        const { data: { session } } = await supabase.auth.getSession()
-        const res = await fetch('/api/auth/update-profile', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({ avatar_url: base64Data })
-        })
+          const formData = new FormData()
+          formData.append('avatar', blob, 'avatar.jpg')
 
-        const result = await res.json()
-        if (result.success) {
-          setProfile((prev: any) => ({ ...prev, avatar_url: base64Data }))
-          setShowAvatarModal(false)
-        } else {
-          alert(`Failed to save avatar: ${result.error}`)
-        }
+          const { data: { session } } = await supabase.auth.getSession()
+          const res = await fetch('/api/auth/update-profile', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${session?.access_token}` },
+            body: formData   // multipart — no Content-Type header needed
+          })
+
+          const result = await res.json()
+          if (result.success) {
+            // Use the CDN URL returned by the API (cache-busted)
+            const newUrl = result.avatar_url
+            setProfile((prev: any) => ({ ...prev, avatar_url: newUrl }))
+            setShowAvatarModal(false)
+          } else {
+            alert(`Failed to save avatar: ${result.error}`)
+          }
+          setUploading(false)
+        }, 'image/jpeg', 0.92)
       }
       img.src = tempAvatarSrc
     } catch (err: any) {
       console.error(err)
       alert('Error saving cropped avatar.')
-    } finally {
       setUploading(false)
     }
   }
+
 
   const handleSaveProfile = async () => {
     if (!profile) return
@@ -458,84 +464,88 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto space-y-8 animate-pulse p-4">
-        {/* Header Skeleton */}
-        <div className="space-y-2">
-          <div className="h-7 w-48 bg-hairline rounded-lg" />
-          <div className="h-4 w-72 bg-hairline-soft rounded-md" />
-        </div>
-
-        {/* Two Card Grid Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Card 1: Solved Problems Skeleton */}
-          <div className="p-6 rounded-3xl bg-canvas border border-hairline min-h-[200px] space-y-4 flex flex-col justify-between">
-            <div className="h-4 w-28 bg-hairline rounded-md" />
-            <div className="flex items-center gap-8 py-2">
-              <div className="w-24 h-24 rounded-full bg-hairline shrink-0" />
-              <div className="flex-1 space-y-4">
-                <div className="space-y-1.5">
-                  <div className="h-3 w-16 bg-hairline rounded" />
-                  <div className="h-2 bg-hairline-soft rounded" />
-                </div>
-                <div className="space-y-1.5">
-                  <div className="h-3 w-16 bg-hairline rounded" />
-                  <div className="h-2 bg-hairline-soft rounded" />
-                </div>
-              </div>
-            </div>
+      <div className="min-h-screen p-8 bg-canvas text-ink">
+        <div className="max-w-5xl mx-auto space-y-8 animate-pulse">
+          {/* Header Skeleton */}
+          <div className="space-y-2">
+            <div className="h-7 w-48 bg-zinc-300 dark:bg-zinc-700 rounded-lg" />
+            <div className="h-4 w-72 bg-zinc-200 dark:bg-zinc-800 rounded-md" />
           </div>
 
-          {/* Card 2: Profile Card Skeleton */}
-          <div className="p-6 rounded-3xl bg-block-lilac/30 border border-hairline min-h-[200px] flex flex-col justify-between">
-            <div className="flex justify-between items-center">
-              <div className="h-4 w-20 bg-hairline rounded-md" />
-              <div className="h-4 w-16 bg-hairline rounded-full" />
-            </div>
-            <div className="flex items-center gap-5 my-4">
-              <div className="w-16 h-16 rounded-full bg-hairline shrink-0" />
-              <div className="space-y-2 flex-1">
-                <div className="h-4 w-32 bg-hairline rounded" />
-                <div className="h-3 w-48 bg-hairline-soft rounded" />
-              </div>
-            </div>
-            <div className="flex items-center gap-8 pt-2">
-              <div className="space-y-1.5">
-                <div className="h-2.5 w-16 bg-hairline rounded" />
-                <div className="h-5 w-12 bg-hairline rounded" />
-              </div>
-              <div className="space-y-1.5">
-                <div className="h-2.5 w-16 bg-hairline rounded" />
-                <div className="h-5 w-12 bg-hairline rounded" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Heatmap Skeleton */}
-        <div className="space-y-3">
-          <div className="h-5 w-40 bg-hairline rounded-md" />
-          <div className="h-32 w-full bg-hairline-soft rounded-3xl" />
-        </div>
-
-        {/* Bottom Split Column Skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <div className="h-5 w-48 bg-hairline rounded-md" />
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="p-4 border border-hairline rounded-2xl bg-canvas h-16 flex items-center justify-between">
-                  <div className="space-y-2">
-                    <div className="h-3.5 w-36 bg-hairline rounded" />
-                    <div className="h-2 w-24 bg-hairline-soft rounded" />
+          {/* Two Card Grid Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Card 1: Solved Problems Skeleton */}
+            <div className="p-6 rounded-3xl bg-white/75 dark:bg-zinc-900/35 border border-hairline backdrop-blur-md shadow-sm min-h-[200px] space-y-4 flex flex-col justify-between">
+              <div className="h-4 w-28 bg-zinc-300 dark:bg-zinc-700 rounded-md" />
+              <div className="flex items-center gap-8 py-2">
+                <div className="w-24 h-24 rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+                <div className="flex-1 space-y-4">
+                  <div className="space-y-1.5">
+                    <div className="h-3 w-16 bg-zinc-300 dark:bg-zinc-700 rounded" />
+                    <div className="h-2 bg-zinc-200 dark:bg-zinc-800 rounded" />
                   </div>
-                  <div className="h-6 w-16 bg-hairline rounded-full" />
+                  <div className="space-y-1.5">
+                    <div className="h-3 w-16 bg-zinc-300 dark:bg-zinc-700 rounded" />
+                    <div className="h-2 bg-zinc-200 dark:bg-zinc-800 rounded" />
+                  </div>
                 </div>
-              ))}
+              </div>
+            </div>
+
+            {/* Card 2: Profile Card Skeleton */}
+            <div className="p-6 rounded-3xl bg-white/75 dark:bg-zinc-900/35 border border-hairline backdrop-blur-md shadow-sm min-h-[200px] flex flex-col justify-between">
+              <div className="flex justify-between items-center">
+                <div className="h-4 w-20 bg-zinc-300 dark:bg-zinc-700 rounded-md" />
+                <div className="h-4 w-16 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
+              </div>
+              <div className="flex items-center gap-5 my-4">
+                <div className="w-16 h-16 rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 w-32 bg-zinc-300 dark:bg-zinc-700 rounded" />
+                  <div className="h-3 w-48 bg-zinc-200 dark:bg-zinc-800 rounded" />
+                </div>
+              </div>
+              <div className="flex items-center gap-8 pt-2">
+                <div className="space-y-1.5">
+                  <div className="h-2.5 w-16 bg-zinc-300 dark:bg-zinc-700 rounded" />
+                  <div className="h-5 w-12 bg-zinc-300 dark:bg-zinc-700 rounded" />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="h-2.5 w-16 bg-zinc-300 dark:bg-zinc-700 rounded" />
+                  <div className="h-5 w-12 bg-zinc-300 dark:bg-zinc-700 rounded" />
+                </div>
+              </div>
             </div>
           </div>
-          <div className="space-y-4">
-            <div className="h-5 w-48 bg-hairline rounded-md" />
-            <div className="h-56 bg-canvas border border-hairline rounded-2xl animate-pulse" />
+
+          {/* Heatmap Skeleton */}
+          <div className="space-y-3">
+            <div className="h-5 w-40 bg-zinc-300 dark:bg-zinc-700 rounded-md" />
+            <div className="p-5 rounded-3xl bg-white/75 dark:bg-zinc-900/35 border border-hairline backdrop-blur-md shadow-sm min-h-[140px] flex items-center justify-center">
+              <div className="w-full h-24 bg-zinc-200 dark:bg-zinc-800 rounded-2xl" />
+            </div>
+          </div>
+
+          {/* Bottom Split Column Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <div className="h-5 w-48 bg-zinc-300 dark:bg-zinc-700 rounded-md" />
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="p-4 border border-hairline rounded-2xl bg-white/75 dark:bg-zinc-900/35 backdrop-blur-md shadow-sm h-16 flex items-center justify-between">
+                    <div className="space-y-2">
+                      <div className="h-3.5 w-36 bg-zinc-300 dark:bg-zinc-700 rounded" />
+                      <div className="h-2 w-24 bg-zinc-200 dark:bg-zinc-800 rounded" />
+                    </div>
+                    <div className="h-6 w-16 bg-zinc-350 dark:bg-zinc-700 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-5 w-48 bg-zinc-300 dark:bg-zinc-700 rounded-md" />
+              <div className="h-56 bg-white/75 dark:bg-zinc-900/35 border border-hairline backdrop-blur-md shadow-sm rounded-2xl animate-pulse" />
+            </div>
           </div>
         </div>
       </div>
@@ -544,7 +554,7 @@ export default function ProfilePage() {
 
   // Active variables (switch dynamically based on whether we are viewing another user's profile)
   const activeProfile = viewedProfile || profile
-  const activeSubmissions = viewedProfile ? viewedSubmissions : submissions
+  const activeSubmissions = (viewedProfile ? viewedSubmissions : submissions).filter((s: any) => !s.quiz_attempt_id)
   const activeHeatmapData = viewedProfile ? viewedHeatmapData : heatmapData
   const activeRank = viewedProfile ? viewedRank : globalRank
   const activePercentile = viewedProfile ? viewedPercentile : globalPercentile
@@ -890,31 +900,38 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex items-center gap-5 my-4">
-              {/* Clickable / Hoverable Avatar Container */}
-              <div 
-                onClick={() => setShowLightbox(true)}
-                title="View Full Size Photo"
-                className="relative w-16 h-16 rounded-full border border-hairline overflow-hidden shadow-md group shrink-0 transition-transform duration-300 hover:scale-[1.04] cursor-pointer"
-              >
-                {activeProfile?.avatar_url ? (
-                  <img
-                    src={activeProfile.avatar_url}
-                    alt="avatar"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-primary flex items-center justify-center font-bold text-on-primary text-2xl">
-                    {activeProfile?.username ? activeProfile.username.substring(0, 2).toUpperCase() : 'PY'}
-                  </div>
-                )}
-                {/* Overlay with Upload Input - only visible if viewing own profile */}
+              {/* Avatar + upload badge wrapper — badge sits OUTSIDE the overflow:hidden circle */}
+              <div className="relative shrink-0 w-16 h-16">
+                {/* Avatar circle — clicking opens lightbox */}
+                <div
+                  onClick={() => setShowLightbox(true)}
+                  title="View full-size photo"
+                  className="w-16 h-16 rounded-full border border-hairline overflow-hidden shadow-md group cursor-pointer transition-transform duration-300 hover:scale-[1.04]"
+                >
+                  {activeProfile?.avatar_url ? (
+                    <img
+                      src={activeProfile.avatar_url}
+                      alt="avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-primary flex items-center justify-center font-bold text-on-primary text-2xl">
+                      {activeProfile?.username ? activeProfile.username.substring(0, 2).toUpperCase() : 'PY'}
+                    </div>
+                  )}
+                </div>
+
+                {/* Permanent camera-badge — only on own profile */}
                 {!viewedProfile && (
-                  <label 
-                    onClick={(e) => e.stopPropagation()} // Prevent lightbox from opening when clicking file input
-                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white text-[9px] font-bold cursor-pointer transition-opacity duration-300 backdrop-blur-md"
+                  <label
+                    title={uploading ? 'Uploading…' : 'Change profile picture'}
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center w-6 h-6 rounded-full bg-primary border-2 border-canvas shadow-md cursor-pointer hover:scale-110 active:scale-95 transition-transform"
                   >
-                    <Camera className="w-4 h-4 mb-1 text-white/90 animate-pulse" />
-                    <span className="tracking-wider uppercase text-[8px]">{uploading ? 'Updating' : 'Upload'}</span>
+                    {uploading ? (
+                      <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Camera className="w-3 h-3 text-white" />
+                    )}
                     <input
                       type="file"
                       accept="image/*"
@@ -981,93 +998,45 @@ export default function ProfilePage() {
               <span>More</span>
             </div>
           </div>
-        </div>
-
-        {/* Split Section: History and Explanation drawer */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Solving History list */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-bold tracking-tight text-ink flex items-center gap-2">
-              <Code2 className="w-5 h-5 text-gray-400" />
-              Submission Log History
-            </h2>
-            
-            <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
-              {activeSubmissions.length === 0 ? (
-                <div className="py-12 text-center text-gray-500 bg-canvas rounded-2xl border border-hairline">
-                  <p className="text-sm">No submissions recorded yet.</p>
-                </div>
-              ) : (
-                activeSubmissions.map((sub) => {
-                  const dateStr = new Date(sub.created_at).toLocaleDateString()
-                  const isAccepted = sub.status === 'accepted'
-
-                  return (
-                    <div
-                      key={sub.id}
-                      onClick={() => handleExplain(sub)}
-                      className={`p-4 rounded-xl bg-canvas border cursor-pointer hover:bg-surface-soft transition-all flex items-center justify-between ${
-                        activeSub?.id === sub.id ? 'border-primary bg-surface-soft' : 'border-hairline'
-                      }`}
-                    >
-                      <div className="space-y-1">
-                        <h3 className="text-sm font-semibold text-ink">{sub.coding_questions?.title || `Question #${sub.question_id}`}</h3>
-                        <p className="text-[10px] text-gray-500 font-light">Submitted {dateStr}</p>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider font-mono border ${
-                          isAccepted 
-                            ? 'bg-block-mint text-emerald-800 border-emerald-200' 
-                            : 'bg-block-pink text-red-800 border-red-200'
-                        }`}>
-                          {sub.status}
-                        </span>
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          </div>
-
-          {/* Explanation panel */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-bold tracking-tight text-ink flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-gray-400" />
-              Line-by-line Code Explanation
-            </h2>
-
-            {activeSub ? (
-              <div className="p-6 rounded-2xl bg-canvas border border-hairline space-y-6 shadow-[0_4px_16px_rgba(0,0,0,0.06)] animate-scale-in">
-                <div>
-                  <h3 className="text-sm font-bold text-ink mb-2">{activeSub.coding_questions?.title}</h3>
-                  <div className="p-4 rounded-xl bg-block-navy border border-white/10 font-mono text-xs text-white max-h-[160px] overflow-y-auto whitespace-pre-wrap">
-                    {activeSub.submitted_code}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest font-mono">Line Review Analysis</h4>
-                  <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2">
-                    {explanation.map((exp, i) => (
-                      <p key={i} className="text-xs text-gray-600 font-light leading-relaxed">
-                        {exp}
-                      </p>
-                    ))}
-                  </div>
-                </div>
+        </div>        {/* Solving History list */}
+        <div className="space-y-4 max-w-3xl">
+          <h2 className="text-lg font-bold tracking-tight text-ink flex items-center gap-2">
+            <Code2 className="w-5 h-5 text-gray-400" />
+            Submission Log History
+          </h2>
+          
+          <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
+            {activeSubmissions.length === 0 ? (
+              <div className="py-12 text-center text-gray-500 bg-canvas rounded-2xl border border-hairline">
+                <p className="text-sm">No submissions recorded yet.</p>
               </div>
             ) : (
-              <div className="h-[300px] flex items-center justify-center rounded-2xl border border-dashed border-hairline bg-surface-soft text-center text-gray-500 px-6">
-                <div>
-                  <Code2 className="w-10 h-10 mx-auto mb-2 text-gray-400" />
-                  <p className="text-xs leading-relaxed max-w-xs font-light">
-                    Select a submission from the history logs on the left to analyze and view line-by-line descriptions.
-                  </p>
-                </div>
-              </div>
+              activeSubmissions.map((sub) => {
+                const dateStr = new Date(sub.created_at).toLocaleDateString()
+                const isAccepted = sub.status === 'accepted'
+
+                return (
+                  <div
+                    key={sub.id}
+                    className="p-4 rounded-xl bg-canvas border border-hairline flex items-center justify-between"
+                  >
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-semibold text-ink">{sub.coding_questions?.title || `Question #${sub.question_id}`}</h3>
+                      <p className="text-[10px] text-gray-500 font-light">Submitted {dateStr}</p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider font-mono border ${
+                        isAccepted 
+                          ? 'bg-block-mint text-emerald-800 border-emerald-200' 
+                          : 'bg-block-pink text-red-800 border-red-200'
+                      }`}>
+                        {sub.status}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })
             )}
           </div>
         </div>

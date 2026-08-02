@@ -133,9 +133,22 @@ export default function SearchUsersPage() {
             </button>
 
             {modalLoading ? (
-              <div className="py-20 text-center flex flex-col items-center justify-center gap-3">
-                <div className="w-8 h-8 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-                <p className="text-xs text-gray-500">Retrieving portfolio metrics...</p>
+              <div className="space-y-6 animate-pulse w-full">
+                <div className="flex items-center gap-5 border-b border-[#232630] pb-5">
+                  <div className="w-14 h-14 rounded-full bg-[#232630]"></div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-5 w-32 bg-[#232630] rounded"></div>
+                    <div className="h-3 w-24 bg-[#232630] rounded"></div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 animate-pulse">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-[#0d0e12] border border-[#232630] space-y-2">
+                      <div className="h-2 w-20 bg-[#232630] rounded mx-auto"></div>
+                      <div className="h-6 w-16 bg-[#232630] rounded mx-auto"></div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="space-y-6 overflow-y-auto pr-1">
@@ -219,9 +232,19 @@ export default function SearchUsersPage() {
 
         {/* Results grid list */}
         {loading ? (
-          <div className="py-20 text-center flex flex-col items-center justify-center gap-3">
-            <div className="w-8 h-8 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-            <p className="text-xs text-gray-500">Querying directory databases...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-pulse">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="p-5 rounded-2xl bg-[#15171e] border border-[#232630] flex justify-between items-center">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="w-10 h-10 rounded-full bg-[#232630] shrink-0"></div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 w-28 bg-[#232630] rounded-md"></div>
+                    <div className="h-3 w-16 bg-[#1b1c24] rounded-md"></div>
+                  </div>
+                </div>
+                <div className="w-5 h-5 bg-[#232630] rounded shrink-0"></div>
+              </div>
+            ))}
           </div>
         ) : search.trim().length >= 2 && results.length === 0 ? (
           <div className="py-20 text-center text-gray-500">

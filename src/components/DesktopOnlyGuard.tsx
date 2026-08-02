@@ -25,8 +25,20 @@ export default function DesktopOnlyGuard({ children }: DesktopOnlyGuardProps) {
   // Avoid flash of mobile screen during initial loading hydration
   if (isMobile === null) {
     return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-canvas flex flex-col p-6 space-y-6 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="flex justify-between items-center pb-4 border-b border-hairline">
+          <div className="h-6 w-32 bg-gray-200 dark:bg-zinc-800 rounded"></div>
+          <div className="h-8 w-8 bg-gray-200 dark:bg-zinc-800 rounded-full"></div>
+        </div>
+        {/* Body Skeleton */}
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 space-y-4">
+            <div className="h-40 bg-gray-200 dark:bg-zinc-800 rounded-2xl"></div>
+            <div className="h-40 bg-gray-200 dark:bg-zinc-800 rounded-2xl"></div>
+          </div>
+          <div className="h-80 bg-gray-200 dark:bg-zinc-800 rounded-2xl"></div>
+        </div>
       </div>
     )
   }

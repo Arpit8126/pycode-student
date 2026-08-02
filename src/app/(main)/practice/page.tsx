@@ -333,17 +333,17 @@ export default function PracticeListPage() {
           </div>
 
           {/* Card 2: Quick Actions Card */}
-          <div className="p-6 rounded-3xl bg-block-lilac border border-hairline flex flex-col justify-between shadow-[0_4px_16px_rgba(0,0,0,0.06)] min-h-[200px]">
+          <div className="p-6 rounded-3xl bg-canvas border border-hairline flex flex-col justify-between shadow-[0_4px_16px_rgba(0,0,0,0.06)] min-h-[200px]">
             <div>
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest font-mono">Quick Actions</h3>
+              <h3 className="text-xs font-bold text-muted uppercase tracking-widest font-mono">Quick Actions</h3>
               <p className="text-sm font-semibold text-ink mt-3">Ready for a new challenge?</p>
-              <p className="text-xs text-gray-600 font-light mt-1 leading-relaxed">
+              <p className="text-xs text-body font-light mt-1 leading-relaxed">
                 Click below to select a random unsolved programming challenge and test your current syntax skills instantly!
               </p>
             </div>
 
             <div className="flex items-center justify-between border-t border-black/5 pt-4 mt-4">
-              <span className="text-[10px] text-gray-500 font-mono tracking-wider uppercase font-bold">
+              <span className="text-[10px] text-muted font-mono tracking-wider uppercase font-bold">
                 Total Solved: {solvePercent}%
               </span>
               <button

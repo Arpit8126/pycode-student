@@ -17,17 +17,17 @@ function formatQuestionTemplate(
   constraints: string[]
 ): string {
   const exampleHtml = examples.map((ex, idx) => `
-<h3 class="text-xs font-bold text-accent-amber dark:text-warning uppercase tracking-wider mb-2 mt-6">Example ${idx + 1}</h3>
-<div class="p-4 rounded-2xl bg-surface-soft border border-hairline font-mono text-xs text-body space-y-1.5 mb-4">
-  <div><span class="text-muted font-sans mr-1">Input:</span> <code>${ex.input}</code></div>
-  <div><span class="text-primary font-bold font-sans mr-1">Output:</span> <code>${ex.output}</code></div>
-  ${ex.explanation ? `<div><span class="text-muted font-sans mr-1">Explanation:</span> ${ex.explanation}</div>` : ''}
+<h3 class="text-xs font-bold text-primary uppercase tracking-wider mb-2 mt-6">Example ${idx + 1}</h3>
+<div class="border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-body">
+  <div><span class="text-gray-700 dark:text-zinc-450 font-sans mr-2">Input:</span> <code>${ex.input}</code></div>
+  <div><span class="text-primary font-bold font-sans mr-2">Output:</span> <code>${ex.output}</code></div>
+  ${ex.explanation ? `<div><span class="text-gray-700 dark:text-zinc-450 font-sans mr-2">Explanation:</span> <span class="text-gray-650 dark:text-zinc-300 font-sans font-light">${ex.explanation}</span></div>` : ''}
 </div>
   `).join('');
 
   const constraintsHtml = constraints.length > 0 ? `
-<h3 class="text-xs font-bold text-accent-amber dark:text-warning uppercase tracking-wider mb-2 mt-6">Constraints</h3>
-<ul class="list-disc pl-5 text-xs text-body space-y-1.5 font-light">
+<h3 class="text-xs font-bold text-primary uppercase tracking-wider mb-2 mt-6">Constraints</h3>
+<ul class="list-disc pl-5 text-xs text-gray-700 dark:text-zinc-300 space-y-1.5 font-light">
   ${constraints.map(c => `<li><code>${c}</code></li>`).join('')}
 </ul>
   ` : '';
@@ -48,14 +48,23 @@ export function enrichQuestionDetails(q: any): string {
   
   // If the description is already complex HTML or multi-line format with Example blocks, return it directly
   if (desc.includes('Example 1') || desc.includes('Input:') || desc.includes('###')) {
-    // Standardize colors in existing complex strings for light mode readability
+    // Standardize colors and strip ugly background boxes to use beautiful left-borders
     return desc
       .replace(/text-gray-300/g, 'text-body')
       .replace(/text-gray-400/g, 'text-muted')
+      .replace(/text-gray-550/g, 'text-muted')
       .replace(/text-gray-500/g, 'text-muted')
-      .replace(/bg-\[\#13141b\]/g, 'bg-surface-soft')
-      .replace(/border-\[\#232630\]/g, 'border-hairline')
-      .replace(/text-\[\#eab308\]/g, 'text-primary font-bold');
+      .replace(/bg-surface-soft/g, '')
+      .replace(/bg-\[\#13141b\]/g, '')
+      .replace(/border-hairline/g, 'border-l-2 border-primary/40 pl-4 py-1')
+      .replace(/border-\[\#232630\]/g, 'border-l-2 border-primary/40 pl-4 py-1')
+      .replace(/p-4/g, 'py-1.5 my-3.5')
+      .replace(/rounded-2xl/g, '')
+      .replace(/text-\[\#eab308\]/g, 'text-primary font-bold')
+      .replace(/text-accent-amber/g, 'text-primary')
+      .replace(/text-warning/g, 'text-primary')
+      .replace(/text-yellow-500/g, 'text-primary')
+      .replace(/text-amber-500/g, 'text-primary');
   }
 
   const titleLower = (q.title || '').toLowerCase()

@@ -61,7 +61,8 @@ export async function updateSession(request: NextRequest) {
 
   // Pages that require login (guests can browse other pages like practice, tests)
   const isAuthRequiredPage =
-    request.nextUrl.pathname.startsWith('/profile')
+    request.nextUrl.pathname.startsWith('/profile') ||
+    request.nextUrl.pathname.startsWith('/results')
 
   // Redirect unauthenticated users to login ONLY for auth-required pages
   if (!user && !isAuthPage && !isCallbackPage && !isPublicApi && isAuthRequiredPage) {

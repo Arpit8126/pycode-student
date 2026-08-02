@@ -47,6 +47,8 @@ export default function PracticeWorkspacePage() {
   const [showGuestModal, setShowGuestModal] = useState(false)
   const [showPracticeFailureModal, setShowPracticeFailureModal] = useState(false)
   const [showCongratsModal, setShowCongratsModal] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -213,14 +215,17 @@ export default function PracticeWorkspacePage() {
   // Copy code to clipboard
   const handleCopyCode = () => {
     navigator.clipboard.writeText(code)
-    alert("Code copied to clipboard!")
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   // Restore starter template
   const handleResetCode = () => {
-    if (confirm('Are you sure you want to reset the editor to the starter template? Your progress will be lost.')) {
-      setCode(question?.starter_code || '')
-    }
+    setShowResetConfirm(true)
+  }
+
+  const performResetCode = () => {
+    setCode(question?.starter_code || '')
   }
 
   // Run student code using Pyodide WASM
@@ -385,10 +390,10 @@ export default function PracticeWorkspacePage() {
       </header>
 
       {/* Main Grid split */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-w-0">
         {/* Left Side: Instructions Panel */}
         {!leftPanelCollapsed && (
-          <section className="w-[40%] border-r border-hairline flex flex-col bg-canvas">
+          <section className="w-[40%] min-w-[320px] border-r border-hairline flex flex-col bg-canvas">
           {/* Tabs */}
           <div className="flex border-b border-hairline bg-surface-soft items-stretch">
             <button
@@ -515,7 +520,7 @@ export default function PracticeWorkspacePage() {
         )}
 
         {/* Right Side: Coding Space + Logs - Styled inside a gorgeous panel that reacts to theme */}
-        <section className="flex-1 flex flex-col bg-canvas border-l border-hairline">
+        <section className="flex-1 flex flex-col bg-canvas border-l border-hairline min-w-0">
           {/* Monaco Editor Header Bar */}
           <div className="h-11 border-b border-hairline bg-surface-soft px-4 flex items-center justify-between animate-fade-in">
             <div className="flex items-center gap-2">
@@ -536,9 +541,25 @@ export default function PracticeWorkspacePage() {
             
             <div className="flex items-center gap-2">
               <button
+                onClick={handleCopyCode}
+                title="Copy Code"
+                className="p-1.5 rounded-full border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
+              >
+                {copied ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500 animate-fade-in" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+
+              <button
+                onClick={handleResetCode}
+                title="Reset Code Template"
+                className="p-1.5 rounded-full border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
+
+              <button
                 onClick={toggleTheme}
                 title="Toggle Theme"
-                className="p-1.5 rounded-full border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card cursor-pointer transition-colors flex items-center justify-center"
+                className="p-1.5 rounded-full border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
               >
                 {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
               </button>
@@ -548,7 +569,7 @@ export default function PracticeWorkspacePage() {
               <button
                 onClick={handleRun}
                 disabled={isRunning || pyodideState !== 'ready'}
-                className="px-4 py-1.5 rounded-full bg-canvas text-ink border border-hairline hover:bg-surface-soft disabled:opacity-50 text-[11px] font-bold cursor-pointer transition-all flex items-center gap-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]"
+                className="px-4 py-1.5 rounded-full bg-canvas text-ink border border-hairline hover:bg-surface-soft hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 text-[11px] font-bold cursor-pointer transition-all duration-200 flex items-center gap-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]"
               >
                 <Play className="w-3 h-3 fill-current" />
                 {isRunning ? 'Running...' : 'Run Code'}
@@ -557,7 +578,7 @@ export default function PracticeWorkspacePage() {
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="px-4 py-1.5 rounded-full bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.15)] animate-fade-in"
+                className="px-4 py-1.5 rounded-full bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98] text-[11px] font-extrabold cursor-pointer transition-all duration-200 flex items-center gap-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.15)] animate-fade-in"
               >
                 <Send className="w-3 h-3" />
                 {isSubmitting ? 'Submitting...' : 'Submit'}
@@ -598,6 +619,7 @@ export default function PracticeWorkspacePage() {
                 autoClosingDelete: 'always',
                 autoClosingOvertype: 'always',
                 matchBrackets: 'never',
+                automaticLayout: true,
               }}
             />
           </div>
@@ -710,7 +732,7 @@ export default function PracticeWorkspacePage() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         {evalStatus === 'success' ? (
-                          <div className="px-3 py-1 rounded-full bg-success/10 border border-success/20 text-success text-xs font-semibold uppercase">
+                          <div className="px-3 py-1 rounded-full bg-semantic-success/10 border border-semantic-success/20 text-semantic-success text-xs font-semibold uppercase">
                             Challenge Accepted
                           </div>
                         ) : (
@@ -836,6 +858,39 @@ export default function PracticeWorkspacePage() {
                 className="w-full py-2.5 rounded-full bg-surface-soft hover:bg-surface-card border border-hairline text-ink text-xs font-semibold transition-all cursor-pointer"
               >
                 Stay on Problem
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Reset Confirmation Modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-canvas border border-hairline p-8 rounded-3xl max-w-sm w-full space-y-6 text-center shadow-xl animate-scale-in text-ink">
+            <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
+              <RefreshCw className="w-5 h-5 animate-spin" style={{ animationDuration: '3s' }} />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold">Reset Editor Code?</h3>
+              <p className="text-xs text-muted font-light leading-relaxed">
+                Are you sure you want to reset the editor to the starter template? All of your unsaved progress on this problem will be lost.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="flex-1 py-2 rounded-full border border-hairline bg-canvas hover:bg-surface-soft hover:scale-[1.02] active:scale-[0.98] text-ink text-xs font-bold transition-all duration-200 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowResetConfirm(false)
+                  performResetCode()
+                }}
+                className="flex-1 py-2 rounded-full bg-primary hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] text-on-primary text-xs font-bold transition-all duration-200 cursor-pointer"
+              >
+                Reset
               </button>
             </div>
           </div>
