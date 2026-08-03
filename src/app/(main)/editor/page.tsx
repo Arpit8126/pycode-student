@@ -240,6 +240,11 @@ export default function CodeEditorPage() {
       if (data.type === 'INIT_READY') {
         setPyodideState('ready')
         setProgressMsg('Environment ready!')
+        // If a dataset was selected while loading, fetch its content now!
+        const activeFile = selectedFileRef.current
+        if (activeFile && workerRef.current) {
+          workerRef.current.postMessage({ type: 'GET_FILE', filename: activeFile })
+        }
       } else if (data.type === 'INIT_ERROR') {
         setPyodideState('error')
         setProgressMsg(data.message || 'Failed to initialize worker.')
@@ -537,9 +542,10 @@ export default function CodeEditorPage() {
   // Read current CSV file contents from Pyodide FS to display preview table
   const loadFilePreview = (filename: keyof typeof DATASETS) => {
     setSelectedFile(filename)
-    if (workerRef.current) {
+    setPreviewRows([])
+    if (workerRef.current && pyodideState === 'ready') {
       workerRef.current.postMessage({ type: 'GET_FILE', filename })
-    } else {
+    } else if (!workerRef.current) {
       const lines = DATASETS[filename].csv.trim().split('\n')
       setPreviewRows(lines.map(line => line.split(',')))
     }
@@ -1050,7 +1056,7 @@ export default function CodeEditorPage() {
               
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleResetFile(selectedFile)}
+                  onClick={() => selectedFile && handleResetFile(selectedFile)}
                   title="Reset dataset back to defaults"
                   className="px-3 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
                 >
@@ -1067,25 +1073,32 @@ export default function CodeEditorPage() {
             </div>
 
             {/* Preview Sheet Table */}
-            <div className="flex-1 border border-hairline rounded-2xl overflow-auto bg-canvas relative">
-              <table className="min-w-full text-left border-collapse text-xs table-auto">
-                <thead>
-                  <tr className="bg-surface-soft border-b border-hairline text-gray-500 font-mono font-semibold uppercase">
-                    {previewRows[0]?.map((col, idx) => (
-                      <th key={idx} className="px-4 py-3 whitespace-nowrap sticky top-0 z-10 bg-surface-soft border-b border-hairline">{col}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-hairline text-body font-mono">
-                  {previewRows.slice(1).map((row, rowIdx) => (
-                    <tr key={rowIdx} className="hover:bg-surface-soft transition-colors">
-                      {row.map((val, cellIdx) => (
-                        <td key={cellIdx} className="px-4 py-2.5 whitespace-nowrap">{val}</td>
+            <div className="flex-1 border border-hairline rounded-2xl overflow-auto bg-canvas relative flex flex-col min-h-0">
+              {previewRows.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center p-8 space-y-3">
+                  <RefreshCw className="w-8 h-8 text-primary animate-spin" />
+                  <p className="text-xs text-gray-500 font-light">Initializing dataset preview...</p>
+                </div>
+              ) : (
+                <table className="min-w-full text-left border-collapse text-xs table-auto">
+                  <thead>
+                    <tr className="bg-surface-soft border-b border-hairline text-gray-500 font-mono font-semibold uppercase">
+                      {previewRows[0]?.map((col, idx) => (
+                        <th key={idx} className="px-4 py-3 whitespace-nowrap sticky top-0 z-10 bg-surface-soft border-b border-hairline">{col}</th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-hairline text-body font-mono">
+                    {previewRows.slice(1).map((row, rowIdx) => (
+                      <tr key={rowIdx} className="hover:bg-surface-soft transition-colors">
+                        {row.map((val, cellIdx) => (
+                          <td key={cellIdx} className="px-4 py-2.5 whitespace-nowrap">{val}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>
