@@ -53,11 +53,13 @@ export default function ExamAttemptPage() {
 
   // Student registration details
   const [fullName, setFullName] = useState('')
+  const [username, setUsername] = useState('')
   const [rollNumber, setRollNumber] = useState('')
   const [courseClass, setCourseClass] = useState('')
   const [section, setSection] = useState('')
   const [attemptId, setAttemptId] = useState<string | null>(null)
   const [isGuest, setIsGuest] = useState(false)
+  const lastWarningTimeRef = useRef<number>(0)
 
   // Custom premium modal dialogs instead of native alert/confirm popups
   const [customDialog, setCustomDialog] = useState<{
@@ -329,12 +331,13 @@ export default function ExamAttemptPage() {
           setIsGuest(false)
           const { data: prof } = await supabase
             .from('profiles')
-            .select('full_name')
+            .select('full_name, username')
             .eq('id', user.id)
             .maybeSingle()
 
-          if (prof && prof.full_name) {
-            setFullName(prof.full_name)
+          if (prof) {
+            if (prof.full_name) setFullName(prof.full_name)
+            if (prof.username) setUsername(prof.username)
           }
 
           // Check for completed attempts (completed_at is not null)
@@ -445,9 +448,11 @@ export default function ExamAttemptPage() {
     }
   }, [answers, quizId])
 
-  // Fullscreen, tab change, focus loss tracking
   useEffect(() => {
     if (!hasStarted) return
+
+    const isBypassed = ['code_with_arpit', 'harsh'].includes(username.toLowerCase())
+    if (isBypassed) return
 
     const handleFullscreenChange = () => {
       const isFS = !!document.fullscreenElement
@@ -502,7 +507,7 @@ export default function ExamAttemptPage() {
       document.removeEventListener('cut', preventCopyPaste, true)
       document.removeEventListener('paste', preventCopyPaste, true)
     }
-  }, [hasStarted, warnings])
+  }, [hasStarted, warnings, username])
 
   // Exam Countdown Timer
   useEffect(() => {
@@ -540,8 +545,10 @@ export default function ExamAttemptPage() {
   }, [hasStarted, timeLeft, quiz])
 
   const triggerWarning = (reason: string) => {
-    // Prevent immediate multiple warning triggering during tab state transition races
-    if (showWarningModal) return
+    // Prevent immediate multiple warning triggering during tab state transition races (2s debounce window)
+    const now = Date.now()
+    if (now - lastWarningTimeRef.current < 2000) return
+    lastWarningTimeRef.current = now
 
     setLastWarningReason(reason)
     const nextWarnings = warnings + 1
@@ -618,7 +625,8 @@ export default function ExamAttemptPage() {
       }
 
       // Request fullscreen
-      if (document.documentElement.requestFullscreen) {
+      const isBypassed = ['code_with_arpit', 'harsh'].includes(username.toLowerCase())
+      if (!isBypassed && document.documentElement.requestFullscreen) {
         await document.documentElement.requestFullscreen()
       }
       setIsFullscreenActive(true)
