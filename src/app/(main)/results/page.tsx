@@ -5,6 +5,18 @@ import { createClient } from '@/lib/supabase/client'
 import { Trophy, Clock, CheckCircle2, XCircle, ShieldAlert, ChevronLeft, Award, BarChart2, Users, Calendar, FileText, BarChart } from 'lucide-react'
 import { LOCAL_QUESTIONS } from '@/lib/localQuestions'
 
+function getQuestionTotalCases(verificationScript?: string): number {
+  if (!verificationScript) return 5
+  const match = verificationScript.match(/exec_globals\[["']total_cases["']\]\s*=\s*(\d+)/)
+  if (match) {
+    return parseInt(match[1], 10)
+  }
+  if (!verificationScript.includes('fn = exec_globals') && !verificationScript.includes('assert fn(')) {
+    return 1
+  }
+  return 5
+}
+
 // ─── Circular progress ring component ──────────────────────────────────────────
 function ScoreRing({ score, total }: { score: number; total: number }) {
   const pct = total > 0 ? Math.round((score / total) * 100) : 0
@@ -72,10 +84,13 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
   let solvedCount = 0
   let totalCases = 0
   let passedCases = 0
-  Object.values(summary).forEach((v: any) => {
-    passedCases += v.passed || 0
-    totalCases += v.total || 0
-    if (v.passed === v.total && v.total > 0) solvedCount++
+  questions.forEach((q: any) => {
+    const qTotal = getQuestionTotalCases(q.verification_script)
+    const check = summary[q.id]
+    const passed = check ? (check.passed || 0) : 0
+    passedCases += passed
+    totalCases += qTotal
+    if (passed === qTotal && qTotal > 0) solvedCount++
   })
   const unsolvedCount = totalQs - solvedCount
   const accuracy = totalCases > 0 ? Math.round((passedCases / totalCases) * 100) : 0
@@ -324,9 +339,11 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
           const entrySummary = entry.student_details?.testCasesSummary || {}
           let passedCases = 0
           let totalCases = 0
-          Object.values(entrySummary).forEach((v: any) => {
-            passedCases += v.passed || 0
-            totalCases += v.total || 0
+          questions.forEach((q: any) => {
+            const qTotal = getQuestionTotalCases(q.verification_script)
+            const passed = entrySummary[q.id]?.passed || 0
+            passedCases += passed
+            totalCases += qTotal
           })
           const entryAccuracy = totalCases > 0 ? Math.round((passedCases / totalCases) * 100) : 0
           return {
@@ -759,21 +776,24 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
           </div>
 
           {/* Per-question breakdown */}
-          {Object.keys(summary).length > 0 && (
+          {questions.length > 0 && (
             <div className="p-5 rounded-2xl border border-hairline bg-white dark:bg-zinc-900/40 shadow-sm space-y-3">
               <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-650 dark:text-zinc-355 font-mono">Question Breakdown</h3>
               <div className="space-y-2">
-                {Object.entries(summary).map(([qId, data]: [string, any], i) => {
-                  const q = questions.find((q: any) => String(q.id) === String(qId))
-                  const qPct = data.total > 0 ? Math.round((data.passed / data.total) * 100) : 0
+                {questions.map((q: any, i: number) => {
+                  const check = summary[q.id]
+                  const passed = check ? (check.passed || 0) : 0
+                  const total = getQuestionTotalCases(q.verification_script)
+                  const qPct = total > 0 ? Math.round((passed / total) * 100) : 0
+                  const isCorrect = passed === total && total > 0
                   return (
-                    <div key={qId} className="flex items-center gap-3 p-3 rounded-xl border border-hairline bg-surface-soft">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${data.passed === data.total && data.total > 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
-                        {data.passed === data.total && data.total > 0 ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                    <div key={q.id} className="flex items-center gap-3 p-3 rounded-xl border border-hairline bg-surface-soft">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isCorrect ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                        {isCorrect ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-ink truncate">{q?.title || `Question ${i + 1}`}</p>
-                        <p className="text-[11px] text-gray-600 dark:text-zinc-400 font-mono font-bold">{data.passed}/{data.total} test cases · {q?.points || 0} pts</p>
+                        <p className="text-xs font-semibold text-ink truncate">{q.title || `Question ${i + 1}`}</p>
+                        <p className="text-[11px] text-gray-600 dark:text-zinc-400 font-mono font-bold">{passed}/{total} test cases · {q.points || 0} pts</p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className={`text-xs font-bold font-mono ${qPct === 100 ? 'text-emerald-500' : qPct > 0 ? 'text-amber-500' : 'text-rose-500'}`}>{qPct}%</p>
@@ -831,8 +851,10 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
                   })()
                   const entrySummary = entry.student_details?.testCasesSummary || {}
                   let entryQsSolved = 0
-                  Object.values(entrySummary).forEach((v: any) => {
-                    if (v.passed === v.total && v.total > 0) entryQsSolved++
+                  questions.forEach((q: any) => {
+                    const qTotal = getQuestionTotalCases(q.verification_script)
+                    const passed = entrySummary[q.id]?.passed || 0
+                    if (passed === qTotal && qTotal > 0) entryQsSolved++
                   })
 
                   return (
@@ -921,26 +943,10 @@ export default function ResultsPage() {
         .order('completed_at', { ascending: false })
 
       if (attemptData) {
-        let scoreSum = 0
-        let attemptedCount = 0
-        let passedCases = 0
-        let encounteredCases = 0
-
-        attemptData.forEach((a: any) => {
-          if (a.completed_at) {
-            attemptedCount++
-            scoreSum += (a.score || 0)
-            const summary = a.student_details?.testCasesSummary || {}
-            Object.values(summary).forEach((tc: any) => {
-              passedCases += (tc.passed || 0)
-              encounteredCases += (tc.total || 0)
-            })
-          }
-        })
-        
-        setTotalAttempted(attemptedCount)
-        setTotalScore(scoreSum)
-        setOverallAccuracy(encounteredCases > 0 ? Math.round((passedCases / encounteredCases) * 100) : 0)
+        // Will be calculated dynamically after fetching quiz/questions data
+        setTotalAttempted(0)
+        setTotalScore(0)
+        setOverallAccuracy(0)
       } else {
         setTotalAttempted(0)
         setTotalScore(0)
@@ -1012,21 +1018,41 @@ export default function ResultsPage() {
       if (allQuestionIds.length > 0) {
         const { data: qData } = await supabase
           .from('coding_questions')
-          .select('id, title, points, difficulty')
+          .select('id, title, points, difficulty, verification_script')
           .in('id', allQuestionIds)
         if (qData) qData.forEach((q: any) => { questionMap[q.id] = q })
       }
 
       // Build results array
       const built: any[] = []
+      let scoreSum = 0
+      let attemptedCount = 0
+      let passedCases = 0
+      let encounteredCases = 0
+
       attemptData.forEach((attempt: any) => {
         const quiz = quizMap[attempt.quiz_id]
         if (!quiz) return
         const questions = (quiz.coding_question_ids || []).map((id: number) => questionMap[id]).filter(Boolean)
+        
+        attemptedCount++
+        scoreSum += (attempt.score || 0)
+        
+        const summary = attempt.student_details?.testCasesSummary || {}
+        questions.forEach((q: any) => {
+          const qTotal = getQuestionTotalCases(q.verification_script)
+          const passed = summary[q.id]?.passed || 0
+          passedCases += passed
+          encounteredCases += qTotal
+        })
+
         built.push({ quiz, attempt, questions })
       })
 
       setResults(built)
+      setTotalAttempted(attemptedCount)
+      setTotalScore(scoreSum)
+      setOverallAccuracy(encounteredCases > 0 ? Math.round((passedCases / encounteredCases) * 100) : 0)
     } catch (e) {
       console.error(e)
     } finally {
@@ -1154,9 +1180,11 @@ export default function ResultsPage() {
               const summary = attempt.student_details?.testCasesSummary || {}
               let passedCases = 0
               let totalCases = 0
-              Object.values(summary).forEach((v: any) => {
-                passedCases += v.passed || 0
-                totalCases += v.total || 0
+              questions.forEach((q: any) => {
+                const qTotal = getQuestionTotalCases(q.verification_script)
+                const passed = summary[q.id]?.passed || 0
+                passedCases += passed
+                totalCases += qTotal
               })
               const pct = totalCases > 0 ? Math.round((passedCases / totalCases) * 100) : 0
               const timeTaken = (() => {

@@ -688,6 +688,18 @@ export default function ExamAttemptPage() {
     }, 50)
   }
 
+  const getQuestionTotalCases = (verificationScript?: string): number => {
+    if (!verificationScript) return 5
+    const match = verificationScript.match(/exec_globals\[["']total_cases["']\]\s*=\s*(\d+)/)
+    if (match) {
+      return parseInt(match[1], 10)
+    }
+    if (!verificationScript.includes('fn = exec_globals') && !verificationScript.includes('assert fn(')) {
+      return 1
+    }
+    return 5
+  }
+
   // End Exam and submit
   const handleSubmitQuiz = async (auto = false, disqualified = false) => {
     setIsSubmitting(true)
@@ -723,20 +735,21 @@ export default function ExamAttemptPage() {
 
       const testCasesSummary: Record<number, { passed: number, total: number }> = {}
       questions.forEach((q) => {
+        const qTotal = getQuestionTotalCases(q.verification_script)
         const isSubmitted = !!submittedQuestions[q.id]
         if (!isSubmitted) {
-          testCasesSummary[q.id] = { passed: 0, total: 5 }
+          testCasesSummary[q.id] = { passed: 0, total: qTotal }
           return
         }
 
         const check = testChecks[q.id]
         if (check && check.total > 0) {
-          testCasesSummary[q.id] = { passed: check.passed, total: check.total }
+          testCasesSummary[q.id] = { passed: check.passed, total: qTotal }
         } else {
           const outcome = evalStates[q.id]
           testCasesSummary[q.id] = { 
-            passed: outcome === 'success' ? 5 : 0, 
-            total: 5 
+            passed: outcome === 'success' ? qTotal : 0, 
+            total: qTotal 
           }
         }
       })
