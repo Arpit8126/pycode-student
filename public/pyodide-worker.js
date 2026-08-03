@@ -17,7 +17,8 @@ self.onmessage = async (e) => {
           postMessage({ type: 'STDERR', text });
         }
       });
-      await pyodide.loadPackage(['pandas', 'numpy', 'matplotlib', 'scikit-learn', 'seaborn']);
+      await pyodide.loadPackage(['pandas', 'numpy', 'matplotlib', 'scikit-learn', 'micropip']);
+      await pyodide.runPythonAsync('import micropip; await micropip.install("seaborn")');
       
       // Load default CSV files passed from main thread
       if (data.datasets) {

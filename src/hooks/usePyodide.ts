@@ -75,9 +75,11 @@ export function usePyodide() {
         setState('loading_packages')
         setProgressMsg('Downloading Pandas, NumPy, Matplotlib & Seaborn packages...')
 
-        // 3. Pre-load standard libraries (NumPy, Pandas, Matplotlib, Seaborn)
-        // Note: Seaborn is pure Python and can be loaded dynamically, but Pandas/Numpy need compiled C extensions.
-        await pyodide.loadPackage(['pandas', 'numpy', 'matplotlib', 'scikit-learn', 'seaborn'])
+        // 3. Pre-load standard libraries (NumPy, Pandas, Matplotlib, Scikit-learn, Micropip)
+        await pyodide.loadPackage(['pandas', 'numpy', 'matplotlib', 'scikit-learn', 'micropip'])
+
+        // 4. Install pure Python Seaborn library using micropip
+        await pyodide.runPythonAsync('import micropip; await micropip.install("seaborn")')
 
         if (!active) return
         
