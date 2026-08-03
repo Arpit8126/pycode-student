@@ -6,10 +6,10 @@ import Link from 'next/link'
 import Editor, { Monaco, useMonaco } from '@monaco-editor/react'
 import { usePyodide } from '@/hooks/usePyodide'
 import { LOCAL_QUESTIONS } from '@/lib/localQuestions'
-import { DATASET_SAMPLES } from '@/lib/datasetSamples'
+import { DEFAULT_DATASETS } from '@/lib/datasetGenerator'
 import { createClient } from '@/lib/supabase/client'
 import { enrichQuestionDetails } from '@/lib/questionFormatter'
-import { ArrowLeft, Play, RefreshCw, BarChart, Database, Terminal, FileText, CheckCircle, XCircle, Copy, Send, Settings, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, BarChart, Database, Terminal, FileText, CheckCircle, XCircle, Copy, Send, Settings, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, X } from 'lucide-react'
 
 export default function PracticeWorkspacePage() {
   const params = useParams()
@@ -22,6 +22,10 @@ export default function PracticeWorkspacePage() {
   const [question, setQuestion] = useState<any>(null)
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(true)
+
+  // CSV Modal preview states
+  const [showCsvModal, setShowCsvModal] = useState(false)
+  const [csvPreviewRows, setCsvPreviewRows] = useState<string[][]>([])
 
   // Runner states
   const { state: pyodideState, progressMsg: pyodideProgress, runCode } = usePyodide()
@@ -353,7 +357,18 @@ export default function PracticeWorkspacePage() {
     )
   }
 
-  const sample = question?.dataset_name ? DATASET_SAMPLES[question.dataset_name] : null
+  const sample = question?.dataset_name ? DEFAULT_DATASETS[question.dataset_name] : null
+
+  const handleOpenCsvPreview = () => {
+    if (!question?.dataset_name || !DEFAULT_DATASETS[question.dataset_name]) return
+    const csvContent = DEFAULT_DATASETS[question.dataset_name].csv
+    const lines = csvContent.trim().split('\n')
+    const parsedRows = lines.map((line: string) => {
+      return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, ''))
+    })
+    setCsvPreviewRows(parsedRows)
+    setShowCsvModal(true)
+  }
 
   return (
     <div className="h-screen w-full flex flex-col bg-canvas font-sans text-ink select-none">
@@ -456,62 +471,36 @@ export default function PracticeWorkspacePage() {
                 />
               </article>
             ) : (
-              <div className="space-y-6 text-xs text-ink">
-                <div>
-                  <h3 className="text-sm font-bold text-ink">Dataset: {sample?.name}</h3>
-                  <p className="text-xs text-gray-500 mt-1 font-light leading-relaxed">{sample?.description}</p>
-                </div>
-
-                {/* Schema Table */}
-                <div>
-                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono mb-2">Column Schemas</h4>
-                  <div className="border border-hairline rounded-xl overflow-hidden">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr className="bg-surface-soft text-gray-500 border-b border-hairline">
-                          <th className="px-3 py-2 font-mono text-[9px] uppercase tracking-wider">Column</th>
-                          <th className="px-3 py-2 font-mono text-[9px] uppercase tracking-wider">Type</th>
-                          <th className="px-3 py-2 font-mono text-[9px] uppercase tracking-wider">Description</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-hairline">
-                        {sample?.columns.map((c, i) => (
-                          <tr key={i} className="hover:bg-surface-soft">
-                            <td className="px-3 py-2 font-mono text-primary font-bold">{c.column}</td>
-                            <td className="px-3 py-2 font-mono text-gray-400">{c.type}</td>
-                            <td className="px-3 py-2 text-gray-500 font-light">{c.description}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              <div className="space-y-6 text-xs text-ink h-full flex flex-col justify-center py-8">
+                <div className="p-8 rounded-3xl border border-hairline bg-surface-soft flex flex-col items-center justify-center text-center space-y-5 shadow-sm hover:border-primary/30 transition-all max-w-md mx-auto">
+                  <div className="p-4 bg-primary/10 rounded-2xl text-primary animate-pulse">
+                    <Database className="w-8 h-8" />
                   </div>
-                </div>
-
-                {/* Preview Grid */}
-                <div>
-                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono mb-2">First Rows Preview</h4>
-                  <div className="border border-hairline rounded-xl overflow-x-auto">
-                    <table className="min-w-full text-left">
-                      <thead>
-                        <tr className="bg-surface-soft text-gray-500 border-b border-hairline font-mono text-[9px] uppercase tracking-wider">
-                          {sample?.columns.slice(0, 5).map((c, i) => (
-                            <th key={i} className="px-3 py-2">{c.column}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-hairline font-mono">
-                        {sample?.rows.map((row, i) => (
-                          <tr key={i} className="hover:bg-surface-soft">
-                            {sample?.columns.slice(0, 5).map((col, idx) => (
-                              <td key={idx} className="px-3 py-2 text-gray-600 truncate max-w-[120px]">
-                                {row[col.column] === null ? 'NaN' : String(row[col.column])}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-extrabold text-ink">Active Dataset File</h3>
+                    <p className="text-xs text-gray-500 font-light leading-relaxed">
+                      This challenge executes inside a Python sandbox loaded with:
+                    </p>
+                    <div className="mt-1">
+                      <span className="text-xs font-mono text-primary font-bold px-3 py-1.5 rounded-xl bg-canvas border border-hairline inline-block shadow-sm select-all">
+                        {question?.dataset_name || 'No dataset assigned'}
+                      </span>
+                    </div>
                   </div>
+                  
+                  <p className="text-xs text-gray-500 max-w-xs font-light leading-relaxed">
+                    Click the button below to view the complete CSV dataset with full horizontal and vertical scrolling.
+                  </p>
+                  
+                  {question?.dataset_name && DEFAULT_DATASETS[question.dataset_name] && (
+                    <button
+                      onClick={handleOpenCsvPreview}
+                      className="w-full py-3 bg-primary hover:bg-primary-hover text-white font-extrabold rounded-2xl active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer text-xs"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      Preview Full File
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -892,6 +881,72 @@ export default function PracticeWorkspacePage() {
               >
                 Reset
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full CSV Modal Preview */}
+      {showCsvModal && question?.dataset_name && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+          <div className="bg-canvas border border-hairline rounded-3xl w-full max-w-6xl h-[80vh] flex flex-col overflow-hidden shadow-2xl animate-scale-in">
+            {/* Header */}
+            <div className="p-5 border-b border-hairline flex items-center justify-between bg-surface-soft">
+              <div className="flex items-center gap-3 text-ink">
+                <div className="p-2 bg-primary/10 rounded-xl text-primary">
+                  <Database className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm text-ink">{question.dataset_name}</h3>
+                  <p className="text-[10px] text-gray-500 font-mono">
+                    {csvPreviewRows.length > 0 ? `${csvPreviewRows.length - 1} records loaded` : 'Loading...'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowCsvModal(false)
+                  setCsvPreviewRows([])
+                }}
+                className="p-2 rounded-xl text-gray-500 hover:text-ink hover:bg-surface-card transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Table wrapper with scrollability */}
+            <div className="flex-1 overflow-auto p-6 bg-canvas min-h-0 relative flex flex-col">
+              {csvPreviewRows.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center space-y-3">
+                  <RefreshCw className="w-8 h-8 text-primary animate-spin" />
+                  <p className="text-xs text-gray-500 font-light">Loading dataset contents...</p>
+                </div>
+              ) : (
+                <div className="flex-1 border border-hairline rounded-2xl overflow-auto bg-canvas relative flex flex-col min-h-0">
+                  <table className="min-w-full text-left border-collapse text-xs table-auto">
+                    <thead>
+                      <tr className="bg-surface-soft border-b border-hairline text-gray-500 font-mono font-semibold uppercase">
+                        {csvPreviewRows[0]?.map((col, idx) => (
+                          <th key={idx} className="px-4 py-3 whitespace-nowrap sticky top-0 z-10 bg-surface-soft border-b border-hairline">
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-hairline text-body font-mono">
+                      {csvPreviewRows.slice(1).map((row, rowIdx) => (
+                        <tr key={rowIdx} className="hover:bg-surface-soft transition-colors">
+                          {row.map((val, cellIdx) => (
+                            <td key={cellIdx} className="px-4 py-2.5 whitespace-nowrap">
+                              {val === '' || val === null || val === undefined ? 'NaN' : val}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         </div>

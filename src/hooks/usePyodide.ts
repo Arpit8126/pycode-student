@@ -1,23 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { DATASET_SAMPLES } from '@/lib/datasetSamples'
-
-function convertToCSV(rows: any[], columns: string[]): string {
-  const header = columns.join(',');
-  const body = rows.map(row => 
-    columns.map(col => {
-      let val = row[col];
-      if (val === null || val === undefined) return '';
-      if (typeof val === 'string') {
-        val = val.replace(/"/g, '""');
-        return `"${val}"`;
-      }
-      return String(val);
-    }).join(',')
-  ).join('\n');
-  return header + '\n' + body;
-}
+import { DEFAULT_DATASETS } from '@/lib/datasetGenerator'
 
 declare global {
   interface Window {
@@ -109,29 +93,13 @@ export function usePyodide() {
     const py = pyodideRef.current
 
     // Write all datasets to Pyodide virtual filesystem
-    await Promise.all(Object.keys(DATASET_SAMPLES).map(async filename => {
-      if (filename === 'titanic.csv') {
-        try {
-          const res = await fetch('https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv')
-          if (res.ok) {
-            const text = await res.text()
-            py.FS.writeFile(filename, text)
-            return
-          }
-        } catch (err) {
-          console.warn("Failed to fetch full titanic.csv, falling back to local sample:", err)
-        }
-      }
-      
-      const ds = DATASET_SAMPLES[filename]
-      const cols = ds.columns.map(c => c.column)
-      const csvStr = convertToCSV(ds.rows, cols)
+    Object.keys(DEFAULT_DATASETS).forEach(filename => {
       try {
-        py.FS.writeFile(filename, csvStr)
+        py.FS.writeFile(filename, DEFAULT_DATASETS[filename].csv)
       } catch (err) {
         console.error(`Failed to write dataset ${filename} to Pyodide FS:`, err)
       }
-    }))
+    })
 
     // Set up headless canvas interceptor and output streams in virtual filesystem
     const wrapperCode = `
