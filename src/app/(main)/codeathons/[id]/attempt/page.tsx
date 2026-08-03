@@ -471,6 +471,8 @@ export default function ExamAttemptPage() {
     }
 
     const handleBlur = () => {
+      // If tab is already hidden, visibilitychange listener handles it to avoid duplicate warnings
+      if (document.visibilityState === 'hidden') return
       triggerWarning('Focus loss detected (exited browser workspace).')
     }
 
@@ -545,11 +547,6 @@ export default function ExamAttemptPage() {
   }, [hasStarted, timeLeft, quiz])
 
   const triggerWarning = (reason: string) => {
-    // Prevent immediate multiple warning triggering during tab state transition races (2s debounce window)
-    const now = Date.now()
-    if (now - lastWarningTimeRef.current < 2000) return
-    lastWarningTimeRef.current = now
-
     setLastWarningReason(reason)
     const nextWarnings = warnings + 1
     setWarnings(nextWarnings)
