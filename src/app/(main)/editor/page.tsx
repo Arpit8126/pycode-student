@@ -1065,7 +1065,7 @@ export default function CodeEditorPage() {
       {/* Matplotlib Visualization Overlay Modal */}
       {showPlotModal && plotUrl && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-canvas border border-hairline p-6 rounded-3xl max-w-2xl w-full flex flex-col items-center justify-center relative shadow-2xl animate-scale-in">
+          <div className="bg-canvas border border-hairline p-6 rounded-3xl max-w-4xl w-full flex flex-col items-center justify-center relative shadow-2xl animate-scale-in">
             <button
               onClick={() => {
                 setShowPlotModal(false)
@@ -1082,8 +1082,8 @@ export default function CodeEditorPage() {
                 <CheckCircle className="w-4 h-4 text-success" />
                 Visualization Output
               </h3>
-              <div className="border border-hairline rounded-2xl overflow-hidden bg-white p-4">
-                <img src={plotUrl} alt="Matplotlib Plot Output" className="max-h-[380px] object-contain rounded-lg mx-auto" />
+              <div className="border border-hairline rounded-2xl overflow-hidden bg-white p-2">
+                <img src={plotUrl} alt="Matplotlib Plot Output" className="w-full max-h-[520px] object-contain rounded-lg mx-auto" />
               </div>
             </div>
           </div>
