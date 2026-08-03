@@ -164,7 +164,14 @@ imgs[0] if imgs else ""
 
       // Read current contents of datasets to return to main thread
       const updatedFiles = {};
-      const filenames = ['dirty_store_transactions.csv', 'student_performance_factors.csv', 'sensor_readings_noisy.csv'];
+      const filenames = [
+        'dirty_store_transactions.csv',
+        'student_performance_factors.csv',
+        'sensor_readings_noisy.csv',
+        'store_dim_customers.csv',
+        'corporate_financials_wide.csv',
+        'high_frequency_stock_ticks.csv'
+      ];
       filenames.forEach(filename => {
         try {
           const content = pyodide.FS.readFile(filename, { encoding: 'utf8' });
@@ -178,7 +185,14 @@ imgs[0] if imgs else ""
     } catch (err) {
       // Read current contents of datasets to return to main thread even on error
       const updatedFiles = {};
-      const filenames = ['dirty_store_transactions.csv', 'student_performance_factors.csv', 'sensor_readings_noisy.csv'];
+      const filenames = [
+        'dirty_store_transactions.csv',
+        'student_performance_factors.csv',
+        'sensor_readings_noisy.csv',
+        'store_dim_customers.csv',
+        'corporate_financials_wide.csv',
+        'high_frequency_stock_ticks.csv'
+      ];
       filenames.forEach(filename => {
         try {
           const content = pyodide.FS.readFile(filename, { encoding: 'utf8' });

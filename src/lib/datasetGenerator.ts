@@ -379,6 +379,202 @@ function generateSensorReadingsNoisy(): string {
   return rows.join('\n')
 }
 
+function generateStoreDimCustomers(): string {
+  const rand = createRandom(101)
+  const headers = ['CustomerID', 'SignupDate', 'VIP_Tier', 'Region', 'LifetimePoints']
+  const vipTiers = ['Bronze', 'Silver', 'Gold', 'Platinum']
+  const regions = ['North', 'East', 'West', 'South', 'Central']
+  const rows: string[] = [headers.join(',')]
+
+  // We want to generate ~350 customer IDs.
+  // Let's create a pool of unique CustomerIDs
+  const idPool: string[] = []
+  // Let's seed the pool with IDs from C1000 to C1499 (transactions pull from this range)
+  // Let's make sure some IDs are outside the transaction pool (e.g., C1500 to C1600) to test outer joins
+  for (let id = 1000; id < 1550; id++) {
+    idPool.push(`C${id}`)
+  }
+
+  // Shuffle pool deterministically
+  for (let i = idPool.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [idPool[i], idPool[j]] = [idPool[j], idPool[i]]
+  }
+
+  // Select 350 unique customer IDs
+  const activeIds = idPool.slice(0, 350)
+  // Sort them so they look like a clean database dimension table
+  activeIds.sort()
+
+  for (let i = 0; i < activeIds.length; i++) {
+    const custId = activeIds[i]
+
+    // SignupDate
+    const yr = 2021 + Math.floor(rand() * 5) // 2021 to 2025
+    const mo = String(1 + Math.floor(rand() * 12)).padStart(2, '0')
+    const dy = String(1 + Math.floor(rand() * 28)).padStart(2, '0')
+    let signupDate: string = `${yr}-${mo}-${dy}`
+    if (rand() < 0.05) signupDate = '' // missing
+
+    // VIP Tier
+    let vip = vipTiers[Math.floor(rand() * vipTiers.length)]
+    if (rand() < 0.1) vip = '' // No VIP tier
+    else if (rand() < 0.05) vip = vip.toLowerCase() // noise
+
+    // Region
+    let reg = regions[Math.floor(rand() * regions.length)]
+    if (rand() < 0.05) reg = '' // missing
+    else if (rand() < 0.05) reg = '  ' + reg + ' ' // spacing noise
+
+    // LifetimePoints
+    let points: string | number = Math.floor(rand() * 15000)
+    if (rand() < 0.06) points = '' // missing
+    else if (rand() < 0.02) points = -100 // negative outlier
+    else if (rand() < 0.02) points = 999999 // excessive points outlier
+
+    const row = [custId, signupDate, vip, reg, points]
+    rows.push(row.join(','))
+  }
+
+  return rows.join('\n')
+}
+
+function generateCorporateFinancialsWide(): string {
+  const rand = createRandom(2022)
+  const headers = [
+    'Company', 'Year',
+    'Q1_Revenue', 'Q1_Profit',
+    'Q2_Revenue', 'Q2_Profit',
+    'Q3_Revenue', 'Q3_Profit',
+    'Q4_Revenue', 'Q4_Profit'
+  ]
+  const companies = [
+    'TechCorp', 'RetailGiant', 'BioPharma', 'EnergyFlow', 'AutoWorks',
+    'FoodWay', 'FinanceTrust', 'CloudNine', 'GreenPower', 'HeavyMetal',
+    'GlobalLogistics', 'SpaceLaunch', 'MediaNet', 'SafeGuard', 'SmartHome'
+  ]
+  const rows: string[] = [headers.join(',')]
+
+  // 15 companies over years 2012 to 2025 (14 years).
+  // Some companies started later, e.g. CloudNine in 2018, SpaceLaunch in 2016.
+  for (const company of companies) {
+    let startYear = 2012
+    if (company === 'CloudNine') startYear = 2018
+    else if (company === 'SpaceLaunch') startYear = 2016
+    else if (company === 'SmartHome') startYear = 2015
+
+    for (let yr = startYear; yr <= 2025; yr++) {
+      // Base revenue scale for the company
+      let scale = 100
+      if (company === 'TechCorp') scale = 800
+      else if (company === 'RetailGiant') scale = 1500
+      else if (company === 'SpaceLaunch') scale = 50
+      else if (company === 'EnergyFlow') scale = 1200
+
+      // Add Year growth
+      const growthMultiplier = 1 + (yr - startYear) * 0.08
+      const baseRev = scale * growthMultiplier
+
+      const quarterlyData: (string | number)[] = [company, yr]
+
+      for (let q = 1; q <= 4; q++) {
+        // Seasonality variation
+        const season = q === 4 ? 1.3 : q === 1 ? 0.9 : 1.0
+        let rev = baseRev * season * (0.85 + rand() * 0.3)
+        let profitMargin = 0.05 + rand() * 0.15 // 5% to 20%
+        if (company === 'TechCorp') profitMargin += 0.08
+        if (company === 'FinanceTrust') profitMargin += 0.12
+        if (company === 'SpaceLaunch') profitMargin -= 0.10 // heavy losses early on
+
+        let profit = rev * profitMargin
+
+        // Format to 2 decimal places
+        let revVal: string | number = parseFloat(rev.toFixed(2))
+        let profitVal: string | number = parseFloat(profit.toFixed(2))
+
+        // Inject nulls & anomalies
+        if (yr === 2025 && q === 4 && rand() < 0.8) {
+          // Q4 2025 not closed yet for many companies
+          revVal = ''
+          profitVal = ''
+        } else {
+          if (rand() < 0.04) revVal = ''
+          if (rand() < 0.04) profitVal = ''
+          // Extreme outliers
+          if (rand() < 0.005) profitVal = -1000.00 // heavy audit correction loss
+          if (rand() < 0.005) revVal = 0.00 // error
+        }
+
+        quarterlyData.push(revVal)
+        quarterlyData.push(profitVal)
+      }
+
+      rows.push(quarterlyData.join(','))
+    }
+  }
+
+  return rows.join('\n')
+}
+
+function generateHighFrequencyStockTicks(): string {
+  const rand = createRandom(777)
+  const headers = ['Timestamp', 'Ticker', 'Price', 'Volume']
+  const tickers = ['AAPL', 'TSLA', 'MSFT']
+  const basePrices: Record<string, number> = { 'AAPL': 180.00, 'TSLA': 240.00, 'MSFT': 350.00 }
+  const currentPrices = { ...basePrices }
+  
+  const rows: string[] = [headers.join(',')]
+  
+  // Date: Aug 3, 2026, starting at market open 09:30:00.000
+  let currentTimeMs = new Date(2026, 7, 3, 9, 30, 0).getTime()
+
+  for (let i = 1; i <= 620; i++) {
+    // Increment time by 200ms to 3000ms (high frequency ticks)
+    const timeStep = Math.floor(200 + rand() * 2800)
+    currentTimeMs += timeStep
+
+    const dateObj = new Date(currentTimeMs)
+    const yr = dateObj.getFullYear()
+    const mo = String(dateObj.getMonth() + 1).padStart(2, '0')
+    const dy = String(dateObj.getDate()).padStart(2, '0')
+    const hr = String(dateObj.getHours()).padStart(2, '0')
+    const mn = String(dateObj.getMinutes()).padStart(2, '0')
+    const sc = String(dateObj.getSeconds()).padStart(2, '0')
+    const ms = String(dateObj.getMilliseconds()).padStart(3, '0')
+    // Generate microsecond format timestamp (very common in high frequency trading logs)
+    const microsec = String(Math.floor(rand() * 1000)).padStart(3, '0')
+    const timestampStr = `${yr}-${mo}-${dy} ${hr}:${mn}:${sc}.${ms}${microsec}`
+
+    // Select a ticker randomly
+    const ticker = tickers[Math.floor(rand() * tickers.length)]
+    
+    // Calculate random walk price step
+    const volatility = ticker === 'TSLA' ? 0.002 : 0.0008
+    const priceChangePercent = (rand() * 2 - 1) * volatility
+    currentPrices[ticker] = currentPrices[ticker] * (1 + priceChangePercent)
+    
+    let price: string | number = parseFloat(currentPrices[ticker].toFixed(4))
+    let volume: string | number = Math.floor(100 + rand() * 4900)
+
+    // Inject outliers & gaps
+    if (i === 150 && ticker === 'TSLA') {
+      price = price * 1.05 // sudden 5% surge (volatility outlier)
+    } else if (i === 320 && ticker === 'AAPL') {
+      price = price * 0.94 // sudden 6% crash (volatility outlier)
+    } else if (i === 480) {
+      price = 0.00 // pricing error
+    }
+
+    if (rand() < 0.04) price = '' // missing price tick
+    if (rand() < 0.05) volume = '' // missing volume tick
+
+    const row = [timestampStr, ticker, price, volume]
+    rows.push(row.join(','))
+  }
+
+  return rows.join('\n')
+}
+
 export const DEFAULT_DATASETS: Record<string, DatasetItem> = {
   'dirty_store_transactions.csv': {
     name: 'dirty_store_transactions.csv',
@@ -403,5 +599,23 @@ export const DEFAULT_DATASETS: Record<string, DatasetItem> = {
     description: 'Time-series logs from IoT sensors displaying cyclic diurnal temperature and humidity readings. Includes random noise, sensor dropouts (nulls), extreme hardware spikes (e.g., -99.0C temperature), and inconsistent time formats. Perfect for pd.to_datetime, rolling mean smoothing, resample aggregation, and line charts.',
     headers: ['Timestamp', 'SensorID', 'Temperature', 'Humidity', 'Pressure', 'Status'],
     csv: generateSensorReadingsNoisy()
+  },
+  'store_dim_customers.csv': {
+    name: 'store_dim_customers.csv',
+    description: 'Relational dimension table for customers. Contains CustomerID (matching dirty_store_transactions.csv), signup date, VIP tier rating, regional assignment, and lifetime reward points. Excellent for testing inner/left/right/outer joins, lookup merging, and missing customer validations.',
+    headers: ['CustomerID', 'SignupDate', 'VIP_Tier', 'Region', 'LifetimePoints'],
+    csv: generateStoreDimCustomers()
+  },
+  'corporate_financials_wide.csv': {
+    name: 'corporate_financials_wide.csv',
+    description: 'Wide-formatted table of corporate quarterly revenues and profits over multiple years (2012-2025). Ideal for wide-to-long reshaping operations, including pd.melt(), stacking/unstacking, multi-indices, and hierarchical aggregation.',
+    headers: ['Company', 'Year', 'Q1_Revenue', 'Q1_Profit', 'Q2_Revenue', 'Q2_Profit', 'Q3_Revenue', 'Q3_Profit', 'Q4_Revenue', 'Q4_Profit'],
+    csv: generateCorporateFinancialsWide()
+  },
+  'high_frequency_stock_ticks.csv': {
+    name: 'high_frequency_stock_ticks.csv',
+    description: 'Dense millisecond/microsecond high-frequency tick log for stock symbols AAPL, TSLA, and MSFT. Contains quick price shifts, volume ticks, missing updates, and extreme trading volatility ticks. Perfect for resampling to OHLC candlesticks, rolling volatility windows, and sub-second datetime indexing.',
+    headers: ['Timestamp', 'Ticker', 'Price', 'Volume'],
+    csv: generateHighFrequencyStockTicks()
   }
 }
