@@ -17,7 +17,7 @@ self.onmessage = async (e) => {
           postMessage({ type: 'STDERR', text });
         }
       });
-      await pyodide.loadPackage(['pandas', 'numpy', 'matplotlib', 'scikit-learn']);
+      await pyodide.loadPackage(['pandas', 'numpy', 'matplotlib', 'scikit-learn', 'seaborn']);
       
       // Load default CSV files passed from main thread
       if (data.datasets) {
