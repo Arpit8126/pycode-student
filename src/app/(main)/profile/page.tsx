@@ -468,25 +468,25 @@ export default function ProfilePage() {
         <div className="max-w-5xl mx-auto space-y-8 animate-pulse">
           {/* Header Skeleton */}
           <div className="space-y-2">
-            <div className="h-7 w-48 bg-zinc-300 dark:bg-zinc-700 rounded-lg" />
-            <div className="h-4 w-72 bg-zinc-200 dark:bg-zinc-800 rounded-md" />
+            <div className="h-7 w-48 bg-zinc-300 dark:bg-zinc-400 rounded-lg" />
+            <div className="h-4 w-72 bg-zinc-200 dark:bg-zinc-300 rounded-md" />
           </div>
 
           {/* Two Card Grid Skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Card 1: Solved Problems Skeleton */}
             <div className="p-6 rounded-3xl bg-white/75 dark:bg-zinc-900/35 border border-hairline backdrop-blur-md shadow-sm min-h-[200px] space-y-4 flex flex-col justify-between">
-              <div className="h-4 w-28 bg-zinc-300 dark:bg-zinc-700 rounded-md" />
+              <div className="h-4 w-28 bg-zinc-300 dark:bg-zinc-400 rounded-md" />
               <div className="flex items-center gap-8 py-2">
-                <div className="w-24 h-24 rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+                <div className="w-24 h-24 rounded-full bg-zinc-200 dark:bg-zinc-300 shrink-0" />
                 <div className="flex-1 space-y-4">
                   <div className="space-y-1.5">
-                    <div className="h-3 w-16 bg-zinc-300 dark:bg-zinc-700 rounded" />
-                    <div className="h-2 bg-zinc-200 dark:bg-zinc-800 rounded" />
+                    <div className="h-3 w-16 bg-zinc-300 dark:bg-zinc-400 rounded" />
+                    <div className="h-2 bg-zinc-200 dark:bg-zinc-300 rounded" />
                   </div>
                   <div className="space-y-1.5">
-                    <div className="h-3 w-16 bg-zinc-300 dark:bg-zinc-700 rounded" />
-                    <div className="h-2 bg-zinc-200 dark:bg-zinc-800 rounded" />
+                    <div className="h-3 w-16 bg-zinc-300 dark:bg-zinc-400 rounded" />
+                    <div className="h-2 bg-zinc-200 dark:bg-zinc-300 rounded" />
                   </div>
                 </div>
               </div>
@@ -495,24 +495,24 @@ export default function ProfilePage() {
             {/* Card 2: Profile Card Skeleton */}
             <div className="p-6 rounded-3xl bg-white/75 dark:bg-zinc-900/35 border border-hairline backdrop-blur-md shadow-sm min-h-[200px] flex flex-col justify-between">
               <div className="flex justify-between items-center">
-                <div className="h-4 w-20 bg-zinc-300 dark:bg-zinc-700 rounded-md" />
-                <div className="h-4 w-16 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
+                <div className="h-4 w-20 bg-zinc-300 dark:bg-zinc-400 rounded-md" />
+                <div className="h-4 w-16 bg-zinc-300 dark:bg-zinc-400 rounded-full" />
               </div>
               <div className="flex items-center gap-5 my-4">
-                <div className="w-16 h-16 rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+                <div className="w-16 h-16 rounded-full bg-zinc-200 dark:bg-zinc-300 shrink-0" />
                 <div className="space-y-2 flex-1">
-                  <div className="h-4 w-32 bg-zinc-300 dark:bg-zinc-700 rounded" />
-                  <div className="h-3 w-48 bg-zinc-200 dark:bg-zinc-800 rounded" />
+                  <div className="h-4 w-32 bg-zinc-300 dark:bg-zinc-400 rounded" />
+                  <div className="h-3 w-48 bg-zinc-200 dark:bg-zinc-300 rounded" />
                 </div>
               </div>
               <div className="flex items-center gap-8 pt-2">
                 <div className="space-y-1.5">
-                  <div className="h-2.5 w-16 bg-zinc-300 dark:bg-zinc-700 rounded" />
-                  <div className="h-5 w-12 bg-zinc-300 dark:bg-zinc-700 rounded" />
+                  <div className="h-2.5 w-16 bg-zinc-300 dark:bg-zinc-400 rounded" />
+                  <div className="h-5 w-12 bg-zinc-300 dark:bg-zinc-400 rounded" />
                 </div>
                 <div className="space-y-1.5">
-                  <div className="h-2.5 w-16 bg-zinc-300 dark:bg-zinc-700 rounded" />
-                  <div className="h-5 w-12 bg-zinc-300 dark:bg-zinc-700 rounded" />
+                  <div className="h-2.5 w-16 bg-zinc-300 dark:bg-zinc-400 rounded" />
+                  <div className="h-5 w-12 bg-zinc-300 dark:bg-zinc-400 rounded" />
                 </div>
               </div>
             </div>
@@ -520,30 +520,30 @@ export default function ProfilePage() {
 
           {/* Heatmap Skeleton */}
           <div className="space-y-3">
-            <div className="h-5 w-40 bg-zinc-300 dark:bg-zinc-700 rounded-md" />
+            <div className="h-5 w-40 bg-zinc-300 dark:bg-zinc-400 rounded-md" />
             <div className="p-5 rounded-3xl bg-white/75 dark:bg-zinc-900/35 border border-hairline backdrop-blur-md shadow-sm min-h-[140px] flex items-center justify-center">
-              <div className="w-full h-24 bg-zinc-200 dark:bg-zinc-800 rounded-2xl" />
+              <div className="w-full h-24 bg-zinc-200 dark:bg-zinc-300 rounded-2xl" />
             </div>
           </div>
 
           {/* Bottom Split Column Skeleton */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-4">
-              <div className="h-5 w-48 bg-zinc-300 dark:bg-zinc-700 rounded-md" />
+              <div className="h-5 w-48 bg-zinc-300 dark:bg-zinc-400 rounded-md" />
               <div className="space-y-3">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="p-4 border border-hairline rounded-2xl bg-white/75 dark:bg-zinc-900/35 backdrop-blur-md shadow-sm h-16 flex items-center justify-between">
                     <div className="space-y-2">
-                      <div className="h-3.5 w-36 bg-zinc-300 dark:bg-zinc-700 rounded" />
-                      <div className="h-2 w-24 bg-zinc-200 dark:bg-zinc-800 rounded" />
+                      <div className="h-3.5 w-36 bg-zinc-300 dark:bg-zinc-400 rounded" />
+                      <div className="h-2 w-24 bg-zinc-200 dark:bg-zinc-300 rounded" />
                     </div>
-                    <div className="h-6 w-16 bg-zinc-350 dark:bg-zinc-700 rounded-full" />
+                    <div className="h-6 w-16 bg-zinc-350 dark:bg-zinc-450 dark:bg-zinc-400 rounded-full" />
                   </div>
                 ))}
               </div>
             </div>
             <div className="space-y-4">
-              <div className="h-5 w-48 bg-zinc-300 dark:bg-zinc-700 rounded-md" />
+              <div className="h-5 w-48 bg-zinc-300 dark:bg-zinc-400 rounded-md" />
               <div className="h-56 bg-white/75 dark:bg-zinc-900/35 border border-hairline backdrop-blur-md shadow-sm rounded-2xl animate-pulse" />
             </div>
           </div>
@@ -607,7 +607,7 @@ export default function ProfilePage() {
         const dateStr = `${yyyy}-${mm}-${dd}`
         const count = activeHeatmapData[dateStr] || 0
 
-        let color = 'bg-gray-200 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600'
+        let color = 'bg-gray-200 dark:bg-zinc-800 border border-gray-300 dark:border-hairline-soft hover:border-gray-400 dark:hover:border-hairline'
         if (count === 1) color = 'bg-emerald-200 dark:bg-emerald-900/80 border-emerald-300 dark:border-emerald-700 hover:border-emerald-400 dark:hover:border-emerald-500'
         if (count === 2) color = 'bg-emerald-400 dark:bg-emerald-700 border-emerald-500 dark:border-emerald-600 hover:border-emerald-600 dark:hover:border-emerald-400'
         if (count >= 3) color = 'bg-emerald-600 dark:bg-emerald-500 border-emerald-700 dark:border-emerald-400 hover:border-emerald-700 dark:hover:border-emerald-300'
@@ -869,7 +869,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Card 2: My Profile Card */}
-          <div className="p-6 rounded-3xl bg-block-lilac border border-hairline flex flex-col justify-between shadow-[0_4px_16px_rgba(0,0,0,0.06)] min-h-[200px] relative">
+          <div className="p-6 rounded-3xl bg-canvas border border-hairline flex flex-col justify-between shadow-[0_4px_16px_rgba(0,0,0,0.06)] min-h-[200px] relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest font-mono">
@@ -991,7 +991,7 @@ export default function ProfilePage() {
             <p>Submission history logs for the year 2026</p>
             <div className="flex items-center gap-1.5 font-semibold">
               <span>Less</span>
-              <div className="w-3 h-3 rounded-sm bg-gray-200 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700" />
+              <div className="w-3 h-3 rounded-sm bg-gray-200 dark:bg-zinc-800 border border-gray-300 dark:border-hairline-soft" />
               <div className="w-3 h-3 rounded-sm bg-emerald-200 dark:bg-emerald-900" />
               <div className="w-3 h-3 rounded-sm bg-emerald-400 dark:bg-emerald-700" />
               <div className="w-3 h-3 rounded-sm bg-emerald-600 dark:bg-emerald-500" />
