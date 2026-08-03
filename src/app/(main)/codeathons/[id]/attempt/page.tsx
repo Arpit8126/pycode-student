@@ -164,8 +164,26 @@ export default function ExamAttemptPage() {
     const nextSubmitted = { ...submittedQuestions, [activeQ.id]: true }
     setSubmittedQuestions(nextSubmitted)
 
-    // Save state to DB asynchronously to avoid UI lag
+    // Build test case data for this question (use actual run data as ground truth)
+    const qTotal = (check && check.total > 0) ? check.total : getQuestionTotalCases(activeQ.verification_script)
+    const qPassed = (check && check.total > 0) ? check.passed : (state === 'success' ? qTotal : 0)
+
+    // Save state to DB asynchronously — also save testCasesSummary so beacon auto-submit can use it
     if (attemptId) {
+      // Build complete testCasesSummary for all currently submitted questions
+      const updatedSummary: Record<number, { passed: number; total: number }> = {}
+      questions.forEach((q: any) => {
+        if (!nextSubmitted[q.id]) return
+        if (q.id === activeQ.id) {
+          updatedSummary[q.id] = { passed: qPassed, total: qTotal }
+        } else {
+          const c = testChecks[q.id]
+          const qt = (c && c.total > 0) ? c.total : getQuestionTotalCases(q.verification_script)
+          const qp = (c && c.total > 0) ? c.passed : (evalStates[q.id] === 'success' ? qt : 0)
+          updatedSummary[q.id] = { passed: qp, total: qt }
+        }
+      })
+
       supabase
         .from('quiz_attempts')
         .update({
@@ -174,7 +192,8 @@ export default function ExamAttemptPage() {
             rollNumber,
             courseClass,
             section,
-            submittedQuestions: nextSubmitted
+            submittedQuestions: nextSubmitted,
+            testCasesSummary: updatedSummary
           }
         })
         .eq('id', attemptId)
@@ -448,6 +467,23 @@ export default function ExamAttemptPage() {
     }
   }, [answers, quizId])
 
+  // Auto-submit beacon: fires when user closes tab/window mid-exam
+  // Uses navigator.sendBeacon which is guaranteed to fire even during page unload
+  useEffect(() => {
+    if (!hasStarted || !attemptId) return
+
+    const handlePageHide = () => {
+      // Only send beacon if not already submitted (isSubmitting means submit is in flight)
+      if (typeof navigator.sendBeacon === 'function') {
+        const payload = JSON.stringify({ attempt_id: attemptId, quiz_id: quizId })
+        navigator.sendBeacon('/api/quiz/auto-submit', new Blob([payload], { type: 'application/json' }))
+      }
+    }
+
+    window.addEventListener('pagehide', handlePageHide)
+    return () => window.removeEventListener('pagehide', handlePageHide)
+  }, [hasStarted, attemptId, quizId])
+
   useEffect(() => {
     if (!hasStarted) return
 
@@ -708,31 +744,24 @@ export default function ExamAttemptPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated.')
 
-      // 1. Calculate Score percentage
+      // 1. Calculate Score
       let totalPoints = 0
       let earnedPoints = 0
 
       questions.forEach((q) => {
         totalPoints += q.points
-        
-        // ONLY count points if the question was explicitly submitted by the user
-        if (!submittedQuestions[q.id]) {
-          return
-        }
-
+        if (!submittedQuestions[q.id]) return
         const check = testChecks[q.id]
         if (check && check.total > 0) {
           earnedPoints += (check.passed / check.total) * q.points
         } else {
-          const outcome = evalStates[q.id]
-          if (outcome === 'success') {
-            earnedPoints += q.points
-          }
+          if (evalStates[q.id] === 'success') earnedPoints += q.points
         }
       })
 
       const scorePercentage = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0
 
+      // 2. Build testCasesSummary using actual Pyodide run data (check.total) as ground truth
       const testCasesSummary: Record<number, { passed: number, total: number }> = {}
       questions.forEach((q) => {
         const qTotal = getQuestionTotalCases(q.verification_script)
@@ -741,16 +770,13 @@ export default function ExamAttemptPage() {
           testCasesSummary[q.id] = { passed: 0, total: qTotal }
           return
         }
-
         const check = testChecks[q.id]
         if (check && check.total > 0) {
-          testCasesSummary[q.id] = { passed: check.passed, total: qTotal }
+          // Use ACTUAL run data from Pyodide — ground truth
+          testCasesSummary[q.id] = { passed: check.passed, total: check.total }
         } else {
           const outcome = evalStates[q.id]
-          testCasesSummary[q.id] = { 
-            passed: outcome === 'success' ? qTotal : 0, 
-            total: qTotal 
-          }
+          testCasesSummary[q.id] = { passed: outcome === 'success' ? qTotal : 0, total: qTotal }
         }
       })
 
@@ -763,45 +789,44 @@ export default function ExamAttemptPage() {
         testCasesSummary
       }
 
-      // 2. Update existing Quiz Attempt record or fallback to insert
-      let finalAttemptId = attemptId
-      if (finalAttemptId) {
-        const { error: attemptErr } = await supabase
-          .from('quiz_attempts')
-          .update({
-            score: disqualified ? 0 : Math.round(earnedPoints),
-            score_percentage: disqualified ? 0 : scorePercentage,
-            completed_at: new Date().toISOString(),
-            is_disqualified: disqualified || warnings >= 3,
-            student_details: finalStudentDetails,
-            answers: answers
-          })
-          .eq('id', finalAttemptId)
+      const completedAt = new Date().toISOString()
 
-        if (attemptErr) throw attemptErr
+      // 3. Build all DB write promises to run concurrently
+      let finalAttemptId = attemptId
+      const attemptPayload = {
+        score: disqualified ? 0 : Math.round(earnedPoints),
+        score_percentage: disqualified ? 0 : scorePercentage,
+        completed_at: completedAt,
+        is_disqualified: disqualified || warnings >= 3,
+        student_details: finalStudentDetails,
+        answers: answers
+      }
+
+      let attemptWritePromise: Promise<any>
+      if (finalAttemptId) {
+        attemptWritePromise = supabase
+          .from('quiz_attempts')
+          .update(attemptPayload)
+          .eq('id', finalAttemptId)
       } else {
-        const { data: attempt, error: attemptErr } = await supabase
+        attemptWritePromise = supabase
           .from('quiz_attempts')
           .insert({
             user_id: user.id,
             quiz_id: quiz.id,
-            score: disqualified ? 0 : Math.round(earnedPoints),
-            score_percentage: disqualified ? 0 : scorePercentage,
-            started_at: new Date().toISOString(),
-            completed_at: new Date().toISOString(),
-            student_details: finalStudentDetails,
-            is_disqualified: disqualified || warnings >= 3,
+            started_at: completedAt,
             warnings_count: warnings,
-            answers: answers
+            ...attemptPayload
           })
           .select()
           .single()
-
-        if (attemptErr) throw attemptErr
-        finalAttemptId = attempt.id
+          .then((res: any) => {
+            if (res.data?.id) finalAttemptId = res.data.id
+            return res
+          })
       }
 
-      // 3. Save individual question submissions linked to this attempt ID
+      // Start attempt write immediately, don't await yet
       const submissionPromises = questions.map((q) => {
         const isSubmitted = !!submittedQuestions[q.id]
         const check = testChecks[q.id]
@@ -812,45 +837,51 @@ export default function ExamAttemptPage() {
           if (check && check.total > 0) {
             pointsEarned = Math.round((check.passed / check.total) * q.points)
             isSuccess = check.passed === check.total
-          } else {
-            const outcome = evalStates[q.id]
-            if (outcome === 'success') {
-              pointsEarned = q.points
-              isSuccess = true
-            }
+          } else if (evalStates[q.id] === 'success') {
+            pointsEarned = q.points
+            isSuccess = true
           }
         }
 
-        return supabase.from('coding_submissions').insert({
-          user_id: user.id,
-          question_id: q.id,
-          quiz_attempt_id: finalAttemptId,
-          submitted_code: answers[q.id] || '',
-          status: disqualified || !isSubmitted ? 'wrong_answer' : (isSuccess ? 'accepted' : 'wrong_answer'),
-          score_points: disqualified ? 0 : pointsEarned
-        })
+        // coding_submissions insert (will use finalAttemptId after attempt write resolves)
+        return attemptWritePromise.then(() =>
+          supabase.from('coding_submissions').insert({
+            user_id: user.id,
+            question_id: q.id,
+            quiz_attempt_id: finalAttemptId,
+            submitted_code: answers[q.id] || '',
+            status: disqualified || !isSubmitted ? 'wrong_answer' : (isSuccess ? 'accepted' : 'wrong_answer'),
+            score_points: disqualified ? 0 : pointsEarned
+          })
+        )
       })
 
-      await Promise.all(submissionPromises)
+      // Fire fullscreen exit non-blocking
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {})
+      }
 
-      // Clear localStorage draft on successful exam submission
+      // Clear localStorage draft
       if (typeof window !== 'undefined') {
         localStorage.removeItem(`pycode_exam_answers_${quizId}`)
       }
 
-      // Exit fullscreen
-      if (document.fullscreenElement) {
-        await document.exitFullscreen()
-      }
+      // Wait for attempt write first (coding_submissions depend on it)
+      await attemptWritePromise
 
-      router.push('/codeathons?submitSuccess=true')
+      // Navigate immediately — submissions continue in background
+      router.push('/results')
+
+      // Fire submissions in background (don't block navigation)
+      Promise.all(submissionPromises).catch((err) => console.error('Background submission error:', err))
+
     } catch (err: any) {
       console.error(err)
       showCustomAlert('Submission Failed', `Submission failed: ${err.message || err}`)
-    } finally {
       setIsSubmitting(false)
     }
   }
+
 
   const formatTimer = (seconds: number) => {
     const mins = Math.floor(seconds / 60)

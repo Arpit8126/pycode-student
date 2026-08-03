@@ -80,17 +80,19 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
   })()
 
   // Count solved vs unsolved from testCasesSummary
+  // IMPORTANT: use stored check.total (from actual Pyodide run) as ground truth.
+  // Only fall back to getQuestionTotalCases for questions with no stored data (unattempted).
   const summary = attempt.student_details?.testCasesSummary || {}
   let solvedCount = 0
   let totalCases = 0
   let passedCases = 0
   questions.forEach((q: any) => {
-    const qTotal = getQuestionTotalCases(q.verification_script)
     const check = summary[q.id]
     const passed = check ? (check.passed || 0) : 0
+    const total = (check && check.total > 0) ? check.total : getQuestionTotalCases(q.verification_script)
     passedCases += passed
-    totalCases += qTotal
-    if (passed === qTotal && qTotal > 0) solvedCount++
+    totalCases += total
+    if (passed === total && total > 0) solvedCount++
   })
   const unsolvedCount = totalQs - solvedCount
   const accuracy = totalCases > 0 ? Math.round((passedCases / totalCases) * 100) : 0
@@ -340,10 +342,11 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
           let passedCases = 0
           let totalCases = 0
           questions.forEach((q: any) => {
-            const qTotal = getQuestionTotalCases(q.verification_script)
-            const passed = entrySummary[q.id]?.passed || 0
+            const entryCheck = entrySummary[q.id]
+            const passed = entryCheck ? (entryCheck.passed || 0) : 0
+            const total = (entryCheck && entryCheck.total > 0) ? entryCheck.total : getQuestionTotalCases(q.verification_script)
             passedCases += passed
-            totalCases += qTotal
+            totalCases += total
           })
           const entryAccuracy = totalCases > 0 ? Math.round((passedCases / totalCases) * 100) : 0
           return {
@@ -783,7 +786,7 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
                 {questions.map((q: any, i: number) => {
                   const check = summary[q.id]
                   const passed = check ? (check.passed || 0) : 0
-                  const total = getQuestionTotalCases(q.verification_script)
+                  const total = (check && check.total > 0) ? check.total : getQuestionTotalCases(q.verification_script)
                   const qPct = total > 0 ? Math.round((passed / total) * 100) : 0
                   const isCorrect = passed === total && total > 0
                   return (
@@ -1176,15 +1179,16 @@ export default function ResultsPage() {
               const myScore = attempt.score || 0
               const totalQs = questions.length
               
-              // Calculate accuracy percentage based on passed test cases / total test cases
+              // Calculate accuracy: prefer stored check.total (actual run data) over regex-parsed fallback
               const summary = attempt.student_details?.testCasesSummary || {}
               let passedCases = 0
               let totalCases = 0
               questions.forEach((q: any) => {
-                const qTotal = getQuestionTotalCases(q.verification_script)
-                const passed = summary[q.id]?.passed || 0
+                const check = summary[q.id]
+                const passed = check ? (check.passed || 0) : 0
+                const total = (check && check.total > 0) ? check.total : getQuestionTotalCases(q.verification_script)
                 passedCases += passed
-                totalCases += qTotal
+                totalCases += total
               })
               const pct = totalCases > 0 ? Math.round((passedCases / totalCases) * 100) : 0
               const timeTaken = (() => {
