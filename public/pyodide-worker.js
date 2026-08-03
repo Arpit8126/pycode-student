@@ -162,9 +162,33 @@ imgs[0] if imgs else ""
         plotData = '';
       }
 
-      postMessage({ type: 'RUN_SUCCESS', plotData: plotData || null });
+      // Read current contents of datasets to return to main thread
+      const updatedFiles = {};
+      const filenames = ['dirty_store_transactions.csv', 'student_performance_factors.csv', 'sensor_readings_noisy.csv'];
+      filenames.forEach(filename => {
+        try {
+          const content = pyodide.FS.readFile(filename, { encoding: 'utf8' });
+          updatedFiles[filename] = content;
+        } catch (e) {
+          console.warn(`[pyodide-worker] Could not read ${filename} after execution:`, e);
+        }
+      });
+
+      postMessage({ type: 'RUN_SUCCESS', plotData: plotData || null, updatedFiles });
     } catch (err) {
-      postMessage({ type: 'RUN_ERROR', message: err.message || String(err) });
+      // Read current contents of datasets to return to main thread even on error
+      const updatedFiles = {};
+      const filenames = ['dirty_store_transactions.csv', 'student_performance_factors.csv', 'sensor_readings_noisy.csv'];
+      filenames.forEach(filename => {
+        try {
+          const content = pyodide.FS.readFile(filename, { encoding: 'utf8' });
+          updatedFiles[filename] = content;
+        } catch (e) {
+          // ignore
+        }
+      });
+
+      postMessage({ type: 'RUN_ERROR', message: err.message || String(err), updatedFiles });
     }
   }
 };

@@ -8,6 +8,7 @@ import { Monaco, useMonaco } from '@monaco-editor/react'
 import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
+import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
 
 // Import Monaco Editor dynamically to prevent SSR conflicts
 const Editor = dynamic(() => import('@monaco-editor/react'), { ssr: false })
@@ -15,73 +16,6 @@ const Editor = dynamic(() => import('@monaco-editor/react'), { ssr: false })
 declare global {
   interface Window {
     loadPyodide?: any
-  }
-}
-
-// Predefined datasets data
-const DATASETS = {
-  'students.csv': {
-    name: 'students.csv',
-    description: 'Profiles of students containing missing values (NaN) to practice data cleaning (dropna, fillna) and filtering.',
-    headers: ['StudentID', 'Name', 'Age', 'Gender', 'Grade', 'Score', 'AttendedClass'],
-    csv: `StudentID,Name,Age,Gender,Grade,Score,AttendedClass
-101,Amit,20,M,A,92,True
-102,Arpit,,M,B,78,True
-103,Rahul,22,M,A+,95,True
-104,Pooja,19,F,,82,False
-105,Neha,20,F,A-,,True
-106,Siddharth,21,M,C,64,True
-107,Kriti,22,F,B+,88,False
-108,Rohan,,M,A,91,True
-109,Anjali,20,F,B,,True
-110,Yash,21,M,C+,70,False
-111,Simran,19,F,A,94,True
-112,Karan,22,M,,85,True
-113,Sneha,20,F,A+,97,True
-114,Vijay,21,M,B-,69,False
-115,Aditi,23,F,B,,True`
-  },
-  'sales.csv': {
-    name: 'sales.csv',
-    description: 'Product sales quantities and unit prices across regions. Designed for aggregation, math, grouping (groupby), and sorting.',
-    headers: ['Date', 'Category', 'Product', 'Quantity', 'UnitPrice', 'Region'],
-    csv: `Date,Category,Product,Quantity,UnitPrice,Region
-2026-01-01,Electronics,Laptop,5,50000,North
-2026-01-01,Office,Chair,12,2500,South
-2026-01-02,Electronics,Mouse,25,800,North
-2026-01-02,Office,Desk,4,8000,West
-2026-01-03,Electronics,Monitor,8,15000,East
-2026-01-03,Office,Chair,15,2500,North
-2026-01-04,Electronics,Laptop,3,50000,West
-2026-01-04,Office,Desk,6,8000,South
-2026-01-05,Electronics,Keyboard,10,1200,East
-2026-01-05,Office,Chair,8,2500,West
-2026-01-06,Electronics,Mouse,30,800,South
-2026-01-06,Office,Desk,5,8000,East
-2026-01-07,Electronics,Monitor,12,15000,North
-2026-01-07,Office,Chair,20,2500,East
-2026-01-08,Electronics,Laptop,4,50000,South`
-  },
-  'weather.csv': {
-    name: 'weather.csv',
-    description: 'Weather metrics and temperatures across cities. Designed for date-time parsing, sorting, and pivoting.',
-    headers: ['City', 'Date', 'Temperature', 'Humidity', 'WindSpeed', 'Condition'],
-    csv: `City,Date,Temperature,Humidity,WindSpeed,Condition
-Delhi,2026-07-01,36.5,72,12,Sunny
-Mumbai,2026-07-01,30.2,88,18,Rainy
-Bangalore,2026-07-01,24.8,60,15,Cloudy
-Delhi,2026-07-02,37.2,68,10,Sunny
-Mumbai,2026-07-02,29.8,90,22,Rainy
-Bangalore,2026-07-02,25.1,62,14,Cloudy
-Delhi,2026-07-03,35.0,75,14,Sunny
-Mumbai,2026-07-03,30.5,85,16,Rainy
-Bangalore,2026-07-03,24.2,65,12,Cloudy
-Delhi,2026-07-04,36.8,70,8,Sunny
-Mumbai,2026-07-04,31.0,82,15,Cloudy
-Bangalore,2026-07-04,25.5,58,10,Sunny
-Delhi,2026-07-05,38.0,65,11,Sunny
-Mumbai,2026-07-05,29.5,92,25,Rainy
-Bangalore,2026-07-05,23.9,68,16,Rainy`
   }
 }
 
@@ -228,6 +162,10 @@ export default function CodeEditorPage() {
   // File Explorer State
   const [selectedFile, setSelectedFile] = useState<keyof typeof DATASETS | null>(null)
   const [previewRows, setPreviewRows] = useState<string[][]>([])
+  const selectedFileRef = useRef<keyof typeof DATASETS | null>(null)
+  useEffect(() => {
+    selectedFileRef.current = selectedFile
+  }, [selectedFile])
   
   // Global theme observer hook
   useEffect(() => {
@@ -322,6 +260,36 @@ export default function CodeEditorPage() {
           setPlotUrl(`data:image/png;base64,${data.plotData}`)
           setShowPlotModal(true)
         }
+
+        if (data.updatedFiles) {
+          const stored = localStorage.getItem('pycode_dataset_contents')
+          let currentStored: Record<string, string> = {}
+          if (stored) {
+            try {
+              currentStored = JSON.parse(stored)
+            } catch (e) {
+              console.error(e)
+            }
+          }
+          let hasChanges = false
+          Object.entries(data.updatedFiles).forEach(([filename, content]) => {
+            if (currentStored[filename] !== content) {
+              currentStored[filename] = content as string
+              hasChanges = true
+            }
+          })
+          if (hasChanges) {
+            localStorage.setItem('pycode_dataset_contents', JSON.stringify(currentStored))
+            const activeFile = selectedFileRef.current
+            if (activeFile && data.updatedFiles[activeFile]) {
+              const content = data.updatedFiles[activeFile]
+              const lines = content.trim().split('\n')
+              setPreviewRows(lines.map((line: string) => {
+                return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, ''))
+              }))
+            }
+          }
+        }
       } else if (data.type === 'RUN_ERROR') {
         setIsRunning(false)
         let errMsg = data.message || 'Error occurred.'
@@ -333,6 +301,36 @@ export default function CodeEditorPage() {
                  !line.includes('run_async')
         })
         setConsoleOutput(prev => prev + '\n' + cleanLines.join('\n'))
+
+        if (data.updatedFiles) {
+          const stored = localStorage.getItem('pycode_dataset_contents')
+          let currentStored: Record<string, string> = {}
+          if (stored) {
+            try {
+              currentStored = JSON.parse(stored)
+            } catch (e) {
+              console.error(e)
+            }
+          }
+          let hasChanges = false
+          Object.entries(data.updatedFiles).forEach(([filename, content]) => {
+            if (currentStored[filename] !== content) {
+              currentStored[filename] = content as string
+              hasChanges = true
+            }
+          })
+          if (hasChanges) {
+            localStorage.setItem('pycode_dataset_contents', JSON.stringify(currentStored))
+            const activeFile = selectedFileRef.current
+            if (activeFile && data.updatedFiles[activeFile]) {
+              const content = data.updatedFiles[activeFile]
+              const lines = content.trim().split('\n')
+              setPreviewRows(lines.map((line: string) => {
+                return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, ''))
+              }))
+            }
+          }
+        }
       }
     }
 
@@ -342,7 +340,26 @@ export default function CodeEditorPage() {
       setIsRunning(false)
     }
 
-    worker.postMessage({ type: 'INIT', datasets: DATASETS })
+    // Load persisted dataset CSVs from localStorage if they exist
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('pycode_dataset_contents') : null
+    let datasetsToSend = { ...DATASETS }
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        datasetsToSend = Object.keys(DATASETS).reduce((acc, key) => {
+          const k = key as keyof typeof DATASETS
+          acc[k] = {
+            ...DATASETS[k],
+            csv: parsed[k] !== undefined ? parsed[k] : DATASETS[k].csv
+          }
+          return acc
+        }, {} as typeof DATASETS)
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    worker.postMessage({ type: 'INIT', datasets: datasetsToSend })
   }
 
   // Load saved files
@@ -532,6 +549,18 @@ export default function CodeEditorPage() {
   const handleResetFile = (filename: keyof typeof DATASETS) => {
     if (workerRef.current) {
       workerRef.current.postMessage({ type: 'RESET_FILE', filename, csv: DATASETS[filename].csv })
+      
+      const stored = localStorage.getItem('pycode_dataset_contents')
+      if (stored) {
+        try {
+          const currentStored = JSON.parse(stored)
+          delete currentStored[filename]
+          localStorage.setItem('pycode_dataset_contents', JSON.stringify(currentStored))
+        } catch (e) {
+          console.error(e)
+        }
+      }
+
       setConsoleOutput(prev => prev + `\n[System Message]: Dataset "${filename}" has been reset to default values.\n`)
     }
   }
@@ -1005,7 +1034,7 @@ export default function CodeEditorPage() {
       {/* CSV File Preview Overlay */}
       {selectedFile && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-45 flex items-center justify-end">
-          <div className="w-[50%] h-full bg-canvas border-l border-hairline flex flex-col shadow-2xl p-6 space-y-6 animate-slide-up">
+          <div className="w-[80%] md:w-[70%] lg:w-[60%] xl:w-[50%] h-full bg-canvas border-l border-hairline flex flex-col shadow-2xl p-6 space-y-6 animate-slide-up">
             
             {/* Header info */}
             <div className="flex items-center justify-between">
@@ -1038,12 +1067,12 @@ export default function CodeEditorPage() {
             </div>
 
             {/* Preview Sheet Table */}
-            <div className="flex-1 border border-hairline rounded-2xl overflow-hidden bg-canvas overflow-y-auto">
-              <table className="w-full text-left border-collapse text-xs">
+            <div className="flex-1 border border-hairline rounded-2xl overflow-auto bg-canvas relative">
+              <table className="min-w-full text-left border-collapse text-xs table-auto">
                 <thead>
                   <tr className="bg-surface-soft border-b border-hairline text-gray-500 font-mono font-semibold uppercase">
                     {previewRows[0]?.map((col, idx) => (
-                      <th key={idx} className="px-4 py-3">{col}</th>
+                      <th key={idx} className="px-4 py-3 whitespace-nowrap sticky top-0 z-10 bg-surface-soft border-b border-hairline">{col}</th>
                     ))}
                   </tr>
                 </thead>
@@ -1051,7 +1080,7 @@ export default function CodeEditorPage() {
                   {previewRows.slice(1).map((row, rowIdx) => (
                     <tr key={rowIdx} className="hover:bg-surface-soft transition-colors">
                       {row.map((val, cellIdx) => (
-                        <td key={cellIdx} className="px-4 py-2.5 truncate max-w-[200px]">{val}</td>
+                        <td key={cellIdx} className="px-4 py-2.5 whitespace-nowrap">{val}</td>
                       ))}
                     </tr>
                   ))}
