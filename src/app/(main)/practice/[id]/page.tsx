@@ -466,7 +466,7 @@ export default function PracticeWorkspacePage() {
                 <h1 className="text-2xl font-extrabold text-ink mb-4 tracking-tight">{question?.title}</h1>
 
                 <div 
-                  className="text-body leading-relaxed font-light text-sm markdown-body space-y-4 font-sans"
+                  className="text-ink leading-relaxed font-normal text-sm markdown-body space-y-4 font-sans"
                   dangerouslySetInnerHTML={{ __html: enrichQuestionDetails(question) }}
                 />
               </article>

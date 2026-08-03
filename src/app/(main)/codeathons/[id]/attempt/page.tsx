@@ -1344,7 +1344,7 @@ export default function ExamAttemptPage() {
                 </span>
               </div>
               <div 
-                className="text-body leading-relaxed font-light text-sm markdown-body space-y-4 font-sans"
+                className="text-ink leading-relaxed font-normal text-sm markdown-body space-y-4 font-sans"
                 dangerouslySetInnerHTML={{ __html: enrichQuestionDetails(activeQ) }}
               />
             </article>
