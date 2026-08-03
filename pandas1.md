@@ -6,16 +6,17 @@ Output:| Name | Age  |
 |------|------|
 | "A"  | 20.0 |
 | "B"  | 25.0 |
-Hidden Verification Test CasesTest Case 1.1: Missing Marks Safety CheckTest Input Data: A DataFrame where the Marks column is entirely filled with NaN values.Expected Test Output: The function safely returns the Name and Age columns without throwing an error due to the missing data in the dropped column.Challenge 2: Drop Incomplete Grade Records (Easy)Problem DescriptionAn automated report is being compiled for final course submissions. The rules state that a student cannot be evaluated if their final exam grade is missing from the system database.Write a Python function remove_missing_marks(df: pd.DataFrame) -> pd.DataFrame that cleans the dataset:Null Identification: Scan the Marks column to find any missing values (NaN or float("nan")).Row Dropping: Drop all rows where the Marks value is missing.Data Preservation: Keep rows where the Age column is missing, as long as the Marks value is present.Input DataFrame Schemadf: A DataFrame containing Name (String), Age (Float64), and Marks (Float64).Constraints$1 \le \text{df.shape}[0] \le 150$Example 1Input:| Name | Age  | Marks |
+Hidden Verification Test CasesTest Case 1.1: Missing Marks Safety CheckTest Input Data: A DataFrame where the Marks column is entirely filled with NaN values.Expected Test Output: The function safely returns the Name and Age columns without throwing an error due to the missing data in the dropped column.Challenge 2: Fill Missing Grade Entries (Easy)Problem DescriptionA class roster contains some missing final grades. Write a Python function fill_missing_grades(df: pd.DataFrame) -> pd.DataFrame that cleanses the dataset:Null Grade Identification: Scan the Marks column to find any missing (NaN) values.Value Imputation: Fill those missing cells with a baseline default float value of 0.0.Data Modification: Modify the Marks column directly or reassign it, returning the updated DataFrame.Input DataFrame Schemadf: A DataFrame containing Name (String), Age (Float64), and Marks (Float64).Constraints$1 \le \text{df.shape}[0] \le 150$Example 1Input:| Name | Age  | Marks |
 |------|------|-------|
 | "A"  | 20.0 | 80.0  |
 | "B"  | 25.0 | NaN   |
-| "C"  | NaN  | 70.0  |
+| "C"  | 22.0 | 70.0  |
 Output:| Name | Age  | Marks |
 |------|------|-------|
 | "A"  | 20.0 | 80.0  |
-| "C"  | NaN  | 70.0  |
-Hidden Verification Test CasesTest Case 2.1: Completely Empty Marks FilterTest Input Data: A dataset where every single row has a missing Marks value.Expected Test Output: An empty DataFrame retaining the original three columns (Name, Age, Marks).Challenge 3: Count Missing Grade Entries (Easy)Problem DescriptionThe school wants to know how many final exam grades are currently missing from the roster database.Write a Python function count_missing_grades(df: pd.DataFrame) -> int that counts missing values:Null Detection: Scan the Marks column to identify any missing (NaN) values.Sum Tally: Calculate the total number of missing cells in that column.Return Type: Return the count as a standard Python integer.Input DataFrame Schemadf: A DataFrame containing Name (String), Age (Float64), and Marks (Float64).Constraints$1 \le \text{df.shape}[0] \le 300$Example 1Input:| Name | Age  | Marks |
+| "B"  | 25.0 | 0.0   |
+| "C"  | 22.0 | 70.0  |
+Hidden Verification Test CasesTest Case 2.1: No Missing Grade VerificationTest Input Data: A DataFrame where every student already has a valid numerical grade.Expected Test Output: The DataFrame is returned exactly as it was, with no modifications made to any cell.Challenge 3: Count Missing Grade Entries (Easy)Problem DescriptionThe school wants to know how many final exam grades are currently missing from the roster database.Write a Python function count_missing_grades(df: pd.DataFrame) -> int that counts missing values:Null Detection: Scan the Marks column to identify any missing (NaN) values.Sum Tally: Calculate the total number of missing cells in that column.Return Type: Return the count as a standard Python integer.Input DataFrame Schemadf: A DataFrame containing Name (String), Age (Float64), and Marks (Float64).Constraints$1 \le \text{df.shape}[0] \le 300$Example 1Input:| Name | Age  | Marks |
 |------|------|-------|
 | "A"  | 20.0 | 80.0  |
 | "B"  | 25.0 | NaN   |
