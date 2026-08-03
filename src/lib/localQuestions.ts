@@ -282,7 +282,107 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 101,
-    title: "101. Fix Product Registry",
+    title: "101. Isolate Student Identity Columns",
+    difficulty: "easy",
+    points: 100,
+    category: "pandas",
+    description: "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Your teacher has provided a class roster containing academic performance metrics. Before performing any data analysis, you need to isolate only the basic identification fields of the students to create an administrative contact list. Write a Python function extract_student_identity(df: pd. DataFrame) -> pd. DataFrame that extracts a specific vertical slice of the dataset:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Column Selection:</strong> Extract only the Name and Age columns from the input DataFrame.</li><li class=\"py-0.5\"><strong>Order Preservation:</strong> Ensure that the columns remain in the exact order requested (Name first, Age second).</li><li class=\"py-0.5\"><strong>Row Retention:</strong> Keep all rows intact, including rows that contain missing values (NaN).</li></ul>\n  </div>\n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Input Schema</h4>\n    <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal whitespace-pre-wrap select-all\">df: A DataFrame containing Name (String), Age (Float64/Int64), and Marks (Float64/Int64).</pre>\n  </div>\n  \n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Constraints</h4>\n    <ul class=\"list-disc pl-5 mt-2 space-y-1.5 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\">$1 \\le \\text{df.shape}[0] \\le 100$</li><li class=\"py-0.5\">Columns Name and Age are guaranteed to exist in the input DataFrame.</li></ul>\n  </div>\n  \n  \n  \n  <div class=\"mt-6 border-t border-hairline pt-6\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Example 1</h4>\n    \n    <div class=\"space-y-4 mt-3\">\n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Input Data:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"A\"  | 20.0 | 80.0  |\r\n| \"B\"  | 25.0 | NaN   |</pre>\n        \n      </div>\n      \n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Expected Output:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  |\r\n|------|------|\r\n| \"A\"  | 20.0 |\r\n| \"B\"  | 25.0 |</pre>\n        \n      </div>\n      \n    </div>\n        \n  </div>\n  \n</div>\n",
+    starter_code: "import pandas as pd\nimport numpy as np\n\ndef extract_student_identity(df):\n    # Write your code here\n    pass",
+    dataset_name: "dirty_store_transactions.csv"
+  },
+  {
+    id: 102,
+    title: "102. Drop Incomplete Grade Records",
+    difficulty: "easy",
+    points: 100,
+    category: "pandas",
+    description: "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">An automated report is being compiled for final course submissions. The rules state that a student cannot be evaluated if their final exam grade is missing from the system database. Write a Python function remove_missing_marks(df: pd. DataFrame) -> pd. DataFrame that cleans the dataset:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Null Identification:</strong> Scan the Marks column to find any missing values (NaN or float(\"nan\")).</li><li class=\"py-0.5\"><strong>Row Dropping:</strong> Drop all rows where the Marks value is missing.</li><li class=\"py-0.5\"><strong>Data Preservation:</strong> Keep rows where the Age column is missing, as long as the Marks value is present.</li></ul>\n  </div>\n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Input Schema</h4>\n    <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal whitespace-pre-wrap select-all\">df: A DataFrame containing Name (String), Age (Float64), and Marks (Float64).</pre>\n  </div>\n  \n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Constraints</h4>\n    <ul class=\"list-disc pl-5 mt-2 space-y-1.5 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\">$1 \\le \\text{df.shape}[0] \\le 150$</li></ul>\n  </div>\n  \n  \n  \n  <div class=\"mt-6 border-t border-hairline pt-6\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Example 1</h4>\n    \n    <div class=\"space-y-4 mt-3\">\n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Input Data:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"A\"  | 20.0 | 80.0  |\r\n| \"B\"  | 25.0 | NaN   |\r\n| \"C\"  | NaN  | 70.0  |</pre>\n        \n      </div>\n      \n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Expected Output:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"A\"  | 20.0 | 80.0  |\r\n| \"C\"  | NaN  | 70.0  |</pre>\n        \n      </div>\n      \n    </div>\n        \n  </div>\n  \n</div>\n",
+    starter_code: "import pandas as pd\nimport numpy as np\n\ndef remove_missing_marks(df):\n    # Write your code here\n    pass",
+    dataset_name: "dirty_store_transactions.csv"
+  },
+  {
+    id: 103,
+    title: "103. Calculate Global Class Averages",
+    difficulty: "easy",
+    points: 100,
+    category: "pandas",
+    description: "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Your teacher wants to know the overall average score of the class to see how well the students understood the recent exam. Write a Python function calculate_class_average(df: pd. DataFrame) -> float that computes a single statistic:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Mathematical Mean:</strong> Calculate the standard average (mean) of the values inside the Marks column.</li><li class=\"py-0.5\"><strong>Missing Value Resilience:</strong> Ensure that any missing values (NaN) inside the Marks column are completely ignored in the calculation (Pandas handles this automatically, but ensure no manual conversion changes this behavior).</li><li class=\"py-0.5\"><strong>Return Type:</strong> Return the final result as a standard Python float.</li></ul>\n  </div>\n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Input Schema</h4>\n    <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal whitespace-pre-wrap select-all\">df: A DataFrame containing Name (String), Age (Float64), and Marks (Float64).</pre>\n  </div>\n  \n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Constraints</h4>\n    <ul class=\"list-disc pl-5 mt-2 space-y-1.5 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\">The dataset contains at least one row with a valid, non-null numerical score in the Marks column.</li></ul>\n  </div>\n  \n  \n  \n  <div class=\"mt-6 border-t border-hairline pt-6\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Example 1</h4>\n    \n    <div class=\"space-y-4 mt-3\">\n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Input Data:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"A\"  | 20.0 | 80.0  |\r\n| \"B\"  | 25.0 | NaN   |\r\n| \"C\"  | 22.0 | 60.0  |</pre>\n        \n      </div>\n      \n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Expected Output:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\"></pre>\n        <p class=\"mt-2 text-xs text-ink font-sans font-normal leading-relaxed pl-1\">70.0\r (Calculation: (80 + 60) / 2 = 70.0. The NaN row is skipped).</p>\n      </div>\n      \n    </div>\n        \n  </div>\n  \n</div>\n",
+    starter_code: "import pandas as pd\nimport numpy as np\n\ndef calculate_class_average(df):\n    # Write your code here\n    pass",
+    dataset_name: "dirty_store_transactions.csv"
+  },
+  {
+    id: 104,
+    title: "104. Inject Default Age Specifications",
+    difficulty: "easy",
+    points: 100,
+    category: "pandas",
+    description: "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">A school enrollment form requires every record to have a valid age field. If a student's age was left blank during signup, school policy states it should be temporarily set to a default baseline value of 18. Write a Python function fill_missing_ages(df: pd. DataFrame) -> pd. DataFrame that updates column values:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Target Imputation:</strong> Locate all missing values (NaN) specifically within the Age column.</li><li class=\"py-0.5\"><strong>Value Replacement:</strong> Fill those missing cells with the constant integer value 18.</li><li class=\"py-0.5\"><strong>Column Modification:</strong> Modify the Age column directly or reassign it, keeping the rest of the DataFrame completely unchanged.</li></ul>\n  </div>\n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Input Schema</h4>\n    <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal whitespace-pre-wrap select-all\">df: A DataFrame containing Name (String), Age (Float64), and Marks (Float64).</pre>\n  </div>\n  \n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Constraints</h4>\n    <ul class=\"list-disc pl-5 mt-2 space-y-1.5 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\">$1 \\le \\text{df.shape}[0] \\le 200$</li></ul>\n  </div>\n  \n  \n  \n  <div class=\"mt-6 border-t border-hairline pt-6\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Example 1</h4>\n    \n    <div class=\"space-y-4 mt-3\">\n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Input Data:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"A\"  | 20.0 | 80.0  |\r\n| \"C\"  | NaN  | 70.0  |</pre>\n        \n      </div>\n      \n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Expected Output:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"A\"  | 20.0 | 80.0  |\r\n| \"C\"  | 18.0 | 70.0  |</pre>\n        \n      </div>\n      \n    </div>\n        \n  </div>\n  \n</div>\n",
+    starter_code: "import pandas as pd\nimport numpy as np\n\ndef fill_missing_ages(df):\n    # Write your code here\n    pass",
+    dataset_name: "dirty_store_transactions.csv"
+  },
+  {
+    id: 105,
+    title: "105. Identify the Highest Scoring Student",
+    difficulty: "easy",
+    points: 100,
+    category: "pandas",
+    description: "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">The principal wants to reward the student who achieved the top mark on the exam. You need to find the maximum score present in the class records. Write a Python function find_maximum_mark(df: pd. DataFrame) -> float that looks up metrics:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Maximum Extraction:</strong> Scan the Marks column to find the absolute highest value.</li><li class=\"py-0.5\"><strong>Null Defense:</strong> Ignore any NaN values present in the column.</li><li class=\"py-0.5\"><strong>Return Value:</strong> Return the maximum value found as a float number.</li></ul>\n  </div>\n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Input Schema</h4>\n    <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal whitespace-pre-wrap select-all\">df: A DataFrame containing Name (String), Age (Float64), and Marks (Float64).</pre>\n  </div>\n  \n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Constraints</h4>\n    <ul class=\"list-disc pl-5 mt-2 space-y-1.5 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\">The Marks column contains at least one valid numerical entry.</li></ul>\n  </div>\n  \n  \n  \n  <div class=\"mt-6 border-t border-hairline pt-6\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Example 1</h4>\n    \n    <div class=\"space-y-4 mt-3\">\n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Input Data:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"A\"  | 20.0 | 80.0  |\r\n| \"B\"  | 25.0 | 95.0  |\r\n| \"C\"  | 22.0 | 60.0  |</pre>\n        \n      </div>\n      \n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Expected Output:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\"></pre>\n        <p class=\"mt-2 text-xs text-ink font-sans font-normal leading-relaxed pl-1\">95.0</p>\n      </div>\n      \n    </div>\n        \n  </div>\n  \n</div>\n",
+    starter_code: "import pandas as pd\nimport numpy as np\n\ndef find_maximum_mark(df):\n    # Write your code here\n    pass",
+    dataset_name: "dirty_store_transactions.csv"
+  },
+  {
+    id: 106,
+    title: "106. Compute Bonus Point Adjustments",
+    difficulty: "easy",
+    points: 100,
+    category: "pandas",
+    description: "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Your teacher decided to give every student a standard boost of 5 extra credit points to reward excellent classroom participation. You need to create an updated grade tracking column. Write a Python function apply_bonus_marks(df: pd. DataFrame) -> pd. DataFrame that performs basic column arithmetic:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Mathematical Addition:</strong> Add exactly 5 points to every value inside the Marks column.</li><li class=\"py-0.5\"><strong>New Column Assignment:</strong> Save these new scores into a completely new column named BonusMarks.</li><li class=\"py-0.5\"><strong>Null Preservation:</strong> If a student has a missing mark (NaN), the new BonusMarks value for that student must also remain NaN (standard behavior in Pandas column math).</li></ul>\n  </div>\n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Input Schema</h4>\n    <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal whitespace-pre-wrap select-all\">df: A DataFrame containing Name (String), Age (Float64), and Marks (Float64).</pre>\n  </div>\n  \n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Constraints</h4>\n    <ul class=\"list-disc pl-5 mt-2 space-y-1.5 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\">$1 \\le \\text{df.shape}[0] \\le 100$</li></ul>\n  </div>\n  \n  \n  \n  <div class=\"mt-6 border-t border-hairline pt-6\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Example 1</h4>\n    \n    <div class=\"space-y-4 mt-3\">\n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Input Data:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"A\"  | 20.0 | 80.0  |\r\n| \"B\"  | 25.0 | NaN   |\r\n| \"C\"  | 22.0 | 60.0  |</pre>\n        \n      </div>\n      \n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Expected Output:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks | BonusMarks |\r\n|------|------|-------|------------|\r\n| \"A\"  | 20.0 | 80.0  | 85.0       |\r\n| \"B\"  | 25.0 | NaN   | NaN        |\r\n| \"C\"  | 22.0 | 60.0  | 65.0       |</pre>\n        \n      </div>\n      \n    </div>\n        \n  </div>\n  \n</div>\n",
+    starter_code: "import pandas as pd\nimport numpy as np\n\ndef apply_bonus_marks(df):\n    # Write your code here\n    pass",
+    dataset_name: "dirty_store_transactions.csv"
+  },
+  {
+    id: 107,
+    title: "107. Filter Mature Student Cohorts",
+    difficulty: "easy",
+    points: 100,
+    category: "pandas",
+    description: "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">The university is organizing a specialized seminar intended exclusively for students who are 22 years of age or older. You need to filter the master roster down to this specific group. Write a Python function filter_mature_students(df: pd. DataFrame) -> pd. DataFrame that performs basic row filtering:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Conditional Filtering:</strong> Filter the rows to retain only students where their Age is greater than or equal to 22 ($\\text{Age} \\ge 22$).</li><li class=\"py-0.5\"><strong>Missing Data Handling:</strong> Completely exclude rows where the student's Age is missing (NaN), as they cannot be verified.</li><li class=\"py-0.5\"><strong>Structure Output:</strong> Return the filtered DataFrame with all original columns intact.</li></ul>\n  </div>\n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Input Schema</h4>\n    <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal whitespace-pre-wrap select-all\">df: A DataFrame containing Name (String), Age (Float64), and Marks (Float64).</pre>\n  </div>\n  \n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Constraints</h4>\n    <ul class=\"list-disc pl-5 mt-2 space-y-1.5 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\">$1 \\le \\text{df.shape}[0] \\le 120$</li></ul>\n  </div>\n  \n  \n  \n  <div class=\"mt-6 border-t border-hairline pt-6\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Example 1</h4>\n    \n    <div class=\"space-y-4 mt-3\">\n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Input Data:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"A\"  | 20.0 | 80.0  |\r\n| \"B\"  | 25.0 | 90.0  |\r\n| \"C\"  | NaN  | 70.0  |\r\n| \"D\"  | 22.0 | 60.0  |</pre>\n        \n      </div>\n      \n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Expected Output:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"B\"  | 25.0 | 90.0  |\r\n| \"D\"  | 22.0 | 60.0  |</pre>\n        \n      </div>\n      \n    </div>\n        \n  </div>\n  \n</div>\n",
+    starter_code: "import pandas as pd\nimport numpy as np\n\ndef filter_mature_students(df):\n    # Write your code here\n    pass",
+    dataset_name: "dirty_store_transactions.csv"
+  },
+  {
+    id: 108,
+    title: "108. Count the Total Student Enrolment",
+    difficulty: "easy",
+    points: 100,
+    category: "pandas",
+    description: "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Before ordering course materials, the academic department needs to know the exact total number of students currently logged in the tracking system grid, regardless of whether their grades or ages are complete. Write a Python function get_total_student_count(df: pd. DataFrame) -> int that performs structural counting:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Row Count Evaluation:</strong> Calculate the absolute total number of rows present inside the DataFrame.</li><li class=\"py-0.5\"><strong>Null Independence:</strong> Do not ignore or drop rows containing NaN values; every row represents a registered seat and must be counted.</li><li class=\"py-0.5\"><strong>Return Type:</strong> Return the final count as a standard Python integer.</li></ul>\n  </div>\n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Input Schema</h4>\n    <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal whitespace-pre-wrap select-all\">df: An arbitrary DataFrame matching the student ledger tracking format.</pre>\n  </div>\n  \n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Constraints</h4>\n    <ul class=\"list-disc pl-5 mt-2 space-y-1.5 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\">$0 \\le \\text{df.shape}[0] \\le 500$</li><li class=\"py-0.5\">(Must safely handle an empty dataset by returning 0).</li></ul>\n  </div>\n  \n  \n  \n  <div class=\"mt-6 border-t border-hairline pt-6\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Example 1</h4>\n    \n    <div class=\"space-y-4 mt-3\">\n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Input Data:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"A\"  | 20.0 | 80.0  |\r\n| \"B\"  | 25.0 | NaN   |\r\n| \"C\"  | NaN  | 70.0  |</pre>\n        \n      </div>\n      \n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Expected Output:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\"></pre>\n        <p class=\"mt-2 text-xs text-ink font-sans font-normal leading-relaxed pl-1\">3</p>\n      </div>\n      \n    </div>\n        \n  </div>\n  \n</div>\n",
+    starter_code: "import pandas as pd\nimport numpy as np\n\ndef get_total_student_count(df):\n    # Write your code here\n    pass",
+    dataset_name: "dirty_store_transactions.csv"
+  },
+  {
+    id: 109,
+    title: "109. Purge Completely Corrupted Student Records",
+    difficulty: "easy",
+    points: 100,
+    category: "pandas",
+    description: "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Due to a minor database glitch during a weekly update loop, some rows were saved without both the student's age and their exam mark. A row is considered completely corrupted if it contains missing values in both columns at the same time. Write a Python function purge_corrupted_records(df: pd. DataFrame) -> pd. DataFrame that checks for multiple missing values:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Double Null Isolation:</strong> Identify rows where the Age column AND the Marks column are missing (NaN) at the same time.</li><li class=\"py-0.5\"><strong>Row Removal:</strong> Drop those specific double-null rows from the dataset.</li><li class=\"py-0.5\"><strong>Partial Record Safe Harbor:</strong> Retain rows where at least one of the two metrics is valid (e.g., if age is missing but marks are valid, or vice-versa, do not drop the row).</li></ul>\n  </div>\n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Input Schema</h4>\n    <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal whitespace-pre-wrap select-all\">df: A DataFrame containing Name (String), Age (Float64), and Marks (Float64).</pre>\n  </div>\n  \n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Constraints</h4>\n    <ul class=\"list-disc pl-5 mt-2 space-y-1.5 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\">$1 \\le \\text{df.shape}[0] \\le 100$</li></ul>\n  </div>\n  \n  \n  \n  <div class=\"mt-6 border-t border-hairline pt-6\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Example 1</h4>\n    \n    <div class=\"space-y-4 mt-3\">\n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Input Data:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"A\"  | 20.0 | 80.0  |\r\n| \"B\"  | 25.0 | NaN   |  <- Keep (Age is valid)\r\n| \"C\"  | NaN  | 70.0  |  <- Keep (Marks are valid)\r\n| \"D\"  | NaN  | NaN   |  <- Drop (Both are missing)</pre>\n        \n      </div>\n      \n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Expected Output:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">| Name | Age  | Marks |\r\n|------|------|-------|\r\n| \"A\"  | 20.0 | 80.0  |\r\n| \"B\"  | 25.0 | NaN   |\r\n| \"C\"  | NaN  | 70.0  |</pre>\n        \n      </div>\n      \n    </div>\n        \n  </div>\n  \n</div>\n",
+    starter_code: "import pandas as pd\nimport numpy as np\n\ndef purge_corrupted_records(df):\n    # Write your code here\n    pass",
+    dataset_name: "dirty_store_transactions.csv"
+  },
+  {
+    id: 110,
+    title: "110. Reset Structural Data Alignment Indices",
+    difficulty: "easy",
+    points: 100,
+    category: "pandas",
+    description: "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">When you drop rows from a DataFrame, the row numbers (indices) keep their original positions, leaving gaps in the sequence (e.g., jumping from row 0 directly to row 2). Before exporting data to a clean Excel spreadsheet, you need to reset these row numbers so they run continuously again. Write a Python function reset_dataframe_index(df: pd. DataFrame) -> pd. DataFrame that fixes index sequences:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Index Rebuilding:</strong> Rebuild the row numbers so they run in a continuous, unbroken sequence starting from 0 to $N-1$.</li><li class=\"py-0.5\"><strong>Old Index Cleanup:</strong> Ensure the old, broken index numbers are completely dropped and not saved as a new data column (Hint: check the parameters of your index reset function).</li><li class=\"py-0.5\"><strong>Return Matrix:</strong> Return the re-indexed DataFrame.</li></ul>\n  </div>\n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Input Schema</h4>\n    <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal whitespace-pre-wrap select-all\">df: A DataFrame with gaps or jumps in its row index sequence.</pre>\n  </div>\n  \n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Constraints</h4>\n    <ul class=\"list-disc pl-5 mt-2 space-y-1.5 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\">$1 \\le \\text{df.shape}[0] \\le 200$</li></ul>\n  </div>\n  \n  \n  \n  <div class=\"mt-6 border-t border-hairline pt-6\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Example 1</h4>\n    \n    <div class=\"space-y-4 mt-3\">\n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Input Data:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">-------------|------|------|-------|\r</pre>\n        <p class=\"mt-2 text-xs text-ink font-sans font-normal leading-relaxed pl-1\">Input (DataFrame with row 1 missing after a filter operation):Index Number | Name | Age  | Marks |\r 0            | \"A\"  | 20.0 | 80.0  |\r 2            | \"C\"  | 22.0 | 60.0  |</p>\n      </div>\n      \n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Expected Output:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">-------------|------|------|-------|\r</pre>\n        <p class=\"mt-2 text-xs text-ink font-sans font-normal leading-relaxed pl-1\">Index Number | Name | Age  | Marks |\r 0            | \"A\"  | 20.0 | 80.0  |\r 1            | \"C\"  | 22.0 | 60.0  |</p>\n      </div>\n      \n    </div>\n        \n  </div>\n  \n</div>\n",
+    starter_code: "import pandas as pd\nimport numpy as np\n\ndef reset_dataframe_index(df):\n    # Write your code here\n    pass",
+    dataset_name: "dirty_store_transactions.csv"
+  },
+  {
+    id: 111,
+    title: "111. Fix Product Registry",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -291,8 +391,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 102,
-    title: "102. Standardize Employee Directory",
+    id: 112,
+    title: "112. Standardize Employee Directory",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -301,8 +401,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 103,
-    title: "103. Correct Invalid Transaction Types",
+    id: 113,
+    title: "113. Correct Invalid Transaction Types",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -311,8 +411,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 104,
-    title: "104. Parse Raw Sensor Streams",
+    id: 114,
+    title: "114. Parse Raw Sensor Streams",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -321,8 +421,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "sensor_readings_noisy.csv"
   },
   {
-    id: 105,
-    title: "105. Filter and Threshold Missing Demographics",
+    id: 115,
+    title: "115. Filter and Threshold Missing Demographics",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -331,8 +431,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 106,
-    title: "106. Standardize Mixed Discount Percentages",
+    id: 116,
+    title: "116. Standardize Mixed Discount Percentages",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -341,8 +441,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 107,
-    title: "107. Purge Exact Duplicate Transaction Logs",
+    id: 117,
+    title: "117. Purge Exact Duplicate Transaction Logs",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -351,8 +451,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 108,
-    title: "108. Isolate Frozen and Out-of-Bound Sensor Metrics",
+    id: 118,
+    title: "118. Isolate Frozen and Out-of-Bound Sensor Metrics",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -361,8 +461,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 109,
-    title: "109. Clamp Impossible Outliers",
+    id: 119,
+    title: "119. Clamp Impossible Outliers",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -371,8 +471,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 110,
-    title: "110. Standardize Messy Categorical Alignments",
+    id: 120,
+    title: "120. Standardize Messy Categorical Alignments",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -381,8 +481,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 111,
-    title: "111. High-Performing VIP Segment Breakdown",
+    id: 121,
+    title: "121. High-Performing VIP Segment Breakdown",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -391,8 +491,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 112,
-    title: "112. Identify Outlier Academic Variances",
+    id: 122,
+    title: "122. Identify Outlier Academic Variances",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -401,8 +501,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 113,
-    title: "113. Detect Suspicious Telemetry Patterns",
+    id: 123,
+    title: "123. Detect Suspicious Telemetry Patterns",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -411,8 +511,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "sensor_readings_noisy.csv"
   },
   {
-    id: 114,
-    title: "114. Dynamic Column Dropping and Projection",
+    id: 124,
+    title: "124. Dynamic Column Dropping and Projection",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -421,8 +521,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 115,
-    title: "115. Select Even-Indexed Analytical Runs",
+    id: 125,
+    title: "125. Select Even-Indexed Analytical Runs",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -431,8 +531,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "high_frequency_stock_ticks.csv"
   },
   {
-    id: 116,
-    title: "116. Temporal Business Hours Snapshot",
+    id: 126,
+    title: "126. Temporal Business Hours Snapshot",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -441,8 +541,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 117,
-    title: "117. Identify Underperforming Products",
+    id: 127,
+    title: "127. Identify Underperforming Products",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -451,8 +551,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 118,
-    title: "118. Locate Multi-Country Supply Nodes",
+    id: 128,
+    title: "128. Locate Multi-Country Supply Nodes",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -461,8 +561,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 119,
-    title: "119. Filter Outliers by Absolute Variance",
+    id: 129,
+    title: "129. Filter Outliers by Absolute Variance",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -471,8 +571,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 120,
-    title: "120. Select Records by Dynamic Value Arrays",
+    id: 130,
+    title: "130. Select Records by Dynamic Value Arrays",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -481,8 +581,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 121,
-    title: "121. Compute Store Department Averages",
+    id: 131,
+    title: "131. Compute Store Department Averages",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -491,8 +591,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 122,
-    title: "122. Calculate Fleet Fuel Efficiency Metrics",
+    id: 132,
+    title: "132. Calculate Fleet Fuel Efficiency Metrics",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -501,8 +601,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "high_frequency_stock_ticks.csv"
   },
   {
-    id: 123,
-    title: "123. Find Maximum Monthly Sales Representatives",
+    id: 133,
+    title: "133. Find Maximum Monthly Sales Representatives",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -511,8 +611,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 124,
-    title: "124. Count Distinct Class Categories Per School",
+    id: 134,
+    title: "134. Count Distinct Class Categories Per School",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -521,8 +621,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 125,
-    title: "125. Calculate Multi-Column Inventory Aggregates",
+    id: 135,
+    title: "135. Calculate Multi-Column Inventory Aggregates",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -531,8 +631,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 126,
-    title: "126. Extract First and Last Transaction Dates",
+    id: 136,
+    title: "136. Extract First and Last Transaction Dates",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -541,8 +641,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "store_dim_customers.csv"
   },
   {
-    id: 127,
-    title: "127. Quantify Total Active Users Per Region",
+    id: 137,
+    title: "137. Quantify Total Active Users Per Region",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -551,8 +651,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "store_dim_customers.csv"
   },
   {
-    id: 128,
-    title: "128. Find the Most Common Log Error Codes",
+    id: 138,
+    title: "138. Find the Most Common Log Error Codes",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -561,8 +661,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 129,
-    title: "129. Compute Weighted Passenger Fare Averages",
+    id: 139,
+    title: "139. Compute Weighted Passenger Fare Averages",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -571,8 +671,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 130,
-    title: "130. Determine Warehouse Capacity Utilization",
+    id: 140,
+    title: "140. Determine Warehouse Capacity Utilization",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -581,8 +681,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "high_frequency_stock_ticks.csv"
   },
   {
-    id: 131,
-    title: "131. Broadcast Departmental Variance to Employees",
+    id: 141,
+    title: "141. Broadcast Departmental Variance to Employees",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -591,8 +691,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 132,
-    title: "132. Filter Teams by Average Performance Thresholds",
+    id: 142,
+    title: "142. Filter Teams by Average Performance Thresholds",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -601,8 +701,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 133,
-    title: "133. Calculate Running Regional Revenue Subtotals",
+    id: 143,
+    title: "143. Calculate Running Regional Revenue Subtotals",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -611,8 +711,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 134,
-    title: "134. Find the N-th Highest Earning Freelancer Per Category",
+    id: 144,
+    title: "144. Find the N-th Highest Earning Freelancer Per Category",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -621,8 +721,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 135,
-    title: "135. Calculate Customer Segment Z-Scores",
+    id: 145,
+    title: "145. Calculate Customer Segment Z-Scores",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -631,8 +731,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 136,
-    title: "136. Identify Bounded Inter-Group Running Maximums",
+    id: 146,
+    title: "146. Identify Bounded Inter-Group Running Maximums",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -641,8 +741,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 137,
-    title: "137. Custom User-Defined Group Aggregations",
+    id: 147,
+    title: "147. Custom User-Defined Group Aggregations",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -651,8 +751,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 138,
-    title: "138. Impute Missing Values with Group Medians",
+    id: 148,
+    title: "148. Impute Missing Values with Group Medians",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -661,8 +761,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 139,
-    title: "139. Isolate Top N Dynamic Records Per Group",
+    id: 149,
+    title: "149. Isolate Top N Dynamic Records Per Group",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -671,8 +771,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 140,
-    title: "140. Calculate Group-Level Retention Rates",
+    id: 150,
+    title: "150. Calculate Group-Level Retention Rates",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -681,8 +781,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 141,
-    title: "141. Relational Database Inner Reconciliation",
+    id: 151,
+    title: "151. Relational Database Inner Reconciliation",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -691,8 +791,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 142,
-    title: "142. Complete Outer Inventory Alignment",
+    id: 152,
+    title: "152. Complete Outer Inventory Alignment",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -701,8 +801,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "high_frequency_stock_ticks.csv"
   },
   {
-    id: 143,
-    title: "143. Left Join Audits with Origin Flags",
+    id: 153,
+    title: "153. Left Join Audits with Origin Flags",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -711,8 +811,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "store_dim_customers.csv"
   },
   {
-    id: 144,
-    title: "144. Timestamp Match Using Asynchronous Tolerances",
+    id: 154,
+    title: "154. Timestamp Match Using Asynchronous Tolerances",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -721,8 +821,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "sensor_readings_noisy.csv"
   },
   {
-    id: 145,
-    title: "145. Cartesian Product Resource Assignment",
+    id: 155,
+    title: "155. Cartesian Product Resource Assignment",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -731,8 +831,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "high_frequency_stock_ticks.csv"
   },
   {
-    id: 146,
-    title: "146. Multi-Key Index Merging",
+    id: 156,
+    title: "156. Multi-Key Index Merging",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -741,8 +841,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 147,
-    title: "147. Conditional Overlap Fill and Merge",
+    id: 157,
+    title: "157. Conditional Overlap Fill and Merge",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -751,8 +851,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 148,
-    title: "148. Evaluate Delta Deviations Across Tables",
+    id: 158,
+    title: "158. Evaluate Delta Deviations Across Tables",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -761,8 +861,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "corporate_financials_wide.csv"
   },
   {
-    id: 149,
-    title: "149. Track Historical Schema Changes",
+    id: 159,
+    title: "159. Track Historical Schema Changes",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -771,8 +871,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 150,
-    title: "150. Merge Mismatched Categorical Columns",
+    id: 160,
+    title: "160. Merge Mismatched Categorical Columns",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -781,8 +881,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 151,
-    title: "151. Unpivot Quarterly Financial Summary Tables",
+    id: 161,
+    title: "161. Unpivot Quarterly Financial Summary Tables",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -791,8 +891,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "corporate_financials_wide.csv"
   },
   {
-    id: 152,
-    title: "152. Generate Variable-Width Analytical Bins",
+    id: 162,
+    title: "162. Generate Variable-Width Analytical Bins",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -801,8 +901,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 153,
-    title: "153. One-Hot Encode Categorical Model Pipelines",
+    id: 163,
+    title: "163. One-Hot Encode Categorical Model Pipelines",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -811,8 +911,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 154,
-    title: "154. Resample Daily Financial Data to Monthly Averages",
+    id: 164,
+    title: "164. Resample Daily Financial Data to Monthly Averages",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -821,8 +921,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "sensor_readings_noisy.csv"
   },
   {
-    id: 155,
-    title: "155. Calculate Rolling 7-Day Asset Volatility",
+    id: 165,
+    title: "165. Calculate Rolling 7-Day Asset Volatility",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -831,8 +931,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "high_frequency_stock_ticks.csv"
   },
   {
-    id: 156,
-    title: "156. Compute Multi-Column Percentage Change Deltas (Intermediate)",
+    id: 166,
+    title: "166. Compute Multi-Column Percentage Change Deltas (Intermediate)",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -841,8 +941,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "high_frequency_stock_ticks.csv"
   },
   {
-    id: 157,
-    title: "157. Multi-Level Index Cross-Section Extractions",
+    id: 167,
+    title: "167. Multi-Level Index Cross-Section Extractions",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -851,8 +951,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "corporate_financials_wide.csv"
   },
   {
-    id: 158,
-    title: "158. Calculate Cumulative Moving Limits",
+    id: 168,
+    title: "168. Calculate Cumulative Moving Limits",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -861,8 +961,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 159,
-    title: "159. Cross-Tabulate Multi-Factor Frequency Tables",
+    id: 169,
+    title: "169. Cross-Tabulate Multi-Factor Frequency Tables",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -871,8 +971,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 160,
-    title: "160. Explode Nested JSON Array Columns into Rows",
+    id: 170,
+    title: "170. Explode Nested JSON Array Columns into Rows",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -881,8 +981,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 161,
-    title: "161. Extract Valid Nested Email Domains",
+    id: 171,
+    title: "171. Extract Valid Nested Email Domains",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -891,8 +991,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 162,
-    title: "162. Parse Raw Unstructured Log Strings via Regex Captures",
+    id: 172,
+    title: "172. Parse Raw Unstructured Log Strings via Regex Captures",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -901,8 +1001,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "sensor_readings_noisy.csv"
   },
   {
-    id: 163,
-    title: "163. Sanitize and Standardize Variable Phone Formats",
+    id: 173,
+    title: "173. Sanitize and Standardize Variable Phone Formats",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -911,8 +1011,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 164,
-    title: "164. Vectorized Substring Tokenization and Counting",
+    id: 174,
+    title: "174. Vectorized Substring Tokenization and Counting",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -921,8 +1021,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 165,
-    title: "165. Identify Partial Match Anomalies in Product Descriptions",
+    id: 175,
+    title: "175. Identify Partial Match Anomalies in Product Descriptions",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -931,8 +1031,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 166,
-    title: "166. Mask Sensitive Personally Identifiable Information",
+    id: 176,
+    title: "176. Mask Sensitive Personally Identifiable Information",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -941,8 +1041,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 167,
-    title: "167. Title-Case Multi-Word Exceptions in Names",
+    id: 177,
+    title: "177. Title-Case Multi-Word Exceptions in Names",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -951,8 +1051,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 168,
-    title: "168. Split Variable-Length Delimited Fields into Matrix Columns",
+    id: 178,
+    title: "178. Split Variable-Length Delimited Fields into Matrix Columns",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -961,8 +1061,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 169,
-    title: "169. Flatten Deeply Nested Multi-Indexed Columns Post-Aggregation",
+    id: 179,
+    title: "179. Flatten Deeply Nested Multi-Indexed Columns Post-Aggregation",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -971,8 +1071,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 170,
-    title: "170. Construct Hierarchical Indexes from Dynamic String Cuts",
+    id: 180,
+    title: "180. Construct Hierarchical Indexes from Dynamic String Cuts",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -981,8 +1081,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 171,
-    title: "171. Cross-Sectional Analysis Across Asymmetric Index Levels",
+    id: 181,
+    title: "181. Cross-Sectional Analysis Across Asymmetric Index Levels",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -991,8 +1091,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "store_dim_customers.csv"
   },
   {
-    id: 172,
-    title: "172. Pivot Complex Aggregations with Variable Margins and Totals",
+    id: 182,
+    title: "182. Pivot Complex Aggregations with Variable Margins and Totals",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1001,8 +1101,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 173,
-    title: "173. Unstacking Selective Tiers of Multi-Dimensional Arrays",
+    id: 183,
+    title: "183. Unstacking Selective Tiers of Multi-Dimensional Arrays",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1011,8 +1111,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 174,
-    title: "174. Multi-Index Swapping and Reordering for Matrix Math",
+    id: 184,
+    title: "184. Multi-Index Swapping and Reordering for Matrix Math",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1021,8 +1121,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 175,
-    title: "175. Reshape Sparse Matrices into Dense DataFrames",
+    id: 185,
+    title: "185. Reshape Sparse Matrices into Dense DataFrames",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1031,8 +1131,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 176,
-    title: "176. Conditional Melting of Multi-Column Data Blocks",
+    id: 186,
+    title: "186. Conditional Melting of Multi-Column Data Blocks",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1041,8 +1141,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 177,
-    title: "177. Asynchronous Time-Zone Alignment and Localization",
+    id: 187,
+    title: "187. Asynchronous Time-Zone Alignment and Localization",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1051,8 +1151,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "sensor_readings_noisy.csv"
   },
   {
-    id: 178,
-    title: "178. Calculate Custom Business-Day Deltas Excluding Arbitrary Holidays",
+    id: 188,
+    title: "188. Calculate Custom Business-Day Deltas Excluding Arbitrary Holidays",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1061,8 +1161,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 179,
-    title: "179. Forward-Fill Intermittent Time Series with Upper Bounds",
+    id: 189,
+    title: "189. Forward-Fill Intermittent Time Series with Upper Bounds",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1071,8 +1171,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "high_frequency_stock_ticks.csv"
   },
   {
-    id: 180,
-    title: "180. Detect Consecutive Day Streaks (The Gaps-and-Islands Problem)",
+    id: 190,
+    title: "190. Detect Consecutive Day Streaks (The Gaps-and-Islands Problem)",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1081,8 +1181,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 181,
-    title: "181. Resample Irregular High-Frequency Ticks to Open-High-Low-Close (OHLC)",
+    id: 191,
+    title: "191. Resample Irregular High-Frequency Ticks to Open-High-Low-Close (OHLC)",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1091,8 +1191,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "high_frequency_stock_ticks.csv"
   },
   {
-    id: 182,
-    title: "182. Calculate Rolling Window Metrics with Variable Time-Offsets",
+    id: 192,
+    title: "192. Calculate Rolling Window Metrics with Variable Time-Offsets",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1101,8 +1201,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "sensor_readings_noisy.csv"
   },
   {
-    id: 183,
-    title: "183. Align Asynchronous Events Using Forward-Looking merge_asof",
+    id: 193,
+    title: "193. Align Asynchronous Events Using Forward-Looking merge_asof",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1111,8 +1211,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "high_frequency_stock_ticks.csv"
   },
   {
-    id: 184,
-    title: "184. Compute Expanding Metric Maximums and Exponentially Weighted Decays",
+    id: 194,
+    title: "194. Compute Expanding Metric Maximums and Exponentially Weighted Decays",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1121,8 +1221,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "high_frequency_stock_ticks.csv"
   },
   {
-    id: 185,
-    title: "185. Downcast Massive Dataframes via Numeric and Categorical Type Traversal",
+    id: 195,
+    title: "195. Downcast Massive Dataframes via Numeric and Categorical Type Traversal",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1131,8 +1231,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 186,
-    title: "186. Vectorized Numeric Evaluation Using pd.eval() for Compound Logic",
+    id: 196,
+    title: "196. Vectorized Numeric Evaluation Using pd.eval() for Compound Logic",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1141,8 +1241,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 187,
-    title: "187. High-Speed Conditional String Filtering via Vectorized .query()",
+    id: 197,
+    title: "197. High-Speed Conditional String Filtering via Vectorized .query()",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1151,18 +1251,18 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 188,
-    title: "188. Chunked Processing Architecture for Multi-Gigabyte Ingestion",
+    id: 198,
+    title: "198. Chunked Processing Architecture for Multi-Gigabyte Ingestion",
     difficulty: "hard",
     points: 300,
     category: "pandas",
-    description: "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Challenge 88: Chunked Processing Architecture for Multi-Gigabyte IngestionProblem DescriptionWhen processing an enormous multi-gigabyte data repository that exceeds the available RAM capacity of a host machine, calling pd.read_csv(\"large_file.csv\") will instantly trigger a system crash. To process large files safely, you must implement a chunked reading architecture that streams the file sequentially in manageable micro-batches. Write a Python function process_stream_chunks(file_path: str, batch_chunk_size: int) -> pd. DataFrame that simulates chunked micro-batch processing:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Chunked Ingestion Engine:</strong> Open the target file using pd.read_csv() combined with the chunksize=batch_chunk_size parameter configuration. This will return a iterable text file parsing stream reader object.</li><li class=\"py-0.5\"><strong>Iterative Batch Aggregation:</strong> Loop through each chunk batch sequentially. Within each chunk batch, perform an immediate data filtering step: retain only those rows where the Status column matches \"Error\" or \"Err\".</li><li class=\"py-0.5\"><strong>Relational In-Line Truncation:</strong> For the filtered rows in each chunk, discard all columns except Timestamp, SensorID, and Status to minimize the data's memory footprint before aggregation.</li><li class=\"py-0.5\"><strong>Consolidated Reconstruction:</strong> Vertically stack (pd.concat) the filtered data slices from each chunk into a single, consolidated output DataFrame. Reset the positional index smoothly from 0 to $N-1$. Input Functional Parametersfile_path: A string path pointing toward the location of a mock big data file structured identically to sensor_readings_noisy.csv.batch_chunk_size: An integer defining the maximum row limit processed inside a single micro-batch iteration loop (e.g., 100). ConstraintsThe function must avoid loading the entire file into memory at once; data must be filtered chunk-by-chunk. Example 1Input File Execution Parameters (batch_chunk_size = 2 over a 4-row file):Chunk 1</li><li class=\"py-0.5\"><strong>Log Block:</strong>\r\n| Timestamp           | SensorID | Status   | Pressure |\r\n|---------------------|----------|----------|----------|\r\n| 2026-08-01 12:00:00 | \"S-1\"    | \"Active\" | 1013.2   | -> Drop\r\n| 2026-08-01 12:01:00 | \"S-2\"    | \"Error\"  | 980.5    | -> Keep\r\n\r\nChunk 2</li><li class=\"py-0.5\"><strong>Log Block:</strong>\r\n| Timestamp           | SensorID | Status   | Pressure |\r\n|---------------------|----------|----------|----------|\r\n| 2026-08-01 12:02:00 | \"S-1\"    | \"Normal\" | 1012.0   | -> Drop\r\n| 2026-08-01 12:03:00 | \"S-3\"    | \"Err\"    | 1099.9   | -></li><li class=\"py-0.5\">**Keep\r\nOutput:**| Timestamp           | SensorID | Status  |\r\n|---------------------|----------|---------|\r\n| 2026-08-01 12:01:00 | \"S-2\"    | \"Error\" |\r\n| 2026-08-01 12:03:00 | \"S-3\"    | \"Err\"   |\r\nHidden Verification Test CasesTest Case 88.1:</li><li class=\"py-0.5\"><strong>Zero Target Hit BoundaryTest Input Data:</strong> A chunk loop evaluation where absolutely no row inside an entire chunk batch matches the filter criteria.</li><li class=\"py-0.5\"><strong>Expected Test Output:</strong> The loop processes the empty batch smoothly, continuing onto subsequent data blocks without raising concatenation shape errors.\r\n\r\nHere are the next 4 complete LeetCode-style Pandas challenges (Challenges 89 through 92), concluding the Memory Optimization, Big Data Scaling & Anti-Patterns division. These focus directly on eliminating structural warnings and optimizing row-wise mutation algorithms.</li></ul>\n  </div>\n  \n  \n  \n  \n  \n  \n</div>\n",
+    description: "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Challenge 98: Chunked Processing Architecture for Multi-Gigabyte IngestionProblem DescriptionWhen processing an enormous multi-gigabyte data repository that exceeds the available RAM capacity of a host machine, calling pd.read_csv(\"large_file.csv\") will instantly trigger a system crash. To process large files safely, you must implement a chunked reading architecture that streams the file sequentially in manageable micro-batches. Write a Python function process_stream_chunks(file_path: str, batch_chunk_size: int) -> pd. DataFrame that simulates chunked micro-batch processing:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Chunked Ingestion Engine:</strong> Open the target file using pd.read_csv() combined with the chunksize=batch_chunk_size parameter configuration. This will return a iterable text file parsing stream reader object.</li><li class=\"py-0.5\"><strong>Iterative Batch Aggregation:</strong> Loop through each chunk batch sequentially. Within each chunk batch, perform an immediate data filtering step: retain only those rows where the Status column matches \"Error\" or \"Err\".</li><li class=\"py-0.5\"><strong>Relational In-Line Truncation:</strong> For the filtered rows in each chunk, discard all columns except Timestamp, SensorID, and Status to minimize the data's memory footprint before aggregation.</li><li class=\"py-0.5\"><strong>Consolidated Reconstruction:</strong> Vertically stack (pd.concat) the filtered data slices from each chunk into a single, consolidated output DataFrame. Reset the positional index smoothly from 0 to $N-1$. Input Functional Parametersfile_path: A string path pointing toward the location of a mock big data file structured identically to sensor_readings_noisy.csv.batch_chunk_size: An integer defining the maximum row limit processed inside a single micro-batch iteration loop (e.g., 100). ConstraintsThe function must avoid loading the entire file into memory at once; data must be filtered chunk-by-chunk. Example 1Input File Execution Parameters (batch_chunk_size = 2 over a 4-row file):Chunk 1</li><li class=\"py-0.5\"><strong>Log Block:</strong>\r\n| Timestamp           | SensorID | Status   | Pressure |\r\n|---------------------|----------|----------|----------|\r\n| 2026-08-01 12:00:00 | \"S-1\"    | \"Active\" | 1013.2   | -> Drop\r\n| 2026-08-01 12:01:00 | \"S-2\"    | \"Error\"  | 980.5    | -> Keep\r\n\r\nChunk 2</li><li class=\"py-0.5\"><strong>Log Block:</strong>\r\n| Timestamp           | SensorID | Status   | Pressure |\r\n|---------------------|----------|----------|----------|\r\n| 2026-08-01 12:02:00 | \"S-1\"    | \"Normal\" | 1012.0   | -> Drop\r\n| 2026-08-01 12:03:00 | \"S-3\"    | \"Err\"    | 1099.9   | -></li><li class=\"py-0.5\">**Keep\r\nOutput:**| Timestamp           | SensorID | Status  |\r\n|---------------------|----------|---------|\r\n| 2026-08-01 12:01:00 | \"S-2\"    | \"Error\" |\r\n| 2026-08-01 12:03:00 | \"S-3\"    | \"Err\"   |\r\nHidden Verification Test CasesTest Case 88.1:</li><li class=\"py-0.5\"><strong>Zero Target Hit BoundaryTest Input Data:</strong> A chunk loop evaluation where absolutely no row inside an entire chunk batch matches the filter criteria.</li><li class=\"py-0.5\"><strong>Expected Test Output:</strong> The loop processes the empty batch smoothly, continuing onto subsequent data blocks without raising concatenation shape errors.\r\n\r\nHere are the next 4 complete LeetCode-style Pandas challenges (Challenges 89 through 92), concluding the Memory Optimization, Big Data Scaling & Anti-Patterns division. These focus directly on eliminating structural warnings and optimizing row-wise mutation algorithms.</li></ul>\n  </div>\n  \n  \n  \n  \n  \n  \n</div>\n",
     starter_code: "import pandas as pd\nimport numpy as np\n\ndef plot_stock_price_candlesticks(df):\n    # Write your code here\n    pass",
     dataset_name: "sensor_readings_noisy.csv"
   },
   {
-    id: 189,
-    title: "189. Eliminate SettingWithCopyWarning in Deeply Nested Views",
+    id: 199,
+    title: "199. Eliminate SettingWithCopyWarning in Deeply Nested Views",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -1171,8 +1271,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 190,
-    title: "190. Optimize Row-Wise Traversal (Replacing iterrows with itertuples)",
+    id: 200,
+    title: "200. Optimize Row-Wise Traversal (Replacing iterrows with itertuples)",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1181,8 +1281,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 191,
-    title: "191. Fast Element-Wise Matrix Mutations Using NumPy Vectorization Backends",
+    id: 201,
+    title: "201. Fast Element-Wise Matrix Mutations Using NumPy Vectorization Backends",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1191,8 +1291,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 192,
-    title: "192. Parallelizing Custom User-Defined Functions Across Groups",
+    id: 202,
+    title: "202. Parallelizing Custom User-Defined Functions Across Groups",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1201,8 +1301,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 193,
-    title: "193. Compute Rolling Correlation Matrices Across Sliding Timelines",
+    id: 203,
+    title: "203. Compute Rolling Correlation Matrices Across Sliding Timelines",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1211,8 +1311,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "high_frequency_stock_ticks.csv"
   },
   {
-    id: 194,
-    title: "194. Multi-Condition Deduplication Keeping Custom Dynamic Extremes",
+    id: 204,
+    title: "204. Multi-Condition Deduplication Keeping Custom Dynamic Extremes",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1221,8 +1321,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 195,
-    title: "195. Dynamic Quantile-Based Binning Across Variable Group Sizes",
+    id: 205,
+    title: "205. Dynamic Quantile-Based Binning Across Variable Group Sizes",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1231,8 +1331,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 196,
-    title: "196. Reconstruct Lineage Tables from Self-Referential Parent-Child Rows",
+    id: 206,
+    title: "206. Reconstruct Lineage Tables from Self-Referential Parent-Child Rows",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1241,8 +1341,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "dirty_store_transactions.csv"
   },
   {
-    id: 197,
-    title: "197. Identify Complex Cycle Patterns in Graph Metadata",
+    id: 207,
+    title: "207. Identify Complex Cycle Patterns in Graph Metadata",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1251,8 +1351,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "sensor_readings_noisy.csv"
   },
   {
-    id: 198,
-    title: "198. Vectorized Matrix Multiplications for Multi-Dimensional Coordinate Tiers",
+    id: 208,
+    title: "208. Vectorized Matrix Multiplications for Multi-Dimensional Coordinate Tiers",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1261,8 +1361,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "student_performance_factors.csv"
   },
   {
-    id: 199,
-    title: "199. Track Dynamic Multi-Layer State Machine Transitions",
+    id: 209,
+    title: "209. Track Dynamic Multi-Layer State Machine Transitions",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1271,8 +1371,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     dataset_name: "sensor_readings_noisy.csv"
   },
   {
-    id: 200,
-    title: "200. End-to-End Multiprocess Pipeline Orchestration",
+    id: 210,
+    title: "210. End-to-End Multiprocess Pipeline Orchestration",
     difficulty: "hard",
     points: 300,
     category: "pandas",
