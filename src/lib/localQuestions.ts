@@ -282,7 +282,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 101,
-    title: "1. Fix Product Registry",
+    title: "101. Fix Product Registry",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -292,7 +292,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 102,
-    title: "2. Standardize Employee Directory",
+    title: "102. Standardize Employee Directory",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -302,7 +302,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 103,
-    title: "3. Correct Invalid Transaction Types",
+    title: "103. Correct Invalid Transaction Types",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -312,7 +312,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 104,
-    title: "4. Parse Raw Sensor Streams",
+    title: "104. Parse Raw Sensor Streams",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -322,7 +322,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 105,
-    title: "5. Filter and Threshold Missing Demographics",
+    title: "105. Filter and Threshold Missing Demographics",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -332,7 +332,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 106,
-    title: "6. Standardize Mixed Discount Percentages",
+    title: "106. Standardize Mixed Discount Percentages",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -342,7 +342,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 107,
-    title: "7. Purge Exact Duplicate Transaction Logs",
+    title: "107. Purge Exact Duplicate Transaction Logs",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -352,7 +352,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 108,
-    title: "8. Isolate Frozen and Out-of-Bound Sensor Metrics",
+    title: "108. Isolate Frozen and Out-of-Bound Sensor Metrics",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -362,7 +362,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 109,
-    title: "9. Clamp Impossible Outliers",
+    title: "109. Clamp Impossible Outliers",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -372,7 +372,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 110,
-    title: "10. Standardize Messy Categorical Alignments",
+    title: "110. Standardize Messy Categorical Alignments",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -382,7 +382,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 111,
-    title: "11. High-Performing VIP Segment Breakdown",
+    title: "111. High-Performing VIP Segment Breakdown",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -392,7 +392,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 112,
-    title: "12. Identify Outlier Academic Variances",
+    title: "112. Identify Outlier Academic Variances",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -402,7 +402,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 113,
-    title: "13. Detect Suspicious Telemetry Patterns",
+    title: "113. Detect Suspicious Telemetry Patterns",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -412,7 +412,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 114,
-    title: "14. Dynamic Column Dropping and Projection",
+    title: "114. Dynamic Column Dropping and Projection",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -422,7 +422,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 115,
-    title: "15. Select Even-Indexed Analytical Runs",
+    title: "115. Select Even-Indexed Analytical Runs",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -432,7 +432,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 116,
-    title: "16. Temporal Business Hours Snapshot",
+    title: "116. Temporal Business Hours Snapshot",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -442,7 +442,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 117,
-    title: "17. Identify Underperforming Products",
+    title: "117. Identify Underperforming Products",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -452,7 +452,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 118,
-    title: "18. Locate Multi-Country Supply Nodes",
+    title: "118. Locate Multi-Country Supply Nodes",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -462,7 +462,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 119,
-    title: "19. Filter Outliers by Absolute Variance",
+    title: "119. Filter Outliers by Absolute Variance",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -472,7 +472,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 120,
-    title: "20. Select Records by Dynamic Value Arrays",
+    title: "120. Select Records by Dynamic Value Arrays",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -482,7 +482,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 121,
-    title: "21. Compute Store Department Averages",
+    title: "121. Compute Store Department Averages",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -492,7 +492,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 122,
-    title: "22. Calculate Fleet Fuel Efficiency Metrics",
+    title: "122. Calculate Fleet Fuel Efficiency Metrics",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -502,7 +502,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 123,
-    title: "23. Find Maximum Monthly Sales Representatives",
+    title: "123. Find Maximum Monthly Sales Representatives",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -512,7 +512,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 124,
-    title: "24. Count Distinct Class Categories Per School",
+    title: "124. Count Distinct Class Categories Per School",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -522,7 +522,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 125,
-    title: "25. Calculate Multi-Column Inventory Aggregates",
+    title: "125. Calculate Multi-Column Inventory Aggregates",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -532,7 +532,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 126,
-    title: "26. Extract First and Last Transaction Dates",
+    title: "126. Extract First and Last Transaction Dates",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -542,7 +542,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 127,
-    title: "27. Quantify Total Active Users Per Region",
+    title: "127. Quantify Total Active Users Per Region",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -552,7 +552,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 128,
-    title: "28. Find the Most Common Log Error Codes",
+    title: "128. Find the Most Common Log Error Codes",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -562,7 +562,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 129,
-    title: "29. Compute Weighted Passenger Fare Averages",
+    title: "129. Compute Weighted Passenger Fare Averages",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -572,7 +572,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 130,
-    title: "30. Determine Warehouse Capacity Utilization",
+    title: "130. Determine Warehouse Capacity Utilization",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -582,7 +582,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 131,
-    title: "31. Broadcast Departmental Variance to Employees",
+    title: "131. Broadcast Departmental Variance to Employees",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -592,7 +592,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 132,
-    title: "32. Filter Teams by Average Performance Thresholds",
+    title: "132. Filter Teams by Average Performance Thresholds",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -602,7 +602,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 133,
-    title: "33. Calculate Running Regional Revenue Subtotals",
+    title: "133. Calculate Running Regional Revenue Subtotals",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -612,7 +612,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 134,
-    title: "34. Find the N-th Highest Earning Freelancer Per Category",
+    title: "134. Find the N-th Highest Earning Freelancer Per Category",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -622,7 +622,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 135,
-    title: "35. Calculate Customer Segment Z-Scores",
+    title: "135. Calculate Customer Segment Z-Scores",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -632,7 +632,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 136,
-    title: "36. Identify Bounded Inter-Group Running Maximums",
+    title: "136. Identify Bounded Inter-Group Running Maximums",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -642,7 +642,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 137,
-    title: "37. Custom User-Defined Group Aggregations",
+    title: "137. Custom User-Defined Group Aggregations",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -652,7 +652,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 138,
-    title: "38. Impute Missing Values with Group Medians",
+    title: "138. Impute Missing Values with Group Medians",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -662,7 +662,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 139,
-    title: "39. Isolate Top N Dynamic Records Per Group",
+    title: "139. Isolate Top N Dynamic Records Per Group",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -672,7 +672,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 140,
-    title: "40. Calculate Group-Level Retention Rates",
+    title: "140. Calculate Group-Level Retention Rates",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -682,7 +682,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 141,
-    title: "41. Relational Database Inner Reconciliation",
+    title: "141. Relational Database Inner Reconciliation",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -692,7 +692,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 142,
-    title: "42. Complete Outer Inventory Alignment",
+    title: "142. Complete Outer Inventory Alignment",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -702,7 +702,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 143,
-    title: "43. Left Join Audits with Origin Flags",
+    title: "143. Left Join Audits with Origin Flags",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -712,7 +712,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 144,
-    title: "44. Timestamp Match Using Asynchronous Tolerances",
+    title: "144. Timestamp Match Using Asynchronous Tolerances",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -722,7 +722,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 145,
-    title: "45. Cartesian Product Resource Assignment",
+    title: "145. Cartesian Product Resource Assignment",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -732,7 +732,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 146,
-    title: "46. Multi-Key Index Merging",
+    title: "146. Multi-Key Index Merging",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -742,7 +742,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 147,
-    title: "47. Conditional Overlap Fill and Merge",
+    title: "147. Conditional Overlap Fill and Merge",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -752,7 +752,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 148,
-    title: "48. Evaluate Delta Deviations Across Tables",
+    title: "148. Evaluate Delta Deviations Across Tables",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -762,7 +762,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 149,
-    title: "49. Track Historical Schema Changes",
+    title: "149. Track Historical Schema Changes",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -772,7 +772,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 150,
-    title: "50. Merge Mismatched Categorical Columns",
+    title: "150. Merge Mismatched Categorical Columns",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -782,7 +782,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 151,
-    title: "51. Unpivot Quarterly Financial Summary Tables",
+    title: "151. Unpivot Quarterly Financial Summary Tables",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -792,7 +792,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 152,
-    title: "52. Generate Variable-Width Analytical Bins",
+    title: "152. Generate Variable-Width Analytical Bins",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -802,7 +802,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 153,
-    title: "53. One-Hot Encode Categorical Model Pipelines",
+    title: "153. One-Hot Encode Categorical Model Pipelines",
     difficulty: "easy",
     points: 100,
     category: "pandas",
@@ -812,7 +812,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 154,
-    title: "54. Resample Daily Financial Data to Monthly Averages",
+    title: "154. Resample Daily Financial Data to Monthly Averages",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -822,7 +822,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 155,
-    title: "55. Calculate Rolling 7-Day Asset Volatility",
+    title: "155. Calculate Rolling 7-Day Asset Volatility",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -832,7 +832,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 156,
-    title: "56. Compute Multi-Column Percentage Change Deltas (Intermediate)",
+    title: "156. Compute Multi-Column Percentage Change Deltas (Intermediate)",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -842,7 +842,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 157,
-    title: "57. Multi-Level Index Cross-Section Extractions",
+    title: "157. Multi-Level Index Cross-Section Extractions",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -852,7 +852,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 158,
-    title: "58. Calculate Cumulative Moving Limits",
+    title: "158. Calculate Cumulative Moving Limits",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -862,7 +862,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 159,
-    title: "59. Cross-Tabulate Multi-Factor Frequency Tables",
+    title: "159. Cross-Tabulate Multi-Factor Frequency Tables",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -872,7 +872,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 160,
-    title: "60. Explode Nested JSON Array Columns into Rows",
+    title: "160. Explode Nested JSON Array Columns into Rows",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -882,7 +882,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 161,
-    title: "61. Extract Valid Nested Email Domains",
+    title: "161. Extract Valid Nested Email Domains",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -892,7 +892,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 162,
-    title: "62. Parse Raw Unstructured Log Strings via Regex Captures",
+    title: "162. Parse Raw Unstructured Log Strings via Regex Captures",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -902,7 +902,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 163,
-    title: "63. Sanitize and Standardize Variable Phone Formats",
+    title: "163. Sanitize and Standardize Variable Phone Formats",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -912,7 +912,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 164,
-    title: "64. Vectorized Substring Tokenization and Counting",
+    title: "164. Vectorized Substring Tokenization and Counting",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -922,7 +922,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 165,
-    title: "65. Identify Partial Match Anomalies in Product Descriptions",
+    title: "165. Identify Partial Match Anomalies in Product Descriptions",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -932,7 +932,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 166,
-    title: "66. Mask Sensitive Personally Identifiable Information",
+    title: "166. Mask Sensitive Personally Identifiable Information",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -942,7 +942,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 167,
-    title: "67. Title-Case Multi-Word Exceptions in Names",
+    title: "167. Title-Case Multi-Word Exceptions in Names",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -952,7 +952,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 168,
-    title: "68. Split Variable-Length Delimited Fields into Matrix Columns",
+    title: "168. Split Variable-Length Delimited Fields into Matrix Columns",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -962,7 +962,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 169,
-    title: "69. Flatten Deeply Nested Multi-Indexed Columns Post-Aggregation",
+    title: "169. Flatten Deeply Nested Multi-Indexed Columns Post-Aggregation",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -972,7 +972,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 170,
-    title: "70. Construct Hierarchical Indexes from Dynamic String Cuts",
+    title: "170. Construct Hierarchical Indexes from Dynamic String Cuts",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -982,7 +982,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 171,
-    title: "71. Cross-Sectional Analysis Across Asymmetric Index Levels",
+    title: "171. Cross-Sectional Analysis Across Asymmetric Index Levels",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -992,7 +992,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 172,
-    title: "72. Pivot Complex Aggregations with Variable Margins and Totals",
+    title: "172. Pivot Complex Aggregations with Variable Margins and Totals",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1002,7 +1002,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 173,
-    title: "73. Unstacking Selective Tiers of Multi-Dimensional Arrays",
+    title: "173. Unstacking Selective Tiers of Multi-Dimensional Arrays",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1012,7 +1012,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 174,
-    title: "74. Multi-Index Swapping and Reordering for Matrix Math",
+    title: "174. Multi-Index Swapping and Reordering for Matrix Math",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1022,7 +1022,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 175,
-    title: "75. Reshape Sparse Matrices into Dense DataFrames",
+    title: "175. Reshape Sparse Matrices into Dense DataFrames",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1032,7 +1032,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 176,
-    title: "76. Conditional Melting of Multi-Column Data Blocks",
+    title: "176. Conditional Melting of Multi-Column Data Blocks",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1042,7 +1042,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 177,
-    title: "77. Asynchronous Time-Zone Alignment and Localization",
+    title: "177. Asynchronous Time-Zone Alignment and Localization",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1052,7 +1052,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 178,
-    title: "78. Calculate Custom Business-Day Deltas Excluding Arbitrary Holidays",
+    title: "178. Calculate Custom Business-Day Deltas Excluding Arbitrary Holidays",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1062,7 +1062,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 179,
-    title: "79. Forward-Fill Intermittent Time Series with Upper Bounds",
+    title: "179. Forward-Fill Intermittent Time Series with Upper Bounds",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1072,7 +1072,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 180,
-    title: "80. Detect Consecutive Day Streaks (The Gaps-and-Islands Problem)",
+    title: "180. Detect Consecutive Day Streaks (The Gaps-and-Islands Problem)",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1082,7 +1082,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 181,
-    title: "81. Resample Irregular High-Frequency Ticks to Open-High-Low-Close (OHLC)",
+    title: "181. Resample Irregular High-Frequency Ticks to Open-High-Low-Close (OHLC)",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1092,7 +1092,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 182,
-    title: "82. Calculate Rolling Window Metrics with Variable Time-Offsets",
+    title: "182. Calculate Rolling Window Metrics with Variable Time-Offsets",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1102,7 +1102,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 183,
-    title: "83. Align Asynchronous Events Using Forward-Looking merge_asof",
+    title: "183. Align Asynchronous Events Using Forward-Looking merge_asof",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1112,7 +1112,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 184,
-    title: "84. Compute Expanding Metric Maximums and Exponentially Weighted Decays",
+    title: "184. Compute Expanding Metric Maximums and Exponentially Weighted Decays",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1122,7 +1122,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 185,
-    title: "85. Downcast Massive Dataframes via Numeric and Categorical Type Traversal",
+    title: "185. Downcast Massive Dataframes via Numeric and Categorical Type Traversal",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1132,7 +1132,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 186,
-    title: "86. Vectorized Numeric Evaluation Using pd.eval() for Compound Logic",
+    title: "186. Vectorized Numeric Evaluation Using pd.eval() for Compound Logic",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1142,7 +1142,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 187,
-    title: "87. High-Speed Conditional String Filtering via Vectorized .query()",
+    title: "187. High-Speed Conditional String Filtering via Vectorized .query()",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1152,7 +1152,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 188,
-    title: "88. Chunked Processing Architecture for Multi-Gigabyte Ingestion",
+    title: "188. Chunked Processing Architecture for Multi-Gigabyte Ingestion",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1162,7 +1162,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 189,
-    title: "89. Eliminate SettingWithCopyWarning in Deeply Nested Views",
+    title: "189. Eliminate SettingWithCopyWarning in Deeply Nested Views",
     difficulty: "medium",
     points: 200,
     category: "pandas",
@@ -1172,7 +1172,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 190,
-    title: "90. Optimize Row-Wise Traversal (Replacing iterrows with itertuples)",
+    title: "190. Optimize Row-Wise Traversal (Replacing iterrows with itertuples)",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1182,7 +1182,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 191,
-    title: "91. Fast Element-Wise Matrix Mutations Using NumPy Vectorization Backends",
+    title: "191. Fast Element-Wise Matrix Mutations Using NumPy Vectorization Backends",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1192,7 +1192,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 192,
-    title: "92. Parallelizing Custom User-Defined Functions Across Groups",
+    title: "192. Parallelizing Custom User-Defined Functions Across Groups",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1202,7 +1202,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 193,
-    title: "93. Compute Rolling Correlation Matrices Across Sliding Timelines",
+    title: "193. Compute Rolling Correlation Matrices Across Sliding Timelines",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1212,7 +1212,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 194,
-    title: "94. Multi-Condition Deduplication Keeping Custom Dynamic Extremes",
+    title: "194. Multi-Condition Deduplication Keeping Custom Dynamic Extremes",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1222,7 +1222,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 195,
-    title: "95. Dynamic Quantile-Based Binning Across Variable Group Sizes",
+    title: "195. Dynamic Quantile-Based Binning Across Variable Group Sizes",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1232,7 +1232,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 196,
-    title: "96. Reconstruct Lineage Tables from Self-Referential Parent-Child Rows",
+    title: "196. Reconstruct Lineage Tables from Self-Referential Parent-Child Rows",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1242,7 +1242,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 197,
-    title: "97. Identify Complex Cycle Patterns in Graph Metadata",
+    title: "197. Identify Complex Cycle Patterns in Graph Metadata",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1252,7 +1252,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 198,
-    title: "98. Vectorized Matrix Multiplications for Multi-Dimensional Coordinate Tiers",
+    title: "198. Vectorized Matrix Multiplications for Multi-Dimensional Coordinate Tiers",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1262,7 +1262,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 199,
-    title: "99. Track Dynamic Multi-Layer State Machine Transitions",
+    title: "199. Track Dynamic Multi-Layer State Machine Transitions",
     difficulty: "hard",
     points: 300,
     category: "pandas",
@@ -1272,7 +1272,7 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     id: 200,
-    title: "100. End-to-End Multiprocess Pipeline Orchestration",
+    title: "200. End-to-End Multiprocess Pipeline Orchestration",
     difficulty: "hard",
     points: 300,
     category: "pandas",
