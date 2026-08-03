@@ -17,7 +17,7 @@ function formatQuestionTemplate(
   constraints: string[]
 ): string {
   const exampleHtml = examples.map((ex, idx) => `
-<h3 class="text-xs font-bold text-primary uppercase tracking-wider mb-2 mt-6">Example ${idx + 1}</h3>
+<h3 class="text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6">Example ${idx + 1}</h3>
 <div class="border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal">
   <div><span class="text-ink/80 font-bold font-sans mr-2">Input:</span> <code>${ex.input}</code></div>
   <div><span class="text-primary font-bold font-sans mr-2">Output:</span> <code>${ex.output}</code></div>
@@ -26,7 +26,7 @@ function formatQuestionTemplate(
   `).join('');
 
   const constraintsHtml = constraints.length > 0 ? `
-<h3 class="text-xs font-bold text-primary uppercase tracking-wider mb-2 mt-6">Constraints</h3>
+<h3 class="text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6">Constraints</h3>
 <ul class="list-disc pl-5 text-xs text-ink space-y-1.5 font-normal">
   ${constraints.map(c => `<li><code>${c}</code></li>`).join('')}
 </ul>
