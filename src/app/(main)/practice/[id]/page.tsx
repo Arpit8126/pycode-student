@@ -179,17 +179,6 @@ export default function PracticeWorkspacePage() {
   // Custom editor mounting configurations
   const handleEditorDidMount = (editor: any, monaco: Monaco) => {
     editorRef.current = editor
-    // Disable copy-paste commands inside the editor workspace
-    editor.onKeyDown((e: any) => {
-      // Control + C or Meta + C (Mac)
-      // Control + V or Meta + V (Mac)
-      const isModifier = e.ctrlKey || e.metaKey
-      if (isModifier && (e.keyCode === 33 || e.keyCode === 52 || e.keyCode === 31)) {
-        e.preventDefault()
-        setOutput('System Message: Copying and Pasting inside PyCode editor is blocked to support manual practice.')
-        setRightTab('terminal')
-      }
-    })
   }
 
   // Handle font loading calculation adjustments for Monaco Editor overlay alignment
