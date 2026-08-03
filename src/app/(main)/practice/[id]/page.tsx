@@ -175,6 +175,19 @@ export default function PracticeWorkspacePage() {
     fetchQuestion()
   }, [questionId, supabase, router])
 
+  // Trigger MathJax typesetting whenever the question or active left tab changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).MathJax && (window as any).MathJax.typesetPromise) {
+      setTimeout(() => {
+        try {
+          (window as any).MathJax.typesetPromise();
+        } catch (e) {
+          console.error(e);
+        }
+      }, 150);
+    }
+  }, [question, leftTab])
+
 
   // Custom editor mounting configurations
   const handleEditorDidMount = (editor: any, monaco: Monaco) => {

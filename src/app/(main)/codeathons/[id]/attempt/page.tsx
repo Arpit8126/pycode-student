@@ -223,6 +223,19 @@ export default function ExamAttemptPage() {
     return () => observer.disconnect()
   }, [])
 
+  // Trigger MathJax typesetting whenever the active question changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).MathJax && (window as any).MathJax.typesetPromise) {
+      setTimeout(() => {
+        try {
+          (window as any).MathJax.typesetPromise();
+        } catch (e) {
+          console.error(e);
+        }
+      }, 150);
+    }
+  }, [activeQuestionIdx])
+
   const toggleTheme = () => {
     const isLightNow = !document.documentElement.classList.contains('dark')
     if (isLightNow) {
