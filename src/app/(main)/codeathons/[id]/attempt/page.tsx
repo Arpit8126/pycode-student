@@ -1460,7 +1460,11 @@ export default function ExamAttemptPage() {
               <button
                 onClick={() => setRightTab('cases')}
                 className={`px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 border-b-2 cursor-pointer transition-all ${
-                  rightTab === 'cases'
+                  evalStates[activeQ.id] === 'success'
+                    ? 'border-semantic-success text-semantic-success font-extrabold bg-canvas/10'
+                    : evalStates[activeQ.id] === 'wrong' || evalStates[activeQ.id] === 'error'
+                    ? 'border-error text-error font-extrabold bg-canvas/10'
+                    : rightTab === 'cases'
                     ? 'border-primary text-ink bg-canvas font-extrabold'
                     : 'border-transparent text-gray-500 hover:text-ink'
                 }`}

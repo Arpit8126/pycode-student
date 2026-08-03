@@ -647,13 +647,17 @@ export default function PracticeWorkspacePage() {
                 <button
                   onClick={() => setRightTab('cases')}
                   className={`px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 border-b-2 cursor-pointer transition-all ${
-                    rightTab === 'cases'
+                    evalStatus === 'success'
+                      ? 'border-semantic-success text-semantic-success font-extrabold bg-canvas/10'
+                      : evalStatus === 'wrong' || evalStatus === 'error'
+                      ? 'border-error text-error font-extrabold bg-canvas/10'
+                      : rightTab === 'cases'
                       ? 'border-primary text-ink bg-canvas font-extrabold'
                       : 'border-transparent text-gray-500 hover:text-ink'
                   }`}
                 >
                   {evalStatus === 'success' ? (
-                    <CheckCircle className="w-3.5 h-3.5 text-success" />
+                    <CheckCircle className="w-3.5 h-3.5 text-semantic-success" />
                   ) : evalStatus === 'wrong' || evalStatus === 'error' ? (
                     <XCircle className="w-3.5 h-3.5 text-error" />
                   ) : (
