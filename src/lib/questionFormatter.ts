@@ -18,22 +18,22 @@ function formatQuestionTemplate(
 ): string {
   const exampleHtml = examples.map((ex, idx) => `
 <h3 class="text-xs font-bold text-primary uppercase tracking-wider mb-2 mt-6">Example ${idx + 1}</h3>
-<div class="border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-body">
-  <div><span class="text-gray-700 dark:text-zinc-450 font-sans mr-2">Input:</span> <code>${ex.input}</code></div>
+<div class="border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal">
+  <div><span class="text-ink/80 font-bold font-sans mr-2">Input:</span> <code>${ex.input}</code></div>
   <div><span class="text-primary font-bold font-sans mr-2">Output:</span> <code>${ex.output}</code></div>
-  ${ex.explanation ? `<div><span class="text-gray-700 dark:text-zinc-450 font-sans mr-2">Explanation:</span> <span class="text-gray-650 dark:text-zinc-300 font-sans font-light">${ex.explanation}</span></div>` : ''}
+  ${ex.explanation ? `<div><span class="text-ink/80 font-bold font-sans mr-2">Explanation:</span> <span class="text-ink font-normal font-sans">${ex.explanation}</span></div>` : ''}
 </div>
   `).join('');
 
   const constraintsHtml = constraints.length > 0 ? `
 <h3 class="text-xs font-bold text-primary uppercase tracking-wider mb-2 mt-6">Constraints</h3>
-<ul class="list-disc pl-5 text-xs text-gray-700 dark:text-zinc-300 space-y-1.5 font-light">
+<ul class="list-disc pl-5 text-xs text-ink space-y-1.5 font-normal">
   ${constraints.map(c => `<li><code>${c}</code></li>`).join('')}
 </ul>
   ` : '';
 
   return `
-<p class="text-body text-sm font-light leading-relaxed mb-4">
+<p class="text-ink text-sm font-normal leading-relaxed mb-4">
   ${statement}
 </p>
 ${exampleHtml}
@@ -451,7 +451,7 @@ export function enrichQuestionDetails(q: any): string {
 
   // Default: Fallback to printing the raw statement with standard linebreaks
   return `
-<p class="text-body text-sm font-light leading-relaxed mb-4">
+<p class="text-ink text-sm font-normal leading-relaxed mb-4">
   ${desc.replace(/\n/g, '<br />')}
 </p>
 `
