@@ -126,7 +126,7 @@ export default function CodeEditorPage() {
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDraggingRef.current) return
     const newHeight = window.innerHeight - e.clientY
-    const clampedHeight = Math.max(40, Math.min(newHeight, window.innerHeight * 0.7))
+    const clampedHeight = Math.max(40, Math.min(newHeight, window.innerHeight * 0.85))
     setTerminalHeight(clampedHeight)
     if (editorRef.current) {
       editorRef.current.layout()
@@ -147,6 +147,19 @@ export default function CodeEditorPage() {
     return () => {
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [])
+
+  // Lock parent layout scrolling to prevent nested h-screen overflow displacement
+  useEffect(() => {
+    const mainEl = document.querySelector('main')
+    if (mainEl) {
+      mainEl.style.overflowY = 'hidden'
+    }
+    return () => {
+      if (mainEl) {
+        mainEl.style.overflowY = ''
+      }
     }
   }, [])
 
