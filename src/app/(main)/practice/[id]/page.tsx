@@ -32,6 +32,7 @@ export default function PracticeWorkspacePage() {
   const [isRunning, setIsRunning] = useState(false)
   const [output, setOutput] = useState('')
   const [plotUrl, setPlotUrl] = useState('')
+  const [showPlotModal, setShowPlotModal] = useState(false)
   const [passedCases, setPassedCases] = useState(0)
   const [totalCases, setTotalCases] = useState(0)
   const [evalStatus, setEvalStatus] = useState<'idle' | 'success' | 'wrong' | 'error'>('idle')
@@ -248,10 +249,9 @@ export default function PracticeWorkspacePage() {
       
       if (outcome.visualization) {
         setPlotUrl(`data:image/png;base64,${outcome.visualization}`)
-        setRightTab('plots')
-      } else {
-        setRightTab('terminal')
+        setShowPlotModal(true)
       }
+      setRightTab('terminal')
 
       setPassedCases(outcome.passed_cases || 0)
       setTotalCases(outcome.total_cases || 0)
@@ -634,17 +634,6 @@ export default function PracticeWorkspacePage() {
                   Console Terminal
                 </button>
 
-                <button
-                  onClick={() => setRightTab('plots')}
-                  className={`px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 border-b-2 cursor-pointer transition-all ${
-                    rightTab === 'plots'
-                      ? 'border-primary text-ink bg-canvas font-extrabold'
-                      : 'border-transparent text-gray-500 hover:text-ink'
-                  }`}
-                >
-                  <BarChart className="w-3.5 h-3.5" />
-                  Visualizations
-                </button>
 
                 <button
                   onClick={() => setRightTab('cases')}
@@ -707,17 +696,6 @@ export default function PracticeWorkspacePage() {
                 </div>
               )}
 
-              {rightTab === 'plots' && (
-                <div className="flex items-center justify-center h-full">
-                  {plotUrl ? (
-                    <div className="relative group rounded-xl overflow-hidden border border-hairline bg-surface-soft p-2 max-w-lg shadow-[0_4px_16px_rgba(0,0,0,0.05)]">
-                      <img src={plotUrl} alt="Matplotlib HEADLESS Visualization" className="max-h-[180px] object-contain rounded-lg" />
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-xs font-light">No Matplotlib figures drawn. Use plt.plot() or sns.barplot() to construct figures.</p>
-                  )}
-                </div>
-              )}
 
               {rightTab === 'cases' && (
                 <div className="space-y-4">
@@ -953,6 +931,34 @@ export default function PracticeWorkspacePage() {
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Matplotlib Visualization Overlay Modal */}
+      {showPlotModal && plotUrl && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-canvas border border-hairline p-6 rounded-3xl max-w-4xl w-full flex flex-col items-center justify-center relative shadow-2xl animate-scale-in">
+            <button
+              onClick={() => {
+                setShowPlotModal(false)
+                setPlotUrl('')
+              }}
+              title="Close Plot"
+              className="absolute top-4 right-4 p-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-colors flex items-center justify-center"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            
+            <div className="w-full text-center space-y-4">
+              <h3 className="text-sm font-extrabold text-ink flex items-center justify-center gap-2">
+                <CheckCircle className="w-4 h-4 text-success" />
+                Visualization Output
+              </h3>
+              <div className="border border-hairline rounded-2xl overflow-hidden bg-white p-2">
+                <img src={plotUrl} alt="Matplotlib Plot Output" className="w-full max-h-[520px] object-contain rounded-lg mx-auto" />
+              </div>
             </div>
           </div>
         </div>

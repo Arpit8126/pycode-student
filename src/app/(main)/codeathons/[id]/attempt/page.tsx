@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 import { DATASET_SAMPLES } from '@/lib/datasetSamples'
 import { LOCAL_QUESTIONS } from '@/lib/localQuestions'
 import { enrichQuestionDetails } from '@/lib/questionFormatter'
-import { Play, RefreshCw, BarChart, Database, Terminal, FileText, CheckCircle, XCircle, ShieldAlert, Clock, AlertTriangle, Copy, Send, Settings, Sun, Moon, ChevronLeft, ChevronRight, LogIn, UserPlus } from 'lucide-react'
+import { Play, RefreshCw, BarChart, Database, Terminal, FileText, CheckCircle, XCircle, ShieldAlert, Clock, AlertTriangle, Copy, Send, Settings, Sun, Moon, ChevronLeft, ChevronRight, LogIn, UserPlus, X } from 'lucide-react'
 
 interface QuestionDetails {
   id: number
@@ -212,6 +212,7 @@ export default function ExamAttemptPage() {
   const [isRunning, setIsRunning] = useState(false)
   const [consoleOutput, setConsoleOutput] = useState<Record<number, string>>({})
   const [plotUrls, setPlotUrls] = useState<Record<number, string>>({})
+  const [showPlotModal, setShowPlotModal] = useState(false)
   const [testChecks, setTestChecks] = useState<Record<number, { passed: number, total: number }>>({})
   const [evalStates, setEvalStates] = useState<Record<number, 'success' | 'wrong' | 'error' | 'idle'>>({})
 
@@ -698,8 +699,9 @@ export default function ExamAttemptPage() {
         
         if (outcome.visualization) {
           setPlotUrls(prev => ({ ...prev, [activeQ.id]: `data:image/png;base64,${outcome.visualization}` }))
-          setRightTab('plots')
+          setShowPlotModal(true)
         }
+        setRightTab('terminal')
 
         const passed = outcome.passed_cases || 0
         const total = outcome.total_cases || 0
@@ -1522,17 +1524,6 @@ export default function ExamAttemptPage() {
                 Console Terminal
               </button>
 
-              <button
-                onClick={() => setRightTab('plots')}
-                className={`px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 border-b-2 cursor-pointer transition-all ${
-                  rightTab === 'plots'
-                    ? 'border-primary text-ink bg-canvas font-extrabold'
-                    : 'border-transparent text-gray-500 hover:text-ink'
-                }`}
-              >
-                <BarChart className="w-3.5 h-3.5" />
-                Visualizations
-              </button>
 
               <button
                 onClick={() => setRightTab('cases')}
@@ -1564,15 +1555,6 @@ export default function ExamAttemptPage() {
                 </pre>
               )}
 
-              {rightTab === 'plots' && (
-                <div className="flex items-center justify-center h-full">
-                  {activeQ && plotUrls[activeQ.id] ? (
-                    <img src={plotUrls[activeQ.id]} alt="Fig plot" className="max-h-[140px] object-contain rounded-lg border border-hairline p-1 bg-surface-soft animate-scale-in" />
-                  ) : (
-                    <p className="text-gray-500 font-light text-xs">No Matplotlib canvas figures rendered.</p>
-                  )}
-                </div>
-              )}
 
               {rightTab === 'cases' && (
                 <div className="space-y-4">
@@ -1733,6 +1715,32 @@ export default function ExamAttemptPage() {
         </div>
       )}
 
+      {/* Matplotlib Visualization Overlay Modal */}
+      {showPlotModal && activeQ && plotUrls[activeQ.id] && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-canvas border border-hairline p-6 rounded-3xl max-w-4xl w-full flex flex-col items-center justify-center relative shadow-2xl animate-scale-in">
+            <button
+              onClick={() => {
+                setShowPlotModal(false)
+              }}
+              title="Close Plot"
+              className="absolute top-4 right-4 p-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-colors flex items-center justify-center"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            
+            <div className="w-full text-center space-y-4">
+              <h3 className="text-sm font-extrabold text-ink flex items-center justify-center gap-2">
+                <CheckCircle className="w-4 h-4 text-success" />
+                Visualization Output
+              </h3>
+              <div className="border border-hairline rounded-2xl overflow-hidden bg-white p-2">
+                <img src={plotUrls[activeQ.id]} alt="Matplotlib Plot Output" className="w-full max-h-[520px] object-contain rounded-lg mx-auto" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
