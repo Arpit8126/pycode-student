@@ -69,6 +69,57 @@ export default function CodeEditorPage() {
     importedDatasetsRef.current = importedDatasets
   }, [importedDatasets])
 
+  // Load draft code from localStorage on mount (restores editor state on refresh)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedActiveFile = localStorage.getItem('pycode_active_file_draft')
+      const savedDraft = localStorage.getItem('pycode_unsaved_draft')
+      const savedLastCode = localStorage.getItem('pycode_last_saved_code_draft')
+      
+      if (savedActiveFile) {
+        setActiveFileName(savedActiveFile)
+        if (savedLastCode) setLastSavedCode(savedLastCode)
+      }
+      if (savedDraft) {
+        setCode(savedDraft)
+      }
+    }
+  }, [])
+
+  // Auto-save editor state to localStorage to survive page refreshes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pycode_unsaved_draft', code)
+      if (activeFileName) {
+        localStorage.setItem('pycode_active_file_draft', activeFileName)
+        localStorage.setItem('pycode_last_saved_code_draft', lastSavedCode)
+      } else {
+        localStorage.removeItem('pycode_active_file_draft')
+        localStorage.removeItem('pycode_last_saved_code_draft')
+      }
+    }
+  }, [code, activeFileName, lastSavedCode])
+
+  // Cleanup drafts on client-side navigation (but keep on page refresh/F5)
+  useEffect(() => {
+    let isUnloading = false
+    const handleBeforeUnload = () => {
+      isUnloading = true
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      if (!isUnloading) {
+        // User is navigating to another page/section client-side.
+        // Clear drafts so they don't see their code next time they navigate back.
+        localStorage.removeItem('pycode_unsaved_draft')
+        localStorage.removeItem('pycode_active_file_draft')
+        localStorage.removeItem('pycode_last_saved_code_draft')
+      }
+    }
+  }, [])
+
   const triggerToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type })
     setTimeout(() => setToast(null), 3000)
