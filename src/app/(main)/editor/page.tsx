@@ -1333,7 +1333,7 @@ export default function CodeEditorPage() {
         )}
 
         {/* Right Coding Sandbox Section */}
-        <section className="flex-1 min-w-0 flex flex-col bg-canvas border-l border-hairline">
+        <section className="flex-1 min-w-0 flex flex-col bg-canvas border-l border-hairline overflow-hidden">
           
           {/* Monaco Editor Header Bar */}
           <div className="h-11 border-b border-hairline bg-surface-soft px-4 flex items-center justify-between animate-fade-in overflow-hidden">
