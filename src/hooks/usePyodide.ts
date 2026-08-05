@@ -169,14 +169,7 @@ try:
     
     # 1. Run User Code
     exec(${JSON.stringify(code)}, exec_globals)
-    # 2. Capture Plotted Canvas if any axis has active subplots
-    fig = plt.gcf()
-    if fig.get_axes():
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight')
-        buf.seek(0)
-        result["visualization"] = base64.b64encode(buf.read()).decode('utf-8')
-        plt.close('all')
+
         
     # 3. Run Test Verifications if provided
     verification_code = ${JSON.stringify(verificationScript)}
@@ -298,6 +291,18 @@ except Exception as e:
                     print(f'    {frame.line}', file=sys.stderr)
         print(f"{exc_type.__name__}: {exc_value}", file=sys.stderr)
 finally:
+    try:
+        import matplotlib._pylab_helpers as _helpers
+        managers = _helpers.Gcf.get_all_fig_managers()
+        if managers:
+            fig = managers[0].canvas.figure
+            if fig.get_axes():
+                buf = io.BytesIO()
+                fig.savefig(buf, format='png', bbox_inches='tight', dpi=120)
+                buf.seek(0)
+                result["visualization"] = base64.b64encode(buf.read()).decode('utf-8')
+    except Exception:
+        pass
     plt.close('all')
     result["output"] = sys.stdout.getvalue() + sys.stderr.getvalue()
     
