@@ -66,8 +66,8 @@ export async function POST(request: NextRequest) {
     if (!quiz) return NextResponse.json({ error: 'Quiz not found' }, { status: 404 })
     const quizData = quiz as any
 
-    // Only auto-submit if quiz has ended
-    if (new Date(quizData.end_time) > new Date()) {
+    // Only auto-submit if quiz has ended, UNLESS a specific attempt_id is being finalized (e.g. browser closed)
+    if (!attempt_id && new Date(quizData.end_time) > new Date()) {
       return NextResponse.json({ message: 'Quiz is still active, no auto-submit needed' })
     }
 
