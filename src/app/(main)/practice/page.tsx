@@ -16,6 +16,18 @@ export default function PracticeListPage() {
   const [search, setSearch] = useState('')
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all')
   const [isOnline, setIsOnline] = useState<boolean>(true)
+  const [disqualifiedMessage, setDisqualifiedMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('disqualified') === 'true') {
+        setDisqualifiedMessage('You have been disqualified from the codeathon for violating security protocols (e.g. exiting fullscreen or switching tabs).')
+        const newUrl = window.location.pathname
+        window.history.replaceState({ path: newUrl }, '', newUrl)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -213,6 +225,26 @@ export default function PracticeListPage() {
 
   return (
     <div className="min-h-screen bg-canvas text-ink font-sans p-8 select-none">
+      {disqualifiedMessage && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
+          <div className="max-w-md w-full p-6 rounded-3xl bg-canvas border border-red-500/30 shadow-2xl text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-600 mx-auto">
+              <AlertCircle className="w-6 h-6 animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold text-ink leading-tight">Exam Disqualification Alert</h3>
+              <p className="text-sm text-body font-medium leading-relaxed dark:text-zinc-350">{disqualifiedMessage}</p>
+            </div>
+            <button
+              onClick={() => setDisqualifiedMessage(null)}
+              className="w-full py-2 bg-primary hover:opacity-90 text-on-primary rounded-full text-xs font-bold transition-all cursor-pointer"
+            >
+              Understand &amp; Acknowledge
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Banner details */}
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-center border-b border-hairline pb-4 mb-2">

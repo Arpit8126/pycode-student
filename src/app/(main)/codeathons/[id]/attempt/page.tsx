@@ -50,6 +50,9 @@ export default function ExamAttemptPage() {
   const [warnings, setWarnings] = useState(0)
   const [showWarningModal, setShowWarningModal] = useState(false)
   const [lastWarningReason, setLastWarningReason] = useState('')
+  const isSubmittingRef = useRef(false)
+  const [submitType, setSubmitType] = useState<'manual' | 'auto' | 'disqualified' | null>(null)
+  const [isDisqualifiedUser, setIsDisqualifiedUser] = useState(false)
 
   // Student registration details
   const [fullName, setFullName] = useState('')
@@ -360,32 +363,34 @@ export default function ExamAttemptPage() {
             if (prof.username) setUsername(prof.username)
           }
 
-          // Check for completed attempts (completed_at is not null)
-          const { data: existingAttempt } = await supabase
+          // Fetch all attempts for this user and quiz
+          const { data: userAttempts } = await supabase
             .from('quiz_attempts')
-            .select('id, completed_at')
+            .select('id, completed_at, is_disqualified, warnings_count, student_details')
             .eq('quiz_id', quizId)
             .eq('user_id', user.id)
-            .not('completed_at', 'is', null)
-            .maybeSingle()
+
+          const existingAttempt = userAttempts?.find((a: any) => a.completed_at !== null)
+          const inProgressAttempt = userAttempts?.find((a: any) => a.completed_at === null)
 
           if (existingAttempt) {
-            showCustomAlert('Exam Already Submitted', 'You have already submitted, completed, or been disqualified from this exam.', () => {
+            if (existingAttempt.is_disqualified || (existingAttempt.warnings_count || 0) >= 2) {
+              setIsDisqualifiedUser(true)
+              setLoading(false)
+              return
+            }
+            showCustomAlert('Exam Already Submitted', 'You have already submitted and completed this exam.', () => {
               router.push('/codeathons')
             })
             return
           }
 
-          // Check for in-progress attempts (completed_at is null)
-          const { data: inProgressAttempt } = await supabase
-            .from('quiz_attempts')
-            .select('id, student_details, warnings_count')
-            .eq('quiz_id', quizId)
-            .eq('user_id', user.id)
-            .is('completed_at', null)
-            .maybeSingle()
-
           if (inProgressAttempt) {
+            if (inProgressAttempt.is_disqualified || (inProgressAttempt.warnings_count || 0) >= 2) {
+              setIsDisqualifiedUser(true)
+              setLoading(false)
+              return
+            }
             setAttemptId(inProgressAttempt.id)
             setWarnings(inProgressAttempt.warnings_count || 0)
             if (inProgressAttempt.student_details) {
@@ -584,6 +589,11 @@ export default function ExamAttemptPage() {
   }, [hasStarted, timeLeft, quiz])
 
   const triggerWarning = (reason: string) => {
+    // Block warnings if submission or disqualification is already in progress
+    if (isSubmittingRef.current) {
+      return
+    }
+
     // Throttle warnings (ignore duplicate triggers within 3 seconds)
     const now = Date.now()
     if (now - lastWarningTimeRef.current < 3000) {
@@ -607,7 +617,7 @@ export default function ExamAttemptPage() {
         .from('quiz_attempts')
         .update({ 
           warnings_count: nextWarnings,
-          is_disqualified: nextWarnings >= 3
+          is_disqualified: nextWarnings >= 2
         })
         .eq('id', attemptId)
         .then(({ error }: any) => {
@@ -615,8 +625,9 @@ export default function ExamAttemptPage() {
         })
     }
 
-    if (nextWarnings >= 3) {
-      // 3 strikes: Disqualify instantly
+    if (nextWarnings >= 2) {
+      // 2 strikes: Disqualify instantly
+      isSubmittingRef.current = true
       handleSubmitQuiz(true, true)
     } else {
       setShowWarningModal(true)
@@ -772,6 +783,8 @@ export default function ExamAttemptPage() {
 
   // End Exam and submit
   const handleSubmitQuiz = async (auto = false, disqualified = false) => {
+    isSubmittingRef.current = true
+    setSubmitType(disqualified ? 'disqualified' : auto ? 'auto' : 'manual')
     setIsSubmitting(true)
 
     try {
@@ -828,10 +841,10 @@ export default function ExamAttemptPage() {
       // 3. Build all DB write promises to run concurrently
       let finalAttemptId = attemptId
       const attemptPayload = {
-        score: disqualified ? 0 : Math.round(earnedPoints),
-        score_percentage: disqualified ? 0 : scorePercentage,
+        score: (disqualified || warnings >= 2) ? 0 : Math.round(earnedPoints),
+        score_percentage: (disqualified || warnings >= 2) ? 0 : scorePercentage,
         completed_at: completedAt,
-        is_disqualified: disqualified || warnings >= 3,
+        is_disqualified: disqualified || warnings >= 2,
         student_details: finalStudentDetails,
         answers: answers
       }
@@ -904,7 +917,11 @@ export default function ExamAttemptPage() {
       await attemptWritePromise
 
       // Navigate immediately — submissions continue in background
-      router.push('/results')
+      if (disqualified || warnings >= 2) {
+        router.push('/practice?disqualified=true')
+      } else {
+        router.push('/results')
+      }
 
       // Fire submissions in background (don't block navigation)
       Promise.all(submissionPromises).catch((err) => console.error('Background submission error:', err))
@@ -913,6 +930,8 @@ export default function ExamAttemptPage() {
       console.error(err)
       showCustomAlert('Submission Failed', `Submission failed: ${err.message || err}`)
       setIsSubmitting(false)
+      isSubmittingRef.current = false
+      setSubmitType(null)
     }
   }
 
@@ -997,6 +1016,40 @@ export default function ExamAttemptPage() {
                 <div className="h-3 w-48 bg-gray-150 dark:bg-zinc-850 rounded mx-auto"></div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (isDisqualifiedUser) {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-8 text-ink font-sans relative overflow-x-hidden">
+        {/* Ambient background glows */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-500/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="max-w-md w-full p-8 rounded-3xl bg-canvas border border-red-500/30 shadow-2xl relative overflow-hidden z-10 text-center space-y-6 animate-scale-in">
+          <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 mx-auto">
+            <ShieldAlert className="w-8 h-8 animate-pulse" />
+          </div>
+
+          <div className="space-y-2">
+            <h1 className="text-xl font-black tracking-tight text-ink">Disqualified from Exam</h1>
+            <p className="text-xs text-gray-555 dark:text-zinc-400 font-medium leading-relaxed">
+              You are disqualified and you can&apos;t attend the codeathon. Please contact the codeathon creator.
+            </p>
+          </div>
+
+          <div className="pt-2">
+            <button
+              onClick={() => {
+                router.push('/practice')
+              }}
+              className="w-full py-3 rounded-full bg-surface-soft hover:bg-surface-card border border-hairline text-ink text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              Explore Practice Sandbox
+            </button>
           </div>
         </div>
       </div>
@@ -1143,8 +1196,8 @@ export default function ExamAttemptPage() {
                       <XCircle className="w-3 h-3" />
                     </div>
                     <p className="leading-relaxed">
-                      <strong className="text-ink font-bold">3-Warnings Strike</strong><br />
-                      Exceeding 3 security warnings will disqualify your exam submission.
+                      <strong className="text-ink font-bold">2-Warnings Strike</strong><br />
+                      Exceeding 2 security warnings will disqualify your exam submission.
                     </p>
                   </div>
                 </div>
@@ -1266,7 +1319,7 @@ export default function ExamAttemptPage() {
             
             <div className="p-4 rounded-xl bg-surface-soft border border-hairline flex justify-between items-center text-xs">
               <span className="text-gray-500 uppercase tracking-wider font-semibold">Active Warnings</span>
-              <span className="font-bold text-lg text-red-500">{warnings} / 3</span>
+              <span className="font-bold text-lg text-red-500">{warnings} / 2</span>
             </div>
 
             <button
@@ -1302,7 +1355,7 @@ export default function ExamAttemptPage() {
             
             <div className="p-4 rounded-xl bg-surface-soft border border-hairline mb-6 flex justify-between items-center text-xs">
               <span className="text-gray-500 uppercase tracking-wider font-semibold">Active Warnings</span>
-              <span className="font-bold text-lg text-warning">{warnings} / 3</span>
+              <span className="font-bold text-lg text-warning">{warnings} / 2</span>
             </div>
 
             <button
@@ -1362,7 +1415,7 @@ export default function ExamAttemptPage() {
           {/* Warning count badge */}
           <div className="px-3.5 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 text-xs font-mono font-bold flex items-center gap-1.5 shadow-[0_2px_8px_rgba(239,68,68,0.06)]">
             <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Warnings: {warnings}/3</span>
+            <span>Warnings: {warnings}/2</span>
           </div>
 
           {/* Stop / Terminate button */}
@@ -1608,9 +1661,19 @@ export default function ExamAttemptPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-bold tracking-tight">Submitting Your Exam...</h3>
+              <h3 className="text-xl font-bold tracking-tight">
+                {submitType === 'auto' 
+                  ? 'Time Expired: Auto-Submitting Exam...' 
+                  : submitType === 'disqualified' 
+                  ? 'Security Disqualification In Progress...' 
+                  : 'Submitting Your Exam...'}
+              </h3>
               <p className="text-gray-400 text-sm font-light leading-relaxed">
-                Saving your solutions and compiling final evaluation scores in the database sandbox. Please do not close this window.
+                {submitType === 'auto'
+                  ? 'Your time limit has expired. Your progress has been automatically saved and is being submitted to the dashboard now.'
+                  : submitType === 'disqualified'
+                  ? 'You have exceeded the maximum security warnings. Your attempt has been terminated, and you are being disqualified.'
+                  : 'Saving your solutions and compiling final evaluation scores in the database sandbox. Please do not close this window.'}
               </p>
             </div>
             <div className="h-2 w-full bg-hairline rounded-full overflow-hidden">

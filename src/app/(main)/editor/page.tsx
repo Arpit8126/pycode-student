@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
@@ -46,66 +46,13 @@ export default function CodeEditorPage() {
   const [saveFileName, setSaveFileName] = useState('')
   const [activeDropdownFile, setActiveDropdownFile] = useState<string | null>(null)
   const [activeFileName, setActiveFileName] = useState<string | null>(null)
-  const [autosaveStatus, setAutosaveStatus] = useState<'saved' | 'saving' | null>(null)
   const [fileSearch, setFileSearch] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [deletingFileName, setDeletingFileName] = useState<string | null>(null)
   const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null)
   const [fileToDelete, setFileToDelete] = useState<string | null>(null)
-
-  // Autosave when code changes for an opened file
-  useEffect(() => {
-    if (!activeFileName) {
-      setAutosaveStatus(null)
-      return
-    }
-
-    setAutosaveStatus('saving')
-    const timer = setTimeout(async () => {
-      try {
-        const lastModified = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        
-        // 1. Update in memory / state
-        setSavedFiles(prev => prev.map(f => {
-          if (f.name === activeFileName) {
-            return { ...f, code, lastModified }
-          }
-          return f
-        }))
-
-        // 2. Update database if user is logged in
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          await (supabase.from('saved_scripts') as any)
-            .update({
-              code,
-              updated_at: new Date().toISOString()
-            })
-            .eq('user_id', user.id)
-            .eq('name', activeFileName)
-        } else {
-          // 3. Fallback/Local storage for guests
-          const filesStr = localStorage.getItem('pycode_saved_files')
-          if (filesStr) {
-            const files = JSON.parse(filesStr)
-            const updated = files.map((f: any) => {
-              if (f.name === activeFileName) {
-                return { ...f, code, lastModified }
-              }
-              return f
-            })
-            localStorage.setItem('pycode_saved_files', JSON.stringify(updated))
-          }
-        }
-        setAutosaveStatus('saved')
-      } catch (err) {
-        console.error('Autosave failed:', err)
-        setAutosaveStatus(null)
-      }
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [code, activeFileName])
+  const [renameFileName, setRenameFileName] = useState<string | null>(null)
+  const [newFileName, setNewFileName] = useState('')
 
   // Resizing output terminal panel
   const [terminalHeight, setTerminalHeight] = useState(240)
@@ -486,6 +433,106 @@ export default function CodeEditorPage() {
     setIsSaving(false)
   }
 
+  const handleSaveFileDirectly = async (fileName: string) => {
+    setIsSaving(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { error } = await (supabase.from('saved_scripts') as any)
+          .upsert({
+            user_id: user.id,
+            name: fileName,
+            code,
+            last_modified: new Date().toISOString()
+          }, { onConflict: 'user_id, name' })
+
+        if (!error) {
+          await loadSavedFiles(fileName)
+          setIsSaving(false)
+          return
+        } else {
+          console.error("Supabase direct save error:", error)
+        }
+      }
+    } catch (err) {
+      console.warn("Supabase direct save failed, falling back to localStorage:", err)
+    }
+
+    // Local storage fallback
+    const newFile = {
+      name: fileName,
+      code,
+      lastModified: new Date().toLocaleString()
+    }
+    const updatedFiles = [...savedFiles]
+    const existingIndex = updatedFiles.findIndex(f => f.name.toLowerCase() === fileName.toLowerCase())
+    if (existingIndex > -1) {
+      updatedFiles[existingIndex] = newFile
+    } else {
+      updatedFiles.push(newFile)
+    }
+    setSavedFiles(updatedFiles)
+    localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
+    setIsSaving(false)
+  }
+
+  const handleRenameFile = async () => {
+    let newName = newFileName.trim()
+    if (!newName || !renameFileName) return
+    if (!newName.endsWith('.py')) {
+      newName += '.py'
+    }
+
+    setIsSaving(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { error } = await (supabase.from('saved_scripts') as any)
+          .update({
+            name: newName,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+          .eq('name', renameFileName)
+
+        if (!error) {
+          if (activeFileName === renameFileName) {
+            setActiveFileName(newName)
+          }
+          await loadSavedFiles()
+          setRenameFileName(null)
+          setNewFileName('')
+          setIsSaving(false)
+          return
+        } else {
+          console.error("Supabase rename error:", error)
+        }
+      }
+    } catch (err) {
+      console.warn("Supabase rename failed, falling back to localStorage:", err)
+    }
+
+    // Local storage fallback
+    const filesStr = localStorage.getItem('pycode_saved_files')
+    if (filesStr) {
+      const files = JSON.parse(filesStr)
+      const updated = files.map((f: any) => {
+        if (f.name === renameFileName) {
+          return { ...f, name: newName }
+        }
+        return f
+      })
+      localStorage.setItem('pycode_saved_files', JSON.stringify(updated))
+      if (activeFileName === renameFileName) {
+        setActiveFileName(newName)
+      }
+      await loadSavedFiles()
+    }
+    setRenameFileName(null)
+    setNewFileName('')
+    setIsSaving(false)
+  }
+
   const handleLoadFile = (file: { name: string; code: string }) => {
     setCode(file.code)
     setActiveFileName(file.name)
@@ -498,7 +545,6 @@ export default function CodeEditorPage() {
     // Optimistic update — remove from UI immediately so sidebar feels instant
     if (activeFileName === name) {
       setActiveFileName(null)
-      setAutosaveStatus(null)
       const blank = '# Write your code here\n'
       setCode(blank)
       if (editorRef.current) editorRef.current.setValue(blank)
@@ -896,20 +942,11 @@ export default function CodeEditorPage() {
 
               <div className="h-4 w-[1px] bg-hairline mx-1"></div>
 
-              {/* Autosave status pill — only when a file is open, no filename shown */}
+              {/* Active file indicator badge */}
               {activeFileName && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-hairline bg-surface-soft text-[10px] text-gray-500 font-mono select-none">
-                  {autosaveStatus === 'saving' ? (
-                    <>
-                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                      <span>Autosaving...</span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      <span>Autosaved</span>
-                    </>
-                  )}
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-hairline bg-surface-soft text-[10px] text-gray-755 font-mono select-none font-bold">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Editing: {activeFileName}</span>
                 </div>
               )}
 
@@ -918,7 +955,6 @@ export default function CodeEditorPage() {
                 <button
                   onClick={() => {
                     setActiveFileName(null)
-                    setAutosaveStatus(null)
                     const blank = '# Write your code here\n'
                     setCode(blank)
                     if (editorRef.current) editorRef.current.setValue(blank)
@@ -938,7 +974,11 @@ export default function CodeEditorPage() {
                   if (!user) {
                     setShowGuestSaveModal(true)
                   } else {
-                    setShowSaveModal(true)
+                    if (activeFileName) {
+                      handleSaveFileDirectly(activeFileName)
+                    } else {
+                      setShowSaveModal(true)
+                    }
                   }
                 }}
                 disabled={pyodideState !== 'ready'}
@@ -1307,6 +1347,19 @@ export default function CodeEditorPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
+                      setRenameFileName(file.name)
+                      setNewFileName(file.name)
+                      setActiveDropdownFile(null)
+                      setDropdownPos(null)
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-gray-600 dark:text-gray-300 hover:bg-surface-soft hover:text-ink rounded-xl transition-colors cursor-pointer text-left"
+                  >
+                    <Edit2 className="w-3 h-3 text-primary" />
+                    Rename
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
                       setFileToDelete(file.name)
                       setActiveDropdownFile(null)
                       setDropdownPos(null)
@@ -1326,6 +1379,55 @@ export default function CodeEditorPage() {
             })()}
           </div>
         </>
+      )}
+
+      {/* Rename Confirmation Modal Dialog */}
+      {renameFileName && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-6 shadow-2xl space-y-4 animate-scale-in">
+            <h3 className="text-xs uppercase font-mono font-extrabold text-primary flex items-center gap-2">
+              <Edit2 className="w-4 h-4" />
+              Rename Code Script
+            </h3>
+            <p className="text-sm font-medium text-ink">
+              Enter a new name for <span className="font-mono text-primary font-bold">{renameFileName}</span>:
+            </p>
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={newFileName}
+                onChange={(e) => setNewFileName(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-hairline bg-surface-soft text-sm font-mono text-ink outline-none focus:border-primary transition-colors"
+                placeholder="e.g. solution_v2.py"
+                autoFocus
+              />
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRenameFileName(null)
+                    setNewFileName('')
+                  }}
+                  className="px-4 py-2 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card text-xs font-semibold cursor-pointer transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRenameFile}
+                  disabled={!newFileName.trim() || newFileName.trim() === renameFileName || isSaving}
+                  className="px-5 py-2 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-xs font-extrabold cursor-pointer transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex items-center gap-2 min-w-[70px] justify-center"
+                >
+                  {isSaving ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Renaming...
+                    </>
+                  ) : 'Rename'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Delete Confirmation Modal Dialog */}

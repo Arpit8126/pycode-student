@@ -35,6 +35,22 @@ export default function Sidebar() {
     }
   }, [])
 
+  // Global theme observer hook to keep theme button state synchronized
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const updateTheme = () => {
+      const isLight = !document.documentElement.classList.contains('dark')
+      setTheme(isLight ? 'light' : 'dark')
+    }
+    updateTheme()
+    const observer = new MutationObserver(updateTheme)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+    return () => observer.disconnect()
+  }, [])
+
   const handleToggleCollapse = () => {
     const nextVal = !isCollapsed
     setIsCollapsed(nextVal)
@@ -90,9 +106,7 @@ export default function Sidebar() {
       fetchUser()
     })
 
-    // Read initial theme setting from documentElement class
-    const isLight = !document.documentElement.classList.contains('dark')
-    setTheme(isLight ? 'light' : 'dark')
+
 
     // Click outside popover to close it
     const handleClickOutside = (event: MouseEvent) => {

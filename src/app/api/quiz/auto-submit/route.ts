@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
       })
 
       const scorePercentage = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0
-      const isDisqualified = attempt.is_disqualified || (attempt.warnings_count || 0) >= 3
+      const isDisqualified = attempt.is_disqualified || (attempt.warnings_count || 0) >= 2
 
       const { error } = await (admin as any)
         .from('quiz_attempts')

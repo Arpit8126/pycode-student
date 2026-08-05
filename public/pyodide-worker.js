@@ -63,6 +63,11 @@ self.onmessage = async (e) => {
     execId = data.execId;
     const code = data.code;
     
+    const localSleep = (ms) => {
+      const start = Date.now();
+      while (Date.now() - start < ms) {}
+    };
+
     // Set custom prompt callback in Python environment
     pyodide.globals.set('_js_prompt', (promptText) => {
       // 1. Notify main thread to open custom React modal dialog
@@ -79,10 +84,8 @@ self.onmessage = async (e) => {
           return response;
         }
         
-        // Paced synchronous sleep to prevent thread lock issues
-        const sleepXhr = new XMLHttpRequest();
-        sleepXhr.open("GET", "/api/editor/sleep?ms=150", false);
-        sleepXhr.send(null);
+        // Paced synchronous sleep locally (no network requests) to prevent thread lock
+        localSleep(350);
       }
     });
 

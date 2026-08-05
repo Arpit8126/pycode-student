@@ -1252,7 +1252,7 @@ export default function ResultsPage() {
                       <p className="text-[8px] font-bold text-gray-500 dark:text-zinc-400 font-mono uppercase tracking-wider mt-0.5">Time</p>
                     </div>
                     <div className="p-2 rounded-xl border border-hairline bg-surface-soft text-center">
-                      <p className="text-sm font-black text-ink">{warnings}<span className="text-[9px] text-gray-500 font-light">/3</span></p>
+                      <p className="text-sm font-black text-ink">{warnings}<span className="text-[9px] text-gray-500 font-light">/2</span></p>
                       <p className="text-[8px] font-bold text-gray-500 dark:text-zinc-400 font-mono uppercase tracking-wider mt-0.5">Warnings</p>
                     </div>
                   </div>
