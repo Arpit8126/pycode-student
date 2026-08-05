@@ -1453,7 +1453,7 @@ export default function CodeEditorPage() {
           </div>
 
           {/* Monaco Editor Canvas */}
-          <div className="flex-1 min-h-[50%] relative bg-[#1e1e1e] select-text">
+          <div className="flex-1 relative bg-[#1e1e1e] select-text">
             <Editor
               height="100%"
               defaultLanguage="python"
