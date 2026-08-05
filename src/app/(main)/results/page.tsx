@@ -7,16 +7,25 @@ import { LOCAL_QUESTIONS } from '@/lib/localQuestions'
 
 function getQuestionTotalCases(verificationScript?: string): number {
   if (!verificationScript) return 1
-  // Match literal: exec_globals['total_cases'] = 3
-  const match = verificationScript.match(/exec_globals\[["']total_cases["']\]\s*=\s*(\d+)/)
-  if (match) {
-    return parseInt(match[1], 10)
+  
+  // 1. Check for literal assignment to total_cases in exec_globals, e.g. exec_globals['total_cases'] = 3
+  const literalMatch = verificationScript.match(/exec_globals\[["']total_cases["']\]\s*=\s*(\d+)/)
+  if (literalMatch) {
+    return parseInt(literalMatch[1], 10)
   }
-  // Match variable pattern: total = 3  (fallback: read total_cases variable assignment)
-  const varMatch = verificationScript.match(/^\s*total\s*=\s*(\d+)/m)
-  if (varMatch) {
-    return parseInt(varMatch[1], 10)
+  
+  // 2. Check for literal assignment to total variable: e.g. total = 3 (avoiding total = 0)
+  const totalMatches = verificationScript.match(/^\s*total\s*=\s*([1-9]\d*)/m)
+  if (totalMatches) {
+    return parseInt(totalMatches[1], 10)
   }
+  
+  // 3. Count increments to total: total += 1
+  const totalIncMatches = verificationScript.match(/total\s*\+=\s*1/g)
+  if (totalIncMatches && totalIncMatches.length > 0) {
+    return totalIncMatches.length
+  }
+  
   if (!verificationScript.includes('fn = exec_globals') && !verificationScript.includes('assert fn(')) {
     return 1
   }
@@ -861,9 +870,11 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
                   const entrySummary = entry.student_details?.testCasesSummary || {}
                   let entryQsSolved = 0
                   questions.forEach((q: any) => {
-                    const qTotal = getQuestionTotalCases(q.verification_script)
-                    const passed = entrySummary[q.id]?.passed || 0
-                    if (passed === qTotal && qTotal > 0) entryQsSolved++
+                    const entryCheck = entrySummary[q.id]
+                    const passed = entryCheck ? (entryCheck.passed || 0) : 0
+                    const storedTotal = entryCheck ? (entryCheck.total || 0) : 0
+                    // A question is solved when ALL its actual test cases passed
+                    if (storedTotal > 0 && passed === storedTotal) entryQsSolved++
                   })
 
                   return (
@@ -1049,10 +1060,11 @@ export default function ResultsPage() {
         
         const summary = attempt.student_details?.testCasesSummary || {}
         questions.forEach((q: any) => {
-          const qTotal = getQuestionTotalCases(q.verification_script)
-          const passed = summary[q.id]?.passed || 0
+          const check = summary[q.id]
+          const passed = check ? (check.passed || 0) : 0
+          const total = (check && check.total > 0) ? check.total : getQuestionTotalCases(q.verification_script)
           passedCases += passed
-          encounteredCases += qTotal
+          encounteredCases += total
         })
 
         built.push({ quiz, attempt, questions })
