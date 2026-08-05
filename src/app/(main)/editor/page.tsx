@@ -1456,14 +1456,22 @@ export default function CodeEditorPage() {
                 <div>
                   <h2 className="text-base font-extrabold text-ink font-mono">{selectedFile}</h2>
                   <p className="text-xs text-gray-500 font-light leading-relaxed mt-0.5">
-                    {DATASETS[selectedFile].description}
+                    {DATASETS[selectedFile as keyof typeof DATASETS]?.description || "User-imported dataset file stored in IndexedDB persistent local cache."}
                   </p>
                 </div>
               </div>
               
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => selectedFile && handleResetFile(selectedFile)}
+                  onClick={() => {
+                    if (!selectedFile) return
+                    const isCustom = importedDatasets.some(d => d.name === selectedFile)
+                    if (isCustom) {
+                      handleResetImportedDataset(selectedFile)
+                    } else {
+                      handleResetFile(selectedFile as keyof typeof DATASETS)
+                    }
+                  }}
                   title="Reset dataset back to defaults"
                   className="px-3 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
                 >
