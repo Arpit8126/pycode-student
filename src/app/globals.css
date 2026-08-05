@@ -140,3 +140,13 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .monaco-editor * {
   font-family: 'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace !important;
 }
+
+/* Custom text selection styling matching theme */
+.select-text ::selection {
+  background-color: rgba(204, 120, 92, 0.3) !important;
+  color: var(--ink) !important;
+}
+.select-text ::-moz-selection {
+  background-color: rgba(204, 120, 92, 0.3) !important;
+  color: var(--ink) !important;
+}
