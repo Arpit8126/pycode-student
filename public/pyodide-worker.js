@@ -26,6 +26,21 @@ self.onmessage = async (e) => {
           pyodide.FS.writeFile(filename, info.csv);
         });
       }
+
+      // Load custom user-imported datasets from IndexedDB
+      if (data.customDatasets) {
+        data.customDatasets.forEach((dataset) => {
+          try {
+            if (dataset.type === 'xlsx') {
+              pyodide.FS.writeFile(dataset.name, new Uint8Array(dataset.currentContent));
+            } else {
+              pyodide.FS.writeFile(dataset.name, dataset.currentContent);
+            }
+          } catch (e) {
+            console.warn(`[pyodide-worker] Failed to load custom dataset ${dataset.name} on init:`, e);
+          }
+        });
+      }
       
       postMessage({ type: 'INIT_READY' });
     } catch (err) {
@@ -51,6 +66,52 @@ self.onmessage = async (e) => {
       postMessage({ type: 'FILE_CONTENT', filename: data.filename, content });
     } catch (err) {
       postMessage({ type: 'RUN_ERROR', message: err.message || String(err) });
+    }
+  }
+
+  else if (data.type === 'IMPORT_FILE') {
+    if (!pyodide) return;
+    try {
+      if (data.fileType === 'xlsx') {
+        pyodide.FS.writeFile(data.filename, new Uint8Array(data.content));
+      } else {
+        pyodide.FS.writeFile(data.filename, data.content);
+      }
+      postMessage({ type: 'IMPORT_SUCCESS', filename: data.filename });
+    } catch (err) {
+      postMessage({ type: 'RUN_ERROR', message: 'Failed to mount file: ' + (err.message || String(err)) });
+    }
+  }
+
+  else if (data.type === 'DELETE_FILE') {
+    if (!pyodide) return;
+    try {
+      pyodide.FS.unlink(data.filename);
+      postMessage({ type: 'DELETE_SUCCESS', filename: data.filename });
+    } catch (err) {
+      // Ignore if file doesn't exist
+    }
+  }
+
+  else if (data.type === 'GET_EXCEL_PREVIEW') {
+    if (!pyodide) return;
+    try {
+      const jsonRes = await pyodide.runPythonAsync(`
+import pandas as pd
+import json
+try:
+    df = pd.read_excel('${data.filename}').head(15)
+    # Convert all columns to strings and fillna
+    df = df.astype(str).replace('nan', '')
+    # Convert to list of lists including headers
+    res = [df.columns.tolist()] + df.values.tolist()
+except Exception as preview_err:
+    res = [["Error Previewing File"], [str(preview_err)]]
+json.dumps(res)
+      `);
+      postMessage({ type: 'EXCEL_PREVIEW_READY', filename: data.filename, rows: JSON.parse(jsonRes) });
+    } catch (err) {
+      postMessage({ type: 'RUN_ERROR', message: 'Failed to preview Excel file: ' + err.message });
     }
   }
 
@@ -184,6 +245,23 @@ imgs[0] if imgs else ""
         }
       });
 
+      // Scan and return modified user custom datasets
+      if (data.customDatasets) {
+        data.customDatasets.forEach(d => {
+          try {
+            if (d.type === 'xlsx') {
+              const content = pyodide.FS.readFile(d.name); // Uint8Array
+              updatedFiles[d.name] = content.buffer; // ArrayBuffer
+            } else {
+              const content = pyodide.FS.readFile(d.name, { encoding: 'utf8' });
+              updatedFiles[d.name] = content;
+            }
+          } catch (e) {
+            // Ignore if deleted or unreadable
+          }
+        });
+      }
+
       postMessage({ type: 'RUN_SUCCESS', plotData: plotData || null, updatedFiles });
     } catch (err) {
       // Read current contents of datasets to return to main thread even on error
@@ -204,6 +282,23 @@ imgs[0] if imgs else ""
           // ignore
         }
       });
+
+      // Scan and return modified user custom datasets
+      if (data.customDatasets) {
+        data.customDatasets.forEach(d => {
+          try {
+            if (d.type === 'xlsx') {
+              const content = pyodide.FS.readFile(d.name); // Uint8Array
+              updatedFiles[d.name] = content.buffer; // ArrayBuffer
+            } else {
+              const content = pyodide.FS.readFile(d.name, { encoding: 'utf8' });
+              updatedFiles[d.name] = content;
+            }
+          } catch (e) {
+            // Ignore if deleted or unreadable
+          }
+        });
+      }
 
       postMessage({ type: 'RUN_ERROR', message: err.message || String(err), updatedFiles });
     }

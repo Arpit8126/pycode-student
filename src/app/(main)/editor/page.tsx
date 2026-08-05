@@ -9,6 +9,7 @@ import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Mo
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
+import { initDB, getDatasets, saveDataset, deleteDataset, CustomDataset } from '@/lib/indexedDb'
 
 // Import Monaco Editor dynamically to prevent SSR conflicts
 const Editor = dynamic(() => import('@monaco-editor/react'), { ssr: false })
@@ -55,6 +56,15 @@ export default function CodeEditorPage() {
   const [newFileName, setNewFileName] = useState('')
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [lastSavedCode, setLastSavedCode] = useState<string>('# Write your code here\n')
+  const [datasetSearch, setDatasetSearch] = useState('')
+  const [importedDatasets, setImportedDatasets] = useState<CustomDataset[]>([])
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const importedDatasetsRef = useRef<CustomDataset[]>([])
+
+  useEffect(() => {
+    importedDatasetsRef.current = importedDatasets
+  }, [importedDatasets])
 
   const triggerToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type })
@@ -184,9 +194,17 @@ export default function CodeEditorPage() {
   }, [])
 
   // Initialize Pyodide Web Worker background thread
-  const initWorker = () => {
+  const initWorker = async () => {
     setPyodideState('loading')
     setProgressMsg('Loading WebAssembly core inside background thread...')
+
+    let customDbs: any[] = []
+    try {
+      customDbs = await getDatasets()
+      setImportedDatasets(customDbs)
+    } catch (err) {
+      console.warn('Failed to load custom datasets from IndexedDB:', err)
+    }
 
     const worker = new Worker('/pyodide-worker.js?v=' + Date.now())
     workerRef.current = worker
@@ -199,7 +217,12 @@ export default function CodeEditorPage() {
         // If a dataset was selected while loading, fetch its content now!
         const activeFile = selectedFileRef.current
         if (activeFile && workerRef.current) {
-          workerRef.current.postMessage({ type: 'GET_FILE', filename: activeFile })
+          const custom = importedDatasetsRef.current.find(d => d.name === activeFile)
+          if (custom && custom.type === 'xlsx') {
+            workerRef.current.postMessage({ type: 'GET_EXCEL_PREVIEW', filename: activeFile })
+          } else {
+            workerRef.current.postMessage({ type: 'GET_FILE', filename: activeFile })
+          }
         }
       } else if (data.type === 'INIT_ERROR') {
         setPyodideState('error')
@@ -209,6 +232,8 @@ export default function CodeEditorPage() {
       } else if (data.type === 'NEED_INPUT') {
         setActivePrompt(data.prompt)
         setPromptValue('')
+      } else if (data.type === 'EXCEL_PREVIEW_READY') {
+        setPreviewRows(data.rows)
       } else if (data.type === 'FILE_CONTENT') {
         const content = data.content
         const lines = content.trim().split('\n')
@@ -223,6 +248,23 @@ export default function CodeEditorPage() {
         }
 
         if (data.updatedFiles) {
+          // Scan for modified custom files to save back to IndexedDB
+          Object.entries(data.updatedFiles).forEach(async ([filename, content]) => {
+            const isCustom = importedDatasetsRef.current.find(d => d.name === filename)
+            if (isCustom) {
+              try {
+                const updatedDataset = {
+                  ...isCustom,
+                  currentContent: content as string | ArrayBuffer
+                }
+                await saveDataset(updatedDataset)
+                setImportedDatasets(prev => prev.map(d => d.name === filename ? updatedDataset : d))
+              } catch (e) {
+                console.error(`Failed to save modified dataset ${filename}:`, e)
+              }
+            }
+          })
+
           const stored = localStorage.getItem('pycode_dataset_contents')
           let currentStored: Record<string, string> = {}
           if (stored) {
@@ -264,6 +306,23 @@ export default function CodeEditorPage() {
         setConsoleOutput(prev => prev + '\n' + cleanLines.join('\n'))
 
         if (data.updatedFiles) {
+          // Scan for modified custom files to save back to IndexedDB
+          Object.entries(data.updatedFiles).forEach(async ([filename, content]) => {
+            const isCustom = importedDatasetsRef.current.find(d => d.name === filename)
+            if (isCustom) {
+              try {
+                const updatedDataset = {
+                  ...isCustom,
+                  currentContent: content as string | ArrayBuffer
+                }
+                await saveDataset(updatedDataset)
+                setImportedDatasets(prev => prev.map(d => d.name === filename ? updatedDataset : d))
+              } catch (e) {
+                console.error(`Failed to save modified dataset ${filename}:`, e)
+              }
+            }
+          })
+
           const stored = localStorage.getItem('pycode_dataset_contents')
           let currentStored: Record<string, string> = {}
           if (stored) {
@@ -320,7 +379,7 @@ export default function CodeEditorPage() {
       }
     }
 
-    worker.postMessage({ type: 'INIT', datasets: datasetsToSend })
+    worker.postMessage({ type: 'INIT', datasets: datasetsToSend, customDatasets: customDbs })
   }
 
   // Load saved files
@@ -613,14 +672,159 @@ export default function CodeEditorPage() {
   }
 
   // Read current CSV file contents from Pyodide FS to display preview table
-  const loadFilePreview = (filename: keyof typeof DATASETS) => {
+  const loadFilePreview = (filename: string) => {
     setSelectedFile(filename)
     setPreviewRows([])
+
+    // Check if custom dataset
+    const custom = importedDatasetsRef.current.find(d => d.name === filename)
+    if (custom) {
+      if (custom.type === 'xlsx') {
+        if (workerRef.current && pyodideState === 'ready') {
+          workerRef.current.postMessage({ type: 'GET_EXCEL_PREVIEW', filename })
+        } else {
+          setPreviewRows([["Loading Python Preview Engine...", "Please wait until Sandbox is Online"]])
+        }
+      } else {
+        const content = custom.currentContent as string
+        const lines = content.trim().split('\n').slice(0, 15) // Preview first 15 rows
+        setPreviewRows(lines.map((line: string) => {
+          return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, ''))
+        }))
+      }
+      return
+    }
+
     if (workerRef.current && pyodideState === 'ready') {
       workerRef.current.postMessage({ type: 'GET_FILE', filename })
     } else if (!workerRef.current) {
-      const lines = DATASETS[filename].csv.trim().split('\n')
+      const defaultFilename = filename as keyof typeof DATASETS
+      const lines = DATASETS[defaultFilename].csv.trim().split('\n')
       setPreviewRows(lines.map(line => line.split(',')))
+    }
+  }
+
+  const handleImportDataset = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 15 * 1024 * 1024) {
+      triggerToast('File is too large! Maximum limit is 15MB.', 'error')
+      return
+    }
+
+    const filename = file.name
+    if (importedDatasets.some(d => d.name.toLowerCase() === filename.toLowerCase()) || 
+        DATASETS[filename as keyof typeof DATASETS] !== undefined) {
+      triggerToast('A dataset with this name already exists.', 'error')
+      return
+    }
+
+    setIsUploading(true)
+    const isXlsx = filename.endsWith('.xlsx')
+    const reader = new FileReader()
+
+    reader.onload = async () => {
+      try {
+        const content = reader.result
+        if (!content) throw new Error('Empty file content')
+
+        const newDataset: CustomDataset = {
+          name: filename,
+          originalContent: content,
+          currentContent: content,
+          type: isXlsx ? 'xlsx' : 'csv'
+        }
+
+        await saveDataset(newDataset)
+        setImportedDatasets(prev => [...prev, newDataset])
+
+        if (workerRef.current) {
+          workerRef.current.postMessage({
+            type: 'IMPORT_FILE',
+            filename,
+            content,
+            fileType: isXlsx ? 'xlsx' : 'csv'
+          })
+        }
+
+        triggerToast(`Dataset "${filename}" imported successfully!`, 'success')
+      } catch (err: any) {
+        console.error(err)
+        triggerToast('Failed to import dataset: ' + err.message, 'error')
+      } finally {
+        setIsUploading(false)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+      }
+    }
+
+    reader.onerror = () => {
+      triggerToast('Failed to read local file.', 'error')
+      setIsUploading(false)
+    }
+
+    if (isXlsx) {
+      reader.readAsArrayBuffer(file)
+    } else {
+      reader.readAsText(file)
+    }
+  }
+
+  const handleResetImportedDataset = async (name: string) => {
+    const target = importedDatasets.find(d => d.name === name)
+    if (!target) return
+
+    try {
+      const resetDataset = {
+        ...target,
+        currentContent: target.originalContent
+      }
+      await saveDataset(resetDataset)
+      setImportedDatasets(prev => prev.map(d => d.name === name ? resetDataset : d))
+
+      if (workerRef.current) {
+        workerRef.current.postMessage({
+          type: 'IMPORT_FILE',
+          filename: name,
+          content: target.originalContent,
+          fileType: target.type
+        })
+      }
+
+      if (selectedFile === name) {
+        if (target.type === 'xlsx') {
+          workerRef.current?.postMessage({ type: 'GET_EXCEL_PREVIEW', filename: name })
+        } else {
+          const lines = (target.originalContent as string).trim().split('\n')
+          setPreviewRows(lines.map((line: string) => {
+            return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, ''))
+          }))
+        }
+      }
+
+      triggerToast(`Dataset "${name}" reset to original content!`, 'success')
+    } catch (err: any) {
+      triggerToast('Failed to reset dataset: ' + err.message, 'error')
+    }
+  }
+
+  const handleDeleteImportedDataset = async (name: string) => {
+    try {
+      await deleteDataset(name)
+      setImportedDatasets(prev => prev.filter(d => d.name !== name))
+
+      if (workerRef.current) {
+        workerRef.current.postMessage({ type: 'DELETE_FILE', filename: name })
+      }
+
+      if (selectedFile === name) {
+        setSelectedFile(null)
+        setPreviewRows([])
+      }
+
+      triggerToast(`Dataset "${name}" deleted successfully!`, 'success')
+    } catch (err: any) {
+      triggerToast('Failed to delete dataset: ' + err.message, 'error')
     }
   }
 
@@ -657,7 +861,8 @@ export default function CodeEditorPage() {
     workerRef.current.postMessage({
       type: 'RUN_CODE',
       code,
-      execId
+      execId,
+      customDatasets: importedDatasetsRef.current.map(d => ({ name: d.name, type: d.type }))
     })
   }
 
@@ -885,38 +1090,163 @@ export default function CodeEditorPage() {
               </div>
             ) : (
               <div className="flex-1 flex flex-col min-h-0 space-y-3">
-                <div>
-                  <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5 mb-1">
+                <div className="shrink-0 space-y-1">
+                  <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5">
                     <Database className="w-3.5 h-3.5 text-primary" />
                     Available Datasets
                   </h3>
                   <p className="text-[11px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
-                    Virtual CSV datasets loaded in sandbox namespace.
+                    CSV &amp; Excel datasets loaded in sandbox namespace.
                   </p>
                 </div>
 
-                <div className="flex-1 space-y-2 overflow-y-auto min-h-0 relative pr-0.5">
-                  {Object.keys(DATASETS).map((key) => {
-                    const filename = key as keyof typeof DATASETS
-                    const isSelected = selectedFile === filename
-                    return (
+                {/* Import actions & search bar */}
+                <div className="space-y-2 shrink-0">
+                  {/* Import Button */}
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="flex-1 py-2 px-3 bg-primary hover:opacity-90 disabled:opacity-50 text-on-primary text-[10px] font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      {isUploading ? (
+                        <>
+                          <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Importing...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-3 h-3 rotate-180" />
+                          Import Local Dataset
+                        </>
+                      )}
+                    </button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImportDataset}
+                      accept=".csv, .xlsx"
+                      className="hidden"
+                    />
+                  </div>
+
+                  {/* Dataset Search */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={datasetSearch}
+                      onChange={e => setDatasetSearch(e.target.value)}
+                      placeholder="Search datasets..."
+                      className="w-full pl-7 pr-3 py-1.5 text-[11px] font-mono rounded-xl border border-hairline bg-surface-soft text-ink placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-colors"
+                    />
+                    <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    {datasetSearch && (
                       <button
-                        key={filename}
-                        onClick={() => loadFilePreview(filename)}
-                        className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 ${
-                          isSelected
-                            ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
-                            : 'bg-canvas border-hairline text-gray-700 dark:text-gray-400 hover:text-ink hover:border-gray-400'
-                        }`}
+                        onClick={() => setDatasetSearch('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink cursor-pointer transition-colors"
                       >
-                        <div className="flex items-center gap-2.5 overflow-hidden">
-                          <FileCode className="w-4 h-4 shrink-0 text-primary" />
-                          <span className="text-xs font-bold font-mono truncate">{filename}</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 shrink-0 opacity-60" />
+                        <X className="w-3 h-3" />
                       </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-3.5 overflow-y-auto min-h-0 relative pr-0.5 animate-fade-in">
+                  {(() => {
+                    const filteredPreInstalled = Object.keys(DATASETS).filter(key =>
+                      key.toLowerCase().includes(datasetSearch.toLowerCase())
                     )
-                  })}
+                    const filteredImported = importedDatasets.filter(d =>
+                      d.name.toLowerCase().includes(datasetSearch.toLowerCase())
+                    )
+
+                    return (
+                      <>
+                        {/* Pre-installed section */}
+                        {filteredPreInstalled.length > 0 && (
+                          <div className="space-y-1.5">
+                            <span className="text-[9px] uppercase tracking-widest font-extrabold text-gray-400 font-mono">Pre-installed Datasets</span>
+                            {filteredPreInstalled.map((key) => {
+                              const filename = key as keyof typeof DATASETS
+                              const isSelected = selectedFile === filename
+                              return (
+                                <button
+                                  key={filename}
+                                  onClick={() => loadFilePreview(filename)}
+                                  className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 ${
+                                    isSelected
+                                      ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
+                                      : 'bg-canvas border-hairline text-gray-700 dark:text-gray-400 hover:text-ink hover:border-gray-400'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2 overflow-hidden w-full">
+                                    <FileCode className="w-3.5 h-3.5 shrink-0 text-primary" />
+                                    <span className="text-[11px] font-bold font-mono truncate">{filename}</span>
+                                  </div>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+
+                        {/* Custom user imported section */}
+                        {filteredImported.length > 0 && (
+                          <div className="space-y-1.5">
+                            <span className="text-[9px] uppercase tracking-widest font-extrabold text-gray-400 font-mono">User Imported</span>
+                            {filteredImported.map((dataset) => {
+                              const isSelected = selectedFile === dataset.name
+                              return (
+                                <div key={dataset.name} className="relative group">
+                                  <button
+                                    onClick={() => loadFilePreview(dataset.name)}
+                                    className={`w-full p-2.5 pr-14 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 ${
+                                      isSelected
+                                        ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
+                                        : 'bg-canvas border-hairline text-gray-700 dark:text-gray-400 hover:text-ink hover:border-gray-400'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2 overflow-hidden w-full">
+                                      <FileCode className="w-3.5 h-3.5 shrink-0 text-primary animate-pulse" />
+                                      <div className="flex flex-col overflow-hidden">
+                                        <span className="text-[11px] font-bold font-mono truncate">{dataset.name}</span>
+                                        <span className="text-[9px] text-gray-500 font-mono uppercase shrink-0">{dataset.type}</span>
+                                      </div>
+                                    </div>
+                                  </button>
+                                  
+                                  {/* Reset & Delete buttons */}
+                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                      onClick={() => handleResetImportedDataset(dataset.name)}
+                                      title="Reset to original uploaded content"
+                                      className="p-1 rounded bg-surface-soft hover:bg-surface-card border border-hairline text-gray-500 hover:text-ink transition-colors cursor-pointer"
+                                    >
+                                      <RotateCcw className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteImportedDataset(dataset.name)}
+                                      title="Delete dataset"
+                                      className="p-1 rounded bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 text-red-500 hover:text-red-600 transition-colors cursor-pointer"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+
+                        {filteredPreInstalled.length === 0 && filteredImported.length === 0 && (
+                          <div className="text-center py-8 px-2">
+                            <p className="text-[11px] text-gray-500 font-mono">No datasets found.</p>
+                          </div>
+                        )}
+                      </>
+                    )
+                  })()}
                 </div>
               </div>
             )}
