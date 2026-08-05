@@ -104,7 +104,7 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
   questions.forEach((q: any) => {
     const check = summary[q.id]
     const passed = check ? (check.passed || 0) : 0
-    const total = (check && check.total > 0) ? check.total : getQuestionTotalCases(q.verification_script)
+    const total = getQuestionTotalCases(q.verification_script)
     passedCases += passed
     totalCases += total
     if (passed === total && total > 0) solvedCount++
@@ -359,7 +359,7 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
           questions.forEach((q: any) => {
             const entryCheck = entrySummary[q.id]
             const passed = entryCheck ? (entryCheck.passed || 0) : 0
-            const total = (entryCheck && entryCheck.total > 0) ? entryCheck.total : getQuestionTotalCases(q.verification_script)
+            const total = getQuestionTotalCases(q.verification_script)
             passedCases += passed
             totalCases += total
           })
@@ -801,7 +801,7 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
                 {questions.map((q: any, i: number) => {
                   const check = summary[q.id]
                   const passed = check ? (check.passed || 0) : 0
-                  const total = (check && check.total > 0) ? check.total : getQuestionTotalCases(q.verification_script)
+                  const total = getQuestionTotalCases(q.verification_script)
                   const qPct = total > 0 ? Math.round((passed / total) * 100) : 0
                   const isCorrect = passed === total && total > 0
                   return (
@@ -1197,16 +1197,16 @@ export default function ResultsPage() {
               const myScore = attempt.score || 0
               const totalQs = questions.length
               
-              // Calculate accuracy: prefer stored check.total (actual run data) over regex-parsed fallback
+              // Calculate accuracy
               const summary = attempt.student_details?.testCasesSummary || {}
               let passedCases = 0
               let totalCases = 0
               questions.forEach((q: any) => {
-                const check = summary[q.id]
-                const passed = check ? (check.passed || 0) : 0
-                const total = (check && check.total > 0) ? check.total : getQuestionTotalCases(q.verification_script)
-                passedCases += passed
-                totalCases += total
+                 const check = summary[q.id]
+                 const passed = check ? (check.passed || 0) : 0
+                 const total = getQuestionTotalCases(q.verification_script)
+                 passedCases += passed
+                 totalCases += total
               })
               const pct = totalCases > 0 ? Math.round((passedCases / totalCases) * 100) : 0
               const timeTaken = (() => {
