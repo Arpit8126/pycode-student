@@ -100,7 +100,7 @@ self.onmessage = async (e) => {
 import pandas as pd
 import json
 try:
-    df = pd.read_excel('${data.filename}').head(15)
+    df = pd.read_excel('${data.filename}').head(1000)
     # Convert all columns to strings and fillna
     df = df.astype(str).replace('nan', '')
     # Convert to list of lists including headers

@@ -687,7 +687,7 @@ export default function CodeEditorPage() {
         }
       } else {
         const content = custom.currentContent as string
-        const lines = content.trim().split('\n').slice(0, 15) // Preview first 15 rows
+        const lines = content.trim().split('\n').slice(0, 1000) // Preview first 1000 rows
         setPreviewRows(lines.map((line: string) => {
           return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, ''))
         }))
@@ -1499,7 +1499,7 @@ export default function CodeEditorPage() {
                   <thead>
                     <tr className="bg-surface-soft border-b border-hairline text-gray-500 font-mono font-semibold uppercase">
                       {previewRows[0]?.map((col, idx) => (
-                        <th key={idx} className="px-4 py-3 whitespace-nowrap sticky top-0 z-10 bg-surface-soft border-b border-hairline">{col}</th>
+                        <th key={idx} className="px-4 py-3 whitespace-nowrap sticky top-0 z-10 bg-surface-soft border-b border-hairline max-w-[200px] truncate" title={col}>{col}</th>
                       ))}
                     </tr>
                   </thead>
@@ -1507,7 +1507,7 @@ export default function CodeEditorPage() {
                     {previewRows.slice(1).map((row, rowIdx) => (
                       <tr key={rowIdx} className="hover:bg-surface-soft transition-colors">
                         {row.map((val, cellIdx) => (
-                          <td key={cellIdx} className="px-4 py-2.5 whitespace-nowrap">{val}</td>
+                          <td key={cellIdx} className="px-4 py-2.5 whitespace-nowrap max-w-[200px] truncate" title={val}>{val}</td>
                         ))}
                       </tr>
                     ))}
