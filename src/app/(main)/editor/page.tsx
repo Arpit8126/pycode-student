@@ -61,7 +61,7 @@ export default function CodeEditorPage() {
     setTimeout(() => setToast(null), 3000)
   }
 
-  const isSaveDisabled = pyodideState !== 'ready' || (activeFileName ? code === lastSavedCode : code === '# Write your code here\n')
+  const isSaveDisabled = isSaving || pyodideState !== 'ready' || (activeFileName ? code === lastSavedCode : code === '# Write your code here\n')
 
   // Resizing output terminal panel
   const [terminalHeight, setTerminalHeight] = useState(240)
@@ -1012,8 +1012,17 @@ export default function CodeEditorPage() {
                 disabled={isSaveDisabled}
                 className="px-4 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-canvas disabled:border-hairline/60"
               >
-                <Save className="w-3.5 h-3.5 text-primary" />
-                Save
+                {isSaving ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 text-primary animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5 text-primary" />
+                    <span>Save</span>
+                  </>
+                )}
               </button>
 
               <div className="h-4 w-[1px] bg-hairline mx-1"></div>
@@ -1497,17 +1506,20 @@ export default function CodeEditorPage() {
       {/* Toast Notification */}
       {toast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-scale-in pointer-events-none">
-          <div className={`px-5 py-3 rounded-full shadow-2xl border backdrop-blur-md flex items-center gap-2.5 text-xs font-bold ${
+          <div className={`px-6 py-3 rounded-full border shadow-xl backdrop-blur-md flex items-center gap-3 text-[11px] font-extrabold tracking-tight transition-all duration-300 ${
             toast.type === 'success'
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-              : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
+              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-emerald-500/5'
+              : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400 shadow-rose-500/5'
           }`}>
-            {toast.type === 'success' ? (
-              <CheckCircle className="w-4 h-4 text-emerald-500" />
-            ) : (
-              <X className="w-4 h-4 text-rose-500" />
-            )}
-            <span>{toast.message}</span>
+            <span className="flex h-2 w-2 relative shrink-0">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                toast.type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'
+              }`}></span>
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                toast.type === 'success' ? 'bg-emerald-600 dark:bg-emerald-400' : 'bg-rose-600 dark:bg-rose-400'
+              }`}></span>
+            </span>
+            <span className="font-mono">{toast.message}</span>
           </div>
         </div>
       )}
