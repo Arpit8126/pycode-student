@@ -61,6 +61,8 @@ export default function CodeEditorPage() {
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const importedDatasetsRef = useRef<CustomDataset[]>([])
+  const [activeDropdownDataset, setActiveDropdownDataset] = useState<string | null>(null)
+  const [datasetDropdownPos, setDatasetDropdownPos] = useState<{ top: number; right: number } | null>(null)
 
   useEffect(() => {
     importedDatasetsRef.current = importedDatasets
@@ -1171,21 +1173,42 @@ export default function CodeEditorPage() {
                             {filteredPreInstalled.map((key) => {
                               const filename = key as keyof typeof DATASETS
                               const isSelected = selectedFile === filename
+                              const isDropdownOpen = activeDropdownDataset === filename
                               return (
-                                <button
-                                  key={filename}
-                                  onClick={() => loadFilePreview(filename)}
-                                  className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 ${
-                                    isSelected
-                                      ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
-                                      : 'bg-canvas border-hairline text-gray-700 dark:text-gray-400 hover:text-ink hover:border-gray-400'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-2 overflow-hidden w-full">
-                                    <FileCode className="w-3.5 h-3.5 shrink-0 text-primary" />
-                                    <span className="text-[11px] font-bold font-mono truncate">{filename}</span>
+                                <div key={filename} className="relative group">
+                                  <button
+                                    onClick={() => loadFilePreview(filename)}
+                                    className={`w-full p-2.5 pr-10 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 ${
+                                      isSelected
+                                        ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
+                                        : 'bg-canvas border-hairline text-gray-700 dark:text-gray-400 hover:text-ink hover:border-gray-400'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2 overflow-hidden w-full">
+                                      <FileCode className="w-3.5 h-3.5 shrink-0 text-primary" />
+                                      <span className="text-[11px] font-bold font-mono truncate">{filename}</span>
+                                    </div>
+                                  </button>
+
+                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (isDropdownOpen) {
+                                          setActiveDropdownDataset(null)
+                                          setDatasetDropdownPos(null)
+                                        } else {
+                                          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                                          setDatasetDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                                          setActiveDropdownDataset(filename)
+                                        }
+                                      }}
+                                      className="p-1 rounded text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                                    >
+                                      <MoreVertical className="w-3.5 h-3.5" />
+                                    </button>
                                   </div>
-                                </button>
+                                </div>
                               )
                             })}
                           </div>
@@ -1197,11 +1220,12 @@ export default function CodeEditorPage() {
                             <span className="text-[9px] uppercase tracking-widest font-extrabold text-gray-400 font-mono">User Imported</span>
                             {filteredImported.map((dataset) => {
                               const isSelected = selectedFile === dataset.name
+                              const isDropdownOpen = activeDropdownDataset === dataset.name
                               return (
                                 <div key={dataset.name} className="relative group">
                                   <button
                                     onClick={() => loadFilePreview(dataset.name)}
-                                    className={`w-full p-2.5 pr-14 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 ${
+                                    className={`w-full p-2.5 pr-10 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 ${
                                       isSelected
                                         ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
                                         : 'bg-canvas border-hairline text-gray-700 dark:text-gray-400 hover:text-ink hover:border-gray-400'
@@ -1215,22 +1239,23 @@ export default function CodeEditorPage() {
                                       </div>
                                     </div>
                                   </button>
-                                  
-                                  {/* Reset & Delete buttons */}
-                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+
+                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
-                                      onClick={() => handleResetImportedDataset(dataset.name)}
-                                      title="Reset to original uploaded content"
-                                      className="p-1 rounded bg-surface-soft hover:bg-surface-card border border-hairline text-gray-500 hover:text-ink transition-colors cursor-pointer"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (isDropdownOpen) {
+                                          setActiveDropdownDataset(null)
+                                          setDatasetDropdownPos(null)
+                                        } else {
+                                          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                                          setDatasetDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                                          setActiveDropdownDataset(dataset.name)
+                                        }
+                                      }}
+                                      className="p-1 rounded text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
                                     >
-                                      <RotateCcw className="w-3 h-3" />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteImportedDataset(dataset.name)}
-                                      title="Delete dataset"
-                                      className="p-1 rounded bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 text-red-500 hover:text-red-600 transition-colors cursor-pointer"
-                                    >
-                                      <Trash2 className="w-3 h-3" />
+                                      <MoreVertical className="w-3.5 h-3.5" />
                                     </button>
                                   </div>
                                 </div>
@@ -1751,6 +1776,80 @@ export default function CodeEditorPage() {
                   </button>
                 </>
               )
+            })()}
+          </div>
+        </>
+      )}
+
+      {/* Fixed-position Dropdown Menu for Datasets */}
+      {activeDropdownDataset && datasetDropdownPos && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-transparent cursor-default"
+            onClick={() => {
+              setActiveDropdownDataset(null)
+              setDatasetDropdownPos(null)
+            }}
+          />
+          <div
+            className="fixed w-36 bg-canvas border border-hairline rounded-2xl p-1.5 shadow-2xl backdrop-blur-xl animate-scale-in z-50 space-y-0.5"
+            style={{
+              top: `${datasetDropdownPos.top}px`,
+              right: `${datasetDropdownPos.right}px`,
+            }}
+          >
+            <button
+              onClick={async (e) => {
+                e.stopPropagation()
+                try {
+                  await navigator.clipboard.writeText(activeDropdownDataset)
+                  triggerToast("Filename copied to clipboard.", "success")
+                } catch (err) {
+                  triggerToast("Failed to copy filename.", "error")
+                }
+                setActiveDropdownDataset(null)
+                setDatasetDropdownPos(null)
+              }}
+              className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-gray-600 dark:text-gray-300 hover:bg-surface-soft hover:text-ink rounded-xl transition-colors cursor-pointer text-left"
+            >
+              <Save className="w-3 h-3 text-primary" />
+              Copy Filename
+            </button>
+
+            {(() => {
+              const isCustom = importedDatasets.some(d => d.name === activeDropdownDataset)
+              if (isCustom) {
+                return (
+                  <>
+                    <div className="h-[1px] bg-hairline my-1"></div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleResetImportedDataset(activeDropdownDataset)
+                        setActiveDropdownDataset(null)
+                        setDatasetDropdownPos(null)
+                      }}
+                      className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-gray-600 dark:text-gray-300 hover:bg-surface-soft hover:text-ink rounded-xl transition-colors cursor-pointer text-left"
+                    >
+                      <RotateCcw className="w-3 h-3 text-primary" />
+                      Reset Content
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteImportedDataset(activeDropdownDataset)
+                        setActiveDropdownDataset(null)
+                        setDatasetDropdownPos(null)
+                      }}
+                      className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-red-500 hover:bg-red-500/10 rounded-xl transition-colors cursor-pointer text-left"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete Dataset
+                    </button>
+                  </>
+                )
+              }
+              return null
             })()}
           </div>
         </>
