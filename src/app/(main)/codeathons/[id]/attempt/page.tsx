@@ -692,14 +692,18 @@ export default function ExamAttemptPage() {
     // Yield control using setTimeout so the Stop button renders first and is clickable
     setTimeout(async () => {
       try {
-        const outcome = await runCode(answers[activeQ.id] || '', activeQ.verification_script || '')
+        const userCode = answers[activeQ.id] || ''
+        const outcome = await runCode(userCode, activeQ.verification_script || '')
         
         const outputText = outcome.output || 'Execution complete with no console output.'
         setConsoleOutput(prev => ({ ...prev, [activeQ.id]: outputText }))
         
-        if (outcome.visualization) {
+        const hasShowCall = userCode.includes('.show()')
+        if (outcome.visualization && outcome.status === 'accepted' && hasShowCall) {
           setPlotUrls(prev => ({ ...prev, [activeQ.id]: `data:image/png;base64,${outcome.visualization}` }))
           setShowPlotModal(true)
+        } else {
+          setShowPlotModal(false)
         }
         setRightTab('terminal')
 

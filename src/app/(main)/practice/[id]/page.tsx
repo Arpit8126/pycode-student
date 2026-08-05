@@ -247,9 +247,13 @@ export default function PracticeWorkspacePage() {
       const outcome = await runCode(code, question?.verification_script || '')
       setOutput(outcome.output || 'Execution complete with no console output.')
       
-      if (outcome.visualization) {
+      const hasShowCall = code.includes('.show()')
+      if (outcome.visualization && outcome.status === 'accepted' && hasShowCall) {
         setPlotUrl(`data:image/png;base64,${outcome.visualization}`)
         setShowPlotModal(true)
+      } else {
+        setPlotUrl('')
+        setShowPlotModal(false)
       }
       setRightTab('terminal')
 
