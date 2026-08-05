@@ -53,6 +53,12 @@ export default function CodeEditorPage() {
   const [fileToDelete, setFileToDelete] = useState<string | null>(null)
   const [renameFileName, setRenameFileName] = useState<string | null>(null)
   const [newFileName, setNewFileName] = useState('')
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+  const triggerToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3000)
+  }
 
   // Resizing output terminal panel
   const [terminalHeight, setTerminalHeight] = useState(240)
@@ -403,9 +409,11 @@ export default function CodeEditorPage() {
           setShowSaveModal(false)
           setSaveFileName('')
           setIsSaving(false)
+          triggerToast("File saved successfully!", "success")
           return
         } else {
           console.error("Supabase save error:", error)
+          triggerToast("Failed to save file.", "error")
         }
       }
     } catch (err) {
@@ -431,6 +439,7 @@ export default function CodeEditorPage() {
     setShowSaveModal(false)
     setSaveFileName('')
     setIsSaving(false)
+    triggerToast("File saved successfully!", "success")
   }
 
   const handleSaveFileDirectly = async (fileName: string) => {
@@ -449,9 +458,11 @@ export default function CodeEditorPage() {
         if (!error) {
           await loadSavedFiles(fileName)
           setIsSaving(false)
+          triggerToast("File saved successfully!", "success")
           return
         } else {
           console.error("Supabase direct save error:", error)
+          triggerToast("Failed to save file.", "error")
         }
       }
     } catch (err) {
@@ -474,6 +485,7 @@ export default function CodeEditorPage() {
     setSavedFiles(updatedFiles)
     localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
     setIsSaving(false)
+    triggerToast("File saved successfully!", "success")
   }
 
   const handleRenameFile = async () => {
@@ -503,9 +515,11 @@ export default function CodeEditorPage() {
           setRenameFileName(null)
           setNewFileName('')
           setIsSaving(false)
+          triggerToast("File renamed successfully!", "success")
           return
         } else {
           console.error("Supabase rename error:", error)
+          triggerToast("Failed to rename file.", "error")
         }
       }
     } catch (err) {
@@ -531,6 +545,7 @@ export default function CodeEditorPage() {
     setRenameFileName(null)
     setNewFileName('')
     setIsSaving(false)
+    triggerToast("File renamed successfully!", "success")
   }
 
   const handleLoadFile = (file: { name: string; code: string }) => {
@@ -552,6 +567,7 @@ export default function CodeEditorPage() {
     setSavedFiles(prev => prev.filter(f => f.name !== name))
     setActiveDropdownFile(null)
     setDeletingFileName(name)
+    triggerToast("File deleted successfully!", "success")
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -1462,6 +1478,24 @@ export default function CodeEditorPage() {
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-scale-in pointer-events-none">
+          <div className={`px-5 py-3 rounded-full shadow-2xl border backdrop-blur-md flex items-center gap-2.5 text-xs font-bold ${
+            toast.type === 'success'
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+              : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
+          }`}>
+            {toast.type === 'success' ? (
+              <CheckCircle className="w-4 h-4 text-emerald-500" />
+            ) : (
+              <X className="w-4 h-4 text-rose-500" />
+            )}
+            <span>{toast.message}</span>
           </div>
         </div>
       )}
