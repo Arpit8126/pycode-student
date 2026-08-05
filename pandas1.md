@@ -82,3 +82,66 @@ Output:Index Number | Name | Age  | Marks |
 0            | "A"  | 20.0 | 80.0  |
 1            | "C"  | 22.0 | 60.0  |
 Hidden Verification Test CasesTest Case 10.1: Continuous Pre-Sorted Layout StabilityTest Input Data: A DataFrame whose index numbers are already perfectly sorted and continuous from 0.Expected Test Output: The function runs smoothly, preserving the layout and structure exactly as it was.
+
+Challenge 11 (Matplotlib): Simple Student Marks Bar Plot (Easy)Problem DescriptionYour teacher wants a visual representation of student performance. Write a Python function plot_student_marks(df: pd.DataFrame) that generates a basic bar plot comparing student names against their marks:Plot Generation: Create a bar plot using Matplotlib or Pandas where the x-axis displays the student Name and the y-axis displays their corresponding Marks.Axis Labeling: Set the x-axis label to "Student Name" and the y-axis label to "Marks".Title Assignment: Set the chart title to "Student Marks Overview".Return Object: Return the Matplotlib Axes object (ax).Input SchemaExample 1Input:| Name    | Marks |
+|---------|-------|
+| "Alice" | 85.0  |
+| "Bob"   | 72.0  |
+| "Carol" | 90.0  |
+Output:A bar chart with:
+  x-axis label : "Student Name"
+  y-axis label : "Marks"
+  title        : "Student Marks Overview"
+  bars         : 3 (one per student)
+Code Starter Template
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def plot_student_marks(df: pd.DataFrame):
+    fig, ax = plt.subplots()
+    # Write your plotting code here
+    
+    return ax
+Hidden Verification Test CasesTest Case 11.1: Y-Label Check — The grading engine calls ax.get_ylabel() and asserts it equals "Marks". Submitting without ax.set_ylabel("Marks") will FAIL this case.Test Case 11.2: X-Label and Title Check — The engine calls ax.get_xlabel() asserting "Student Name" and ax.get_title() asserting "Student Marks Overview".Test Case 11.3: Bar Count Integrity — The engine checks len(ax.patches) == len(df). A dataset of 4 students is used; the function must produce exactly 4 bars or the test will FAIL.
+
+Challenge 12 (Matplotlib): Age vs Marks Scatter Plot (Easy)Problem DescriptionTo investigate whether older students score differently than younger students, write a Python function plot_age_vs_marks(df: pd.DataFrame) that generates a simple scatter plot:Plot Generation: Plot Age on the x-axis and Marks on the y-axis using a scatter plot.Axis Labeling: Set the x-axis label to "Age" and the y-axis label to "Marks".Title Assignment: Set the chart title to "Age vs Marks Distribution".Return Object: Return the Matplotlib Axes object (ax).Input SchemaExample 1Input:| Age  | Marks |
+|------|-------|
+| 20.0 | 80.0  |
+| 22.0 | 65.0  |
+| 25.0 | 90.0  |
+Output:A scatter chart with:
+  x-axis label : "Age"
+  y-axis label : "Marks"
+  title        : "Age vs Marks Distribution"
+  points       : 3 scatter points
+Code Starter Template
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def plot_age_vs_marks(df: pd.DataFrame):
+    fig, ax = plt.subplots()
+    # Write your plotting code here
+    
+    return ax
+Hidden Verification Test CasesTest Case 12.1: X-Label Check — The engine asserts ax.get_xlabel() == "Age". Any other value or empty string will FAIL.Test Case 12.2: Y-Label and Title Check — The engine asserts ax.get_ylabel() == "Marks" and ax.get_title() == "Age vs Marks Distribution".Test Case 12.3: Scatter Plot Type Check — The engine checks ax.collections for a PathCollection instance (produced by ax.scatter()). Using ax.plot() or ax.bar() instead of ax.scatter() will cause this test to FAIL.
+
+Challenge 13 (Matplotlib): Average Marks by Age Group Bar Plot (Easy)Problem DescriptionYour teacher wants to compare the average exam mark for each age group in the class. Write a Python function plot_avg_marks_by_age(df: pd.DataFrame) that aggregates data before plotting:Data Aggregation: Group the DataFrame by Age and calculate the mean (average) Marks for each age.Bar Chart Plotting: Plot a bar chart showing Age on the x-axis and the calculated average Marks on the y-axis.Labels & Title: Set the x-axis label to "Age", y-axis label to "Average Marks", and chart title to "Average Marks by Age".Return Object: Return the Matplotlib Axes object (ax).Input SchemaExample 1Input:| Age  | Marks |
+|------|-------|
+| 20.0 | 80.0  |
+| 20.0 | 90.0  |
+| 22.0 | 70.0  |
+Output:A bar chart with:
+  x-axis label : "Age"
+  y-axis label : "Average Marks"
+  title        : "Average Marks by Age"
+  bars         : 2 (one per unique age: 20.0 and 22.0)
+Code Starter Template
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def plot_avg_marks_by_age(df: pd.DataFrame):
+    fig, ax = plt.subplots()
+    # Write your plotting code here
+    
+    return ax
+Hidden Verification Test CasesTest Case 13.1: Labels and Title Check — The engine asserts x-label "Age", y-label "Average Marks", and title "Average Marks by Age". All three must match exactly or the test FAILS.Test Case 13.2: Bar Count = Unique Age Count — The engine checks len(ax.patches) == df['Age'].nunique(). For a 3-row dataset with 2 unique ages, the function must produce exactly 2 bars. Plotting raw rows instead of grouped means will FAIL.Test Case 13.3: Larger Dataset Groupby Verification — The engine uses a 6-row dataset containing 3 unique ages. The function must produce exactly 3 bars by correctly applying groupby("Age")["Marks"].mean() before plotting.
