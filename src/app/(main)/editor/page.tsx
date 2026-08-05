@@ -1333,7 +1333,7 @@ export default function CodeEditorPage() {
         )}
 
         {/* Right Coding Sandbox Section */}
-        <section className="flex-1 min-w-0 flex flex-col bg-canvas border-l border-hairline overflow-hidden">
+        <section className="flex-1 min-w-0 min-h-0 flex flex-col bg-canvas border-l border-hairline overflow-hidden">
           
           {/* Monaco Editor Header Bar */}
           <div className="h-11 border-b border-hairline bg-surface-soft px-4 flex items-center justify-between animate-fade-in overflow-hidden">
@@ -1464,7 +1464,7 @@ export default function CodeEditorPage() {
           </div>
 
           {/* Monaco Editor Canvas */}
-          <div className="flex-1 relative bg-[#1e1e1e] select-text">
+          <div className="flex-1 min-h-0 relative bg-[#1e1e1e] select-text">
             <Editor
               height="100%"
               defaultLanguage="python"
