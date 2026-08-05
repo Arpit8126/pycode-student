@@ -63,6 +63,7 @@ export default function CodeEditorPage() {
   const importedDatasetsRef = useRef<CustomDataset[]>([])
   const [activeDropdownDataset, setActiveDropdownDataset] = useState<string | null>(null)
   const [datasetDropdownPos, setDatasetDropdownPos] = useState<{ top: number; right: number } | null>(null)
+  const [isWaitingForInput, setIsWaitingForInput] = useState(false)
 
   useEffect(() => {
     importedDatasetsRef.current = importedDatasets
@@ -234,6 +235,7 @@ export default function CodeEditorPage() {
       } else if (data.type === 'NEED_INPUT') {
         setActivePrompt(data.prompt)
         setPromptValue('')
+        setIsWaitingForInput(false)
       } else if (data.type === 'EXCEL_PREVIEW_READY') {
         setPreviewRows(data.rows)
       } else if (data.type === 'FILE_CONTENT') {
@@ -244,6 +246,8 @@ export default function CodeEditorPage() {
         }))
       } else if (data.type === 'RUN_SUCCESS') {
         setIsRunning(false)
+        setIsWaitingForInput(false)
+        setActivePrompt(null)
         if (data.plotData && typeof data.plotData === 'string' && data.plotData.length > 100) {
           setPlotUrl(`data:image/png;base64,${data.plotData}`)
           setShowPlotModal(true)
@@ -297,6 +301,8 @@ export default function CodeEditorPage() {
         }
       } else if (data.type === 'RUN_ERROR') {
         setIsRunning(false)
+        setIsWaitingForInput(false)
+        setActivePrompt(null)
         let errMsg = data.message || 'Error occurred.'
         const lines = errMsg.split('\n')
         const cleanLines = lines.filter((line: string) => {
@@ -875,6 +881,7 @@ export default function CodeEditorPage() {
     }
     setActivePrompt(null)
     setPromptValue('')
+    setIsWaitingForInput(false)
     setIsRunning(false)
     setConsoleOutput(prev => prev + '\n[Program Terminated by User]')
     
@@ -885,8 +892,7 @@ export default function CodeEditorPage() {
   const handlePromptSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const val = promptValue
-    setPromptValue('')
-    setActivePrompt(null)
+    setIsWaitingForInput(true)
     
     // Submit values to Next.js long-poll endpoint
     try {
@@ -897,12 +903,14 @@ export default function CodeEditorPage() {
       })
     } catch (err) {
       console.error(err)
+      setIsWaitingForInput(false)
     }
   }
 
   const handlePromptCancel = async () => {
     setPromptValue('')
     setActivePrompt(null)
+    setIsWaitingForInput(false)
     try {
       await fetch(`/api/editor/input?execId=${execIdRef.current}`, {
         method: 'POST',
@@ -1577,21 +1585,30 @@ export default function CodeEditorPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-6 shadow-2xl space-y-4 animate-scale-in">
             <h3 className="text-xs uppercase font-mono font-extrabold text-primary flex items-center gap-2">
-              <Terminal className="w-4 h-4" />
+              <Terminal className="w-4 h-4 animate-pulse" />
               Python Input Required
             </h3>
             <p className="text-sm font-medium text-ink">
               {activePrompt || "Enter value:"}
             </p>
             <form onSubmit={handlePromptSubmit} className="space-y-4">
-              <input
-                type="text"
-                value={promptValue}
-                onChange={(e) => setPromptValue(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-hairline bg-surface-soft text-sm font-mono text-ink outline-none focus:border-primary transition-colors"
-                placeholder="Type value here..."
-                autoFocus
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={promptValue}
+                  onChange={(e) => setPromptValue(e.target.value)}
+                  disabled={isWaitingForInput}
+                  className="w-full px-4 py-2.5 rounded-xl border border-hairline bg-surface-soft text-sm font-mono text-ink outline-none focus:border-primary transition-all disabled:opacity-50"
+                  placeholder={isWaitingForInput ? "Waiting for program..." : "Type value here..."}
+                  autoFocus
+                  ref={(input) => { if (input && !isWaitingForInput) input.focus(); }}
+                />
+                {isWaitingForInput && (
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-[10px] text-gray-500 font-mono">
+                    <span className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+                  </div>
+                )}
+              </div>
               <div className="flex justify-between items-center gap-3">
                 <button
                   type="button"
@@ -1604,13 +1621,15 @@ export default function CodeEditorPage() {
                   <button
                     type="button"
                     onClick={handlePromptCancel}
-                    className="px-4 py-2 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card text-xs font-semibold cursor-pointer transition-colors"
+                    disabled={isWaitingForInput}
+                    className="px-4 py-2 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl bg-primary text-on-primary hover:opacity-90 text-xs font-extrabold cursor-pointer transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
+                    disabled={isWaitingForInput}
+                    className="px-5 py-2 rounded-xl bg-primary text-on-primary hover:opacity-90 text-xs font-bold cursor-pointer transition-all disabled:opacity-50 flex items-center gap-1.5"
                   >
                     Submit
                   </button>
