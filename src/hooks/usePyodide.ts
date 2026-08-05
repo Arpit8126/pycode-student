@@ -9,6 +9,33 @@ declare global {
   }
 }
 
+function getQuestionTotalCases(verificationScript?: string): number {
+  if (!verificationScript) return 1
+  
+  // 1. Check for literal assignment to total_cases in exec_globals, e.g. exec_globals['total_cases'] = 3
+  const literalMatch = verificationScript.match(/exec_globals\[["']total_cases["']\]\s*=\s*(\d+)/)
+  if (literalMatch) {
+    return parseInt(literalMatch[1], 10)
+  }
+  
+  // 2. Check for literal assignment to total variable: e.g. total = 3 (avoiding total = 0)
+  const totalMatches = verificationScript.match(/^\s*total\s*=\s*([1-9]\d*)/m)
+  if (totalMatches) {
+    return parseInt(totalMatches[1], 10)
+  }
+  
+  // 3. Count increments to total: total += 1
+  const totalIncMatches = verificationScript.match(/total\s*\+=\s*1/g)
+  if (totalIncMatches && totalIncMatches.length > 0) {
+    return totalIncMatches.length
+  }
+  
+  if (!verificationScript.includes('fn = exec_globals') && !verificationScript.includes('assert fn(')) {
+    return 1
+  }
+  return 1
+}
+
 export type PyodideState = 'idle' | 'loading_script' | 'loading_wasm' | 'loading_packages' | 'ready' | 'error'
 
 export function usePyodide() {
@@ -243,14 +270,14 @@ try:
 
 except AssertionError as ae:
     result["status"] = "wrong_answer"
-    result["passed_cases"] = 0
-    result["total_cases"] = 1
+    result["passed_cases"] = exec_globals.get("passed", 0)
+    result["total_cases"] = exec_globals.get("total_cases", exec_globals.get("total", 1))
     print(f"Test Failed: {ae}", file=sys.stderr)
 except Exception as e:
     import traceback
     result["status"] = "runtime_error"
-    result["passed_cases"] = 0
-    result["total_cases"] = 1
+    result["passed_cases"] = exec_globals.get("passed", 0)
+    result["total_cases"] = exec_globals.get("total_cases", exec_globals.get("total", 1))
     
     exc_type, exc_value, exc_tb = sys.exc_info()
     if exc_type is SyntaxError:
@@ -278,13 +305,17 @@ json.dumps(result)
 `
     try {
       const jsonRes = await py.runPythonAsync(wrapperCode)
-      return JSON.parse(jsonRes)
+      const res = JSON.parse(jsonRes)
+      if (verificationScript) {
+        res.total_cases = getQuestionTotalCases(verificationScript)
+      }
+      return res
     } catch (e: any) {
       return {
         "status": "runtime_error",
         "output": `Interpreter Crash: ${e.message}`,
         "passed_cases": 0,
-        "total_cases": 1,
+        "total_cases": getQuestionTotalCases(verificationScript),
         "visualization": ""
       }
     }
