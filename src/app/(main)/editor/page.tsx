@@ -54,11 +54,14 @@ export default function CodeEditorPage() {
   const [renameFileName, setRenameFileName] = useState<string | null>(null)
   const [newFileName, setNewFileName] = useState('')
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [lastSavedCode, setLastSavedCode] = useState<string>('# Write your code here\n')
 
   const triggerToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type })
     setTimeout(() => setToast(null), 3000)
   }
+
+  const isSaveDisabled = pyodideState !== 'ready' || (activeFileName ? code === lastSavedCode : code === '# Write your code here\n')
 
   // Resizing output terminal panel
   const [terminalHeight, setTerminalHeight] = useState(240)
@@ -342,6 +345,7 @@ export default function CodeEditorPage() {
             const target = formatted.find((f: any) => f.name === keepActive)
             if (target) {
               setCode(target.code)
+              setLastSavedCode(target.code)
               setActiveFileName(target.name)
               if (editorRef.current) editorRef.current.setValue(target.code)
             }
@@ -363,6 +367,7 @@ export default function CodeEditorPage() {
             const target = files.find((f: any) => f.name === keepActive)
             if (target) {
               setCode(target.code)
+              setLastSavedCode(target.code)
               setActiveFileName(target.name)
               if (editorRef.current) editorRef.current.setValue(target.code)
             }
@@ -405,6 +410,7 @@ export default function CodeEditorPage() {
         
         if (!error) {
           await loadSavedFiles(name)
+          setLastSavedCode(code)
           setActiveFileName(name)
           setShowSaveModal(false)
           setSaveFileName('')
@@ -435,6 +441,7 @@ export default function CodeEditorPage() {
     }
     setSavedFiles(updatedFiles)
     localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
+    setLastSavedCode(code)
     setActiveFileName(name)
     setShowSaveModal(false)
     setSaveFileName('')
@@ -457,6 +464,7 @@ export default function CodeEditorPage() {
 
         if (!error) {
           await loadSavedFiles(fileName)
+          setLastSavedCode(code)
           setIsSaving(false)
           triggerToast("File saved successfully!", "success")
           return
@@ -484,6 +492,7 @@ export default function CodeEditorPage() {
     }
     setSavedFiles(updatedFiles)
     localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
+    setLastSavedCode(code)
     setIsSaving(false)
     triggerToast("File saved successfully!", "success")
   }
@@ -550,6 +559,7 @@ export default function CodeEditorPage() {
 
   const handleLoadFile = (file: { name: string; code: string }) => {
     setCode(file.code)
+    setLastSavedCode(file.code)
     setActiveFileName(file.name)
     if (editorRef.current) {
       editorRef.current.setValue(file.code)
@@ -562,6 +572,7 @@ export default function CodeEditorPage() {
       setActiveFileName(null)
       const blank = '# Write your code here\n'
       setCode(blank)
+      setLastSavedCode(blank)
       if (editorRef.current) editorRef.current.setValue(blank)
     }
     setSavedFiles(prev => prev.filter(f => f.name !== name))
@@ -973,6 +984,7 @@ export default function CodeEditorPage() {
                     setActiveFileName(null)
                     const blank = '# Write your code here\n'
                     setCode(blank)
+                    setLastSavedCode(blank)
                     if (editorRef.current) editorRef.current.setValue(blank)
                   }}
                   title="Exit file — go to free scratch"
@@ -997,8 +1009,8 @@ export default function CodeEditorPage() {
                     }
                   }
                 }}
-                disabled={pyodideState !== 'ready'}
-                className="px-4 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-40"
+                disabled={isSaveDisabled}
+                className="px-4 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-canvas disabled:border-hairline/60"
               >
                 <Save className="w-3.5 h-3.5 text-primary" />
                 Save
