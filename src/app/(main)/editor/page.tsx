@@ -64,6 +64,7 @@ export default function CodeEditorPage() {
   const [activeDropdownDataset, setActiveDropdownDataset] = useState<string | null>(null)
   const [datasetDropdownPos, setDatasetDropdownPos] = useState<{ top: number; right: number } | null>(null)
   const [isWaitingForInput, setIsWaitingForInput] = useState(false)
+  const isRestoredRef = useRef(false)
 
   useEffect(() => {
     importedDatasetsRef.current = importedDatasets
@@ -83,12 +84,13 @@ export default function CodeEditorPage() {
       if (savedDraft) {
         setCode(savedDraft)
       }
+      isRestoredRef.current = true
     }
   }, [])
 
   // Auto-save editor state to localStorage to survive page refreshes
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && isRestoredRef.current) {
       localStorage.setItem('pycode_unsaved_draft', code)
       if (activeFileName) {
         localStorage.setItem('pycode_active_file_draft', activeFileName)
