@@ -1502,8 +1502,11 @@ export default function CodeEditorPage() {
           {/* Resizer Handle Bar */}
           <div 
             onMouseDown={handleMouseDown}
-            className="h-1.5 bg-hairline hover:bg-primary/50 cursor-ns-resize transition-colors duration-200 select-none z-10" 
-          />
+            className="h-2 bg-hairline hover:bg-primary/50 cursor-ns-resize transition-colors duration-200 select-none z-30 relative group" 
+          >
+            {/* Thicker invisible hover area to make resizing extremely easy and prevent overlap issues */}
+            <div className="absolute inset-x-0 -top-1.5 -bottom-1.5 cursor-ns-resize z-40" />
+          </div>
 
           {/* Console Output Panel */}
           <div 
