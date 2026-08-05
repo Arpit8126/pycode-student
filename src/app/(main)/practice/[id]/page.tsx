@@ -248,7 +248,7 @@ export default function PracticeWorkspacePage() {
       setOutput(outcome.output || 'Execution complete with no console output.')
       
       const hasShowCall = code.includes('.show()')
-      if (outcome.visualization && outcome.status === 'accepted' && hasShowCall) {
+      if (outcome.visualization && outcome.status !== 'runtime_error' && hasShowCall) {
         setPlotUrl(`data:image/png;base64,${outcome.visualization}`)
         setShowPlotModal(true)
       } else {

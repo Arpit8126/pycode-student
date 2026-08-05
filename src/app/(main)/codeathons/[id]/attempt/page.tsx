@@ -699,7 +699,7 @@ export default function ExamAttemptPage() {
         setConsoleOutput(prev => ({ ...prev, [activeQ.id]: outputText }))
         
         const hasShowCall = userCode.includes('.show()')
-        if (outcome.visualization && outcome.status === 'accepted' && hasShowCall) {
+        if (outcome.visualization && outcome.status !== 'runtime_error' && hasShowCall) {
           setPlotUrls(prev => ({ ...prev, [activeQ.id]: `data:image/png;base64,${outcome.visualization}` }))
           setShowPlotModal(true)
         } else {
