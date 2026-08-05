@@ -134,8 +134,9 @@ export async function POST(request: NextRequest) {
         .from('quiz_attempts')
         .update({
           completed_at: completedAt,
-          score: isDisqualified ? 0 : Math.round(earnedPoints),
-          score_percentage: isDisqualified ? 0 : scorePercentage,
+          score: Math.round(earnedPoints),
+          score_percentage: scorePercentage,
+          is_disqualified: isDisqualified,
           student_details: {
             ...attempt.student_details,
             testCasesSummary: finalSummary

@@ -344,6 +344,24 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
   const loadLeaderboard = async () => {
     setLoadingLb(true)
     try {
+      // Trigger on-demand sweep of incomplete attempts if codeathon has ended
+      const quizEndTime = new Date(quiz.end_time)
+      if (quizEndTime < new Date()) {
+        const { data: incomplete } = await supabase
+          .from('quiz_attempts')
+          .select('id')
+          .eq('quiz_id', quiz.id)
+          .is('completed_at', null)
+
+        if (incomplete && incomplete.length > 0) {
+          await fetch('/api/quiz/auto-submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quiz_id: quiz.id })
+          }).catch(err => console.warn('On-demand sweep failed:', err))
+        }
+      }
+
       const { data: allAttempts } = await supabase
         .from('quiz_attempts')
         .select('*, profiles:user_id(username, full_name, avatar_url)')
@@ -372,10 +390,10 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
           }
         })
 
-        // Sort by accuracy descending, then score descending, then time taken ascending
+        // Sort by score descending, then accuracy descending, then time taken ascending
         const sorted = [...enhancedAttempts].sort((a, b) => {
-          if (b.accuracy !== a.accuracy) return b.accuracy - a.accuracy
           if (b.score !== a.score) return b.score - a.score
+          if (b.accuracy !== a.accuracy) return b.accuracy - a.accuracy
           const ta = a.started_at && a.completed_at ? new Date(a.completed_at).getTime() - new Date(a.started_at).getTime() : Infinity
           const tb = b.started_at && b.completed_at ? new Date(b.completed_at).getTime() - new Date(b.started_at).getTime() : Infinity
           return ta - tb

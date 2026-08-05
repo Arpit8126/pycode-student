@@ -841,8 +841,8 @@ export default function ExamAttemptPage() {
       // 3. Build all DB write promises to run concurrently
       let finalAttemptId = attemptId
       const attemptPayload = {
-        score: (disqualified || warnings >= 2) ? 0 : Math.round(earnedPoints),
-        score_percentage: (disqualified || warnings >= 2) ? 0 : scorePercentage,
+        score: Math.round(earnedPoints),
+        score_percentage: scorePercentage,
         completed_at: completedAt,
         is_disqualified: disqualified || warnings >= 2,
         student_details: finalStudentDetails,
