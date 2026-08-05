@@ -474,7 +474,7 @@ export default function CodeEditorPage() {
           setShowSaveModal(false)
           setSaveFileName('')
           setIsSaving(false)
-          triggerToast("File saved successfully!", "success")
+          triggerToast("File saved successfully.", "success")
           return
         } else {
           console.error("Supabase save error:", error)
@@ -505,7 +505,7 @@ export default function CodeEditorPage() {
     setShowSaveModal(false)
     setSaveFileName('')
     setIsSaving(false)
-    triggerToast("File saved successfully!", "success")
+    triggerToast("File saved successfully.", "success")
   }
 
   const handleSaveFileDirectly = async (fileName: string) => {
@@ -525,7 +525,7 @@ export default function CodeEditorPage() {
           await loadSavedFiles(fileName)
           setLastSavedCode(code)
           setIsSaving(false)
-          triggerToast("File saved successfully!", "success")
+          triggerToast("File saved successfully.", "success")
           return
         } else {
           console.error("Supabase direct save error:", error)
@@ -553,7 +553,7 @@ export default function CodeEditorPage() {
     localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
     setLastSavedCode(code)
     setIsSaving(false)
-    triggerToast("File saved successfully!", "success")
+    triggerToast("File saved successfully.", "success")
   }
 
   const handleRenameFile = async () => {
@@ -583,7 +583,7 @@ export default function CodeEditorPage() {
           setRenameFileName(null)
           setNewFileName('')
           setIsSaving(false)
-          triggerToast("File renamed successfully!", "success")
+          triggerToast("File renamed successfully.", "success")
           return
         } else {
           console.error("Supabase rename error:", error)
@@ -613,7 +613,7 @@ export default function CodeEditorPage() {
     setRenameFileName(null)
     setNewFileName('')
     setIsSaving(false)
-    triggerToast("File renamed successfully!", "success")
+    triggerToast("File renamed successfully.", "success")
   }
 
   const handleLoadFile = (file: { name: string; code: string }) => {
@@ -637,7 +637,7 @@ export default function CodeEditorPage() {
     setSavedFiles(prev => prev.filter(f => f.name !== name))
     setActiveDropdownFile(null)
     setDeletingFileName(name)
-    triggerToast("File deleted successfully!", "success")
+    triggerToast("File deleted successfully.", "success")
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -748,7 +748,7 @@ export default function CodeEditorPage() {
           })
         }
 
-        triggerToast(`Dataset "${filename}" imported successfully!`, 'success')
+        triggerToast(`Dataset "${filename}" uploaded successfully.`, 'success')
       } catch (err: any) {
         console.error(err)
         triggerToast('Failed to import dataset: ' + err.message, 'error')
@@ -802,7 +802,7 @@ export default function CodeEditorPage() {
         }
       }
 
-      triggerToast(`Dataset "${name}" reset to original content!`, 'success')
+      triggerToast(`Dataset "${name}" reset to original content.`, 'success')
     } catch (err: any) {
       triggerToast('Failed to reset dataset: ' + err.message, 'error')
     }
@@ -822,7 +822,7 @@ export default function CodeEditorPage() {
         setPreviewRows([])
       }
 
-      triggerToast(`Dataset "${name}" deleted successfully!`, 'success')
+      triggerToast(`Dataset "${name}" deleted successfully.`, 'success')
     } catch (err: any) {
       triggerToast('Failed to delete dataset: ' + err.message, 'error')
     }
@@ -1102,22 +1102,22 @@ export default function CodeEditorPage() {
 
                 {/* Import actions & search bar */}
                 <div className="space-y-2 shrink-0">
-                  {/* Import Button */}
+                  {/* Upload Button */}
                   <div className="flex items-center justify-between gap-2">
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
-                      className="flex-1 py-2 px-3 bg-primary hover:opacity-90 disabled:opacity-50 text-on-primary text-[10px] font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                      className="flex-1 py-2.5 px-4 bg-primary hover:opacity-90 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       {isUploading ? (
                         <>
                           <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          Importing...
+                          Uploading...
                         </>
                       ) : (
                         <>
                           <Download className="w-3 h-3 rotate-180" />
-                          Import Local Dataset
+                          Upload Local Dataset
                         </>
                       )}
                     </button>
@@ -1844,20 +1844,13 @@ export default function CodeEditorPage() {
       {/* Toast Notification */}
       {toast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-scale-in pointer-events-none">
-          <div className={`px-6 py-3 rounded-full border shadow-xl backdrop-blur-md flex items-center gap-3 text-[11px] font-extrabold tracking-tight transition-all duration-300 ${
-            toast.type === 'success'
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-emerald-500/5'
-              : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400 shadow-rose-500/5'
-          }`}>
-            <span className="flex h-2 w-2 relative shrink-0">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                toast.type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'
-              }`}></span>
-              <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                toast.type === 'success' ? 'bg-emerald-600 dark:bg-emerald-400' : 'bg-rose-600 dark:bg-rose-400'
-              }`}></span>
-            </span>
-            <span className="font-mono">{toast.message}</span>
+          <div className="px-5 py-3 rounded-2xl border border-hairline bg-surface-card/90 backdrop-blur-md shadow-xl flex items-center gap-2.5 text-xs font-semibold text-ink">
+            {toast.type === 'success' ? (
+              <CheckCircle className="w-4 h-4 text-primary shrink-0 animate-bounce" />
+            ) : (
+              <X className="w-4 h-4 text-red-500 shrink-0" />
+            )}
+            <span>{toast.message}</span>
           </div>
         </div>
       )}
