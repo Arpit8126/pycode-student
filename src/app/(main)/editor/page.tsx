@@ -118,8 +118,7 @@ export default function CodeEditorPage() {
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
     isDraggingRef.current = true
-    document.body.style.cursor = 'ns-resize'
-    document.body.style.userSelect = 'none'
+    document.body.classList.add('is-resizing')
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
   }
@@ -127,7 +126,7 @@ export default function CodeEditorPage() {
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDraggingRef.current) return
     const newHeight = window.innerHeight - e.clientY
-    const clampedHeight = Math.max(80, Math.min(newHeight, window.innerHeight * 0.7))
+    const clampedHeight = Math.max(40, Math.min(newHeight, window.innerHeight * 0.7))
     setTerminalHeight(clampedHeight)
     if (editorRef.current) {
       editorRef.current.layout()
@@ -136,8 +135,7 @@ export default function CodeEditorPage() {
 
   const handleMouseUp = () => {
     isDraggingRef.current = false
-    document.body.style.cursor = ''
-    document.body.style.userSelect = ''
+    document.body.classList.remove('is-resizing')
     document.removeEventListener('mousemove', handleMouseMove)
     document.removeEventListener('mouseup', handleMouseUp)
     if (editorRef.current) {

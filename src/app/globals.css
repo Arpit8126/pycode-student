@@ -150,3 +150,13 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   background-color: rgba(204, 120, 92, 0.3) !important;
   color: var(--ink) !important;
 }
+
+/* Disable select and pointer events during resizing to prevent editor focus steal and cursor stutter */
+body.is-resizing * {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+body.is-resizing {
+  cursor: ns-resize !important;
+  user-select: none !important;
+}
