@@ -6,15 +6,21 @@ import { Trophy, Clock, CheckCircle2, XCircle, ShieldAlert, ChevronLeft, Award, 
 import { LOCAL_QUESTIONS } from '@/lib/localQuestions'
 
 function getQuestionTotalCases(verificationScript?: string): number {
-  if (!verificationScript) return 5
+  if (!verificationScript) return 1
+  // Match literal: exec_globals['total_cases'] = 3
   const match = verificationScript.match(/exec_globals\[["']total_cases["']\]\s*=\s*(\d+)/)
   if (match) {
     return parseInt(match[1], 10)
   }
+  // Match variable pattern: total = 3  (fallback: read total_cases variable assignment)
+  const varMatch = verificationScript.match(/^\s*total\s*=\s*(\d+)/m)
+  if (varMatch) {
+    return parseInt(varMatch[1], 10)
+  }
   if (!verificationScript.includes('fn = exec_globals') && !verificationScript.includes('assert fn(')) {
     return 1
   }
-  return 5
+  return 1
 }
 
 // ─── Circular progress ring component ──────────────────────────────────────────

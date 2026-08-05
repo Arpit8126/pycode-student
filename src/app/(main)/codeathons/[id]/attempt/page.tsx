@@ -725,15 +725,19 @@ export default function ExamAttemptPage() {
   }
 
   const getQuestionTotalCases = (verificationScript?: string): number => {
-    if (!verificationScript) return 5
+    if (!verificationScript) return 1
     const match = verificationScript.match(/exec_globals\[["']total_cases["']\]\s*=\s*(\d+)/)
     if (match) {
       return parseInt(match[1], 10)
     }
+    const varMatch = verificationScript.match(/^\s*total\s*=\s*(\d+)/m)
+    if (varMatch) {
+      return parseInt(varMatch[1], 10)
+    }
     if (!verificationScript.includes('fn = exec_globals') && !verificationScript.includes('assert fn(')) {
       return 1
     }
-    return 5
+    return 1
   }
 
   // End Exam and submit
