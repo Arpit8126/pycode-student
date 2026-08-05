@@ -1521,14 +1521,14 @@ export default function CodeEditorPage() {
             </div>
 
             {/* Preview Sheet Table */}
-            <div className="flex-1 border border-hairline rounded-2xl overflow-auto bg-canvas relative flex flex-col min-h-0">
+            <div className="flex-1 border border-hairline rounded-2xl overflow-auto bg-canvas relative flex flex-col min-h-0 select-text">
               {previewRows.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-8 space-y-3">
                   <RefreshCw className="w-8 h-8 text-primary animate-spin" />
                   <p className="text-xs text-gray-500 font-light">Initializing dataset preview...</p>
                 </div>
               ) : (
-                <table className="min-w-full text-left border-collapse text-xs table-auto">
+                <table className="min-w-full text-left border-collapse text-xs table-auto select-text">
                   <thead>
                     <tr className="bg-surface-soft border-b border-hairline text-gray-500 font-mono font-semibold uppercase">
                       {previewRows[0]?.map((col, idx) => (
