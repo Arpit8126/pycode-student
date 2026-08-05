@@ -584,6 +584,19 @@ export default function ExamAttemptPage() {
   }, [hasStarted, timeLeft, quiz])
 
   const triggerWarning = (reason: string) => {
+    // Throttle warnings (ignore duplicate triggers within 3 seconds)
+    const now = Date.now()
+    if (now - lastWarningTimeRef.current < 3000) {
+      return
+    }
+    
+    // Only count warnings (blur, tab switch) if they are currently inside fullscreen exam
+    if (reason !== 'Exiting fullscreen mode.' && !document.fullscreenElement) {
+      return
+    }
+    
+    lastWarningTimeRef.current = now
+
     setLastWarningReason(reason)
     const nextWarnings = warnings + 1
     setWarnings(nextWarnings)
