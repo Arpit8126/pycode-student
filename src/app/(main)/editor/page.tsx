@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2 } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
@@ -14,15 +14,119 @@ import { initDB, getDatasets, saveDataset, deleteDataset, CustomDataset } from '
 // Import Monaco Editor dynamically to prevent SSR conflicts
 const Editor = dynamic(() => import('@monaco-editor/react'), { ssr: false })
 
+interface CellType {
+  id: string;
+  code: string;
+  output: string;
+  plot: string;
+  error: string;
+  isRunning?: boolean;
+}
+
+const notebookToCells = (notebook: any): CellType[] => {
+  if (!notebook || !Array.isArray(notebook.cells)) {
+    return [{ id: 'cell_default', code: '', output: '', plot: '', error: '' }];
+  }
+  return notebook.cells.map((c: any, index: number) => {
+    const source = Array.isArray(c.source) ? c.source.join('') : (c.source || '');
+    let outputText = '';
+    let plotImg = '';
+    let errorText = '';
+    
+    if (Array.isArray(c.outputs)) {
+      c.outputs.forEach((out: any) => {
+        if (out.output_type === 'stream') {
+          outputText += Array.isArray(out.text) ? out.text.join('') : (out.text || '');
+        } else if (out.output_type === 'display_data' || out.output_type === 'execute_result') {
+          const data = out.data || {};
+          if (data['image/png']) {
+            plotImg = `data:image/png;base64,${data['image/png']}`;
+          } else if (data['text/plain']) {
+            outputText += Array.isArray(data['text/plain']) ? data['text/plain'].join('') : (data['text/plain'] || '');
+          }
+        } else if (out.output_type === 'error') {
+          errorText += Array.isArray(out.traceback) ? out.traceback.join('\n') : (out.ename + ': ' + out.evalue);
+        }
+      });
+    }
+    return {
+      id: `cell_${index}_${Math.random().toString(36).substring(5)}`,
+      code: source,
+      output: outputText,
+      plot: plotImg,
+      error: errorText,
+      isRunning: false
+    };
+  });
+};
+
+const cellsToNotebook = (cellsList: CellType[]) => {
+  return {
+    cells: cellsList.map(c => {
+      const outputs: any[] = [];
+      if (c.output) {
+        outputs.push({
+          output_type: 'stream',
+          name: 'stdout',
+          text: c.output.split('\n').map((line, idx, arr) => line + (idx < arr.length - 1 ? '\n' : ''))
+        });
+      }
+      if (c.plot) {
+        const base64Data = c.plot.replace(/^data:image\/png;base64,/, '');
+        outputs.push({
+          output_type: 'display_data',
+          data: {
+            'image/png': base64Data,
+            'text/plain': ['<Figure size matplotlib>']
+          },
+          metadata: {}
+        });
+      }
+      if (c.error) {
+        outputs.push({
+          output_type: 'error',
+          ename: 'Error',
+          evalue: c.error,
+          traceback: [c.error]
+        });
+      }
+      return {
+        cell_type: 'code',
+        execution_count: null,
+        metadata: {},
+        outputs: outputs,
+        source: c.code.split('\n').map((line, idx, arr) => line + (idx < arr.length - 1 ? '\n' : ''))
+      };
+    }),
+    metadata: {
+      kernelspec: {
+        display_name: "Python 3",
+        language: "python",
+        name: "python3"
+      }
+    },
+    nbformat: 4,
+    nbformat_minor: 2
+  };
+};
+
 declare global {
   interface Window {
     loadPyodide?: any
   }
 }
 
+let globalDraftCode = '# Write your code here\n';
+let globalDraftCells: CellType[] = [
+  { id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false }
+];
+let globalDraftFormat: 'terminal' | 'cell' = 'terminal';
+let globalActiveFileName: string | null = null;
+let globalLastSavedCode: string = '# Write your code here\n';
+
 export default function CodeEditorPage() {
   const supabase = createClient()
-  const [code, setCode] = useState('# Write your code here\n')
+  const [code, setCode] = useState(globalDraftCode)
 
   // Pyodide Loading States
   const [pyodideState, setPyodideState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
@@ -40,13 +144,21 @@ export default function CodeEditorPage() {
   // Saved Files States
   const router = useRouter()
   const [savedFiles, setSavedFiles] = useState<{ name: string; code: string; lastModified: string }[]>([])
+  
+  // Jupyter Notebook cell states
+  const [editorFormat, setEditorFormat] = useState<'terminal' | 'cell'>(globalDraftFormat)
+  const [cells, setCells] = useState<CellType[]>(globalDraftCells)
+  const [runningCellQueue, setRunningCellQueue] = useState<string[]>([])
+  const [fullscreenPlotUrl, setFullscreenPlotUrl] = useState<string | null>(null)
+  const [activeCellId, setActiveCellId] = useState<string | null>(null)
+
   const [leftSidebarTab, setLeftSidebarTab] = useState<'savedFiles' | 'datasets'>('savedFiles')
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [showGuestSaveModal, setShowGuestSaveModal] = useState(false)
   const [saveFileName, setSaveFileName] = useState('')
   const [activeDropdownFile, setActiveDropdownFile] = useState<string | null>(null)
-  const [activeFileName, setActiveFileName] = useState<string | null>(null)
+  const [activeFileName, setActiveFileName] = useState<string | null>(globalActiveFileName)
   const [fileSearch, setFileSearch] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [deletingFileName, setDeletingFileName] = useState<string | null>(null)
@@ -55,7 +167,7 @@ export default function CodeEditorPage() {
   const [renameFileName, setRenameFileName] = useState<string | null>(null)
   const [newFileName, setNewFileName] = useState('')
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
-  const [lastSavedCode, setLastSavedCode] = useState<string>('# Write your code here\n')
+  const [lastSavedCode, setLastSavedCode] = useState<string>(globalLastSavedCode)
   const [datasetSearch, setDatasetSearch] = useState('')
   const [importedDatasets, setImportedDatasets] = useState<CustomDataset[]>([])
   const [isUploading, setIsUploading] = useState(false)
@@ -64,43 +176,60 @@ export default function CodeEditorPage() {
   const [activeDropdownDataset, setActiveDropdownDataset] = useState<string | null>(null)
   const [datasetDropdownPos, setDatasetDropdownPos] = useState<{ top: number; right: number } | null>(null)
   const [isWaitingForInput, setIsWaitingForInput] = useState(false)
-  const isRestoredRef = useRef(false)
+  const [isRestored, setIsRestored] = useState(false)
 
   useEffect(() => {
     importedDatasetsRef.current = importedDatasets
   }, [importedDatasets])
 
-  // Load draft code from localStorage on mount (restores editor state on refresh)
+  // Load draft code from SPA module variables or active saved file on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedActiveFile = localStorage.getItem('pycode_active_file_draft')
-      const savedDraft = localStorage.getItem('pycode_unsaved_draft')
-      const savedLastCode = localStorage.getItem('pycode_last_saved_code_draft')
-      
-      if (savedActiveFile) {
-        setActiveFileName(savedActiveFile)
-        if (savedLastCode) setLastSavedCode(savedLastCode)
+      const savedFormat = localStorage.getItem('pycode_editor_format') as 'terminal' | 'cell' | null
+
+      if (globalActiveFileName !== null || globalDraftCode !== '# Write your code here\n' || globalDraftFormat === 'cell') {
+        // Just reload from SPA global variables (user navigated within site)
+        setCode(globalDraftCode)
+        setCells(globalDraftCells)
+        setEditorFormat(globalDraftFormat)
+        setActiveFileName(globalActiveFileName)
+        setLastSavedCode(globalLastSavedCode)
+      } else {
+        // Hard refresh occurred! Load active saved file if one was specifically open
+        const savedActiveFile = localStorage.getItem('pycode_active_file')
+        if (savedActiveFile) {
+          // Handled via loadSavedFiles(savedActiveFile) inside mounting useEffect below!
+        } else {
+          // No active file, start fresh but preserve format preference
+          setCode('# Write your code here\n')
+          setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false }])
+          setEditorFormat(savedFormat || 'terminal')
+          setActiveFileName(null)
+          setLastSavedCode('# Write your code here\n')
+        }
       }
-      if (savedDraft) {
-        setCode(savedDraft)
-      }
-      isRestoredRef.current = true
+      setIsRestored(true)
     }
   }, [])
 
-  // Auto-save editor state to localStorage to survive page refreshes
+  // Synchronize state with module-level global variables for SPA routing draft preservation
   useEffect(() => {
-    if (typeof window !== 'undefined' && isRestoredRef.current) {
-      localStorage.setItem('pycode_unsaved_draft', code)
+    if (typeof window !== 'undefined' && isRestored) {
+      globalDraftCode = code
+      globalDraftCells = cells
+      globalDraftFormat = editorFormat
+      globalActiveFileName = activeFileName
+      globalLastSavedCode = lastSavedCode
+
+      localStorage.setItem('pycode_editor_format', editorFormat)
+
       if (activeFileName) {
-        localStorage.setItem('pycode_active_file_draft', activeFileName)
-        localStorage.setItem('pycode_last_saved_code_draft', lastSavedCode)
+        localStorage.setItem('pycode_active_file', activeFileName)
       } else {
-        localStorage.removeItem('pycode_active_file_draft')
-        localStorage.removeItem('pycode_last_saved_code_draft')
+        localStorage.removeItem('pycode_active_file')
       }
     }
-  }, [code, activeFileName, lastSavedCode])
+  }, [code, cells, editorFormat, activeFileName, lastSavedCode, isRestored])
 
 
 
@@ -109,7 +238,14 @@ export default function CodeEditorPage() {
     setTimeout(() => setToast(null), 3000)
   }
 
-  const isSaveDisabled = isSaving || pyodideState !== 'ready' || (activeFileName ? code === lastSavedCode : code === '# Write your code here\n')
+  const currentContent = editorFormat === 'cell' 
+    ? JSON.stringify(cellsToNotebook(cells), null, 2) 
+    : code
+  const isSaveDisabled = isSaving || pyodideState !== 'ready' || (
+    activeFileName 
+      ? currentContent === lastSavedCode 
+      : (editorFormat === 'cell' ? cells.length === 1 && cells[0].code === '' : code === '# Write your code here\n')
+  )
 
   // Resizing output terminal panel
   const [terminalHeight, setTerminalHeight] = useState(240)
@@ -277,7 +413,11 @@ export default function CodeEditorPage() {
         setPyodideState('error')
         setProgressMsg(data.message || 'Failed to initialize worker.')
       } else if (data.type === 'STDOUT' || data.type === 'STDERR') {
-        setConsoleOutput(prev => prev + data.text)
+        if (data.cellId) {
+          setCells(prev => prev.map(c => c.id === data.cellId ? { ...c, output: c.output + data.text } : c))
+        } else {
+          setConsoleOutput(prev => prev + data.text)
+        }
       } else if (data.type === 'NEED_INPUT') {
         setActivePrompt(data.prompt)
         setPromptValue('')
@@ -294,9 +434,26 @@ export default function CodeEditorPage() {
         setIsRunning(false)
         setIsWaitingForInput(false)
         setActivePrompt(null)
-        if (data.plotData && typeof data.plotData === 'string' && data.plotData.length > 100) {
-          setPlotUrl(`data:image/png;base64,${data.plotData}`)
-          setShowPlotModal(true)
+        if (data.cellId) {
+          setCells(prev => prev.map(c => c.id === data.cellId ? {
+            ...c,
+            plot: (data.plotData && typeof data.plotData === 'string' && data.plotData.length > 100)
+              ? `data:image/png;base64,${data.plotData}`
+              : c.plot,
+            isRunning: false
+          } : c))
+          setRunningCellQueue(prev => prev.slice(1))
+          setTimeout(() => {
+            const outputEl = document.getElementById(`cell_output_${data.cellId}`)
+            if (outputEl) {
+              outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+            }
+          }, 80)
+        } else {
+          if (data.plotData && typeof data.plotData === 'string' && data.plotData.length > 100) {
+            setPlotUrl(`data:image/png;base64,${data.plotData}`)
+            setShowPlotModal(true)
+          }
         }
 
         if (data.updatedFiles) {
@@ -357,7 +514,23 @@ export default function CodeEditorPage() {
                  !line.includes('eval_code_async') && 
                  !line.includes('run_async')
         })
-        setConsoleOutput(prev => prev + '\n' + cleanLines.join('\n'))
+        const cleanMsg = cleanLines.join('\n')
+        if (data.cellId) {
+          setCells(prev => prev.map(c => c.id === data.cellId ? {
+            ...c,
+            error: cleanMsg,
+            isRunning: false
+          } : c))
+          setRunningCellQueue(prev => prev.slice(1))
+          setTimeout(() => {
+            const outputEl = document.getElementById(`cell_output_${data.cellId}`)
+            if (outputEl) {
+              outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+            }
+          }, 80)
+        } else {
+          setConsoleOutput(prev => prev + '\n' + cleanMsg)
+        }
 
         if (data.updatedFiles) {
           // Scan for modified custom files to save back to IndexedDB
@@ -457,10 +630,7 @@ export default function CodeEditorPage() {
           if (keepActive) {
             const target = formatted.find((f: any) => f.name === keepActive)
             if (target) {
-              setCode(target.code)
-              setLastSavedCode(target.code)
-              setActiveFileName(target.name)
-              if (editorRef.current) editorRef.current.setValue(target.code)
+              handleLoadFile(target)
             }
           }
           return
@@ -479,10 +649,7 @@ export default function CodeEditorPage() {
           if (keepActive) {
             const target = files.find((f: any) => f.name === keepActive)
             if (target) {
-              setCode(target.code)
-              setLastSavedCode(target.code)
-              setActiveFileName(target.name)
-              if (editorRef.current) editorRef.current.setValue(target.code)
+              handleLoadFile(target)
             }
           }
         } catch (e) {
@@ -494,7 +661,8 @@ export default function CodeEditorPage() {
 
   useEffect(() => {
     initWorker()
-    loadSavedFiles()
+    const activeFileOnRefresh = typeof window !== 'undefined' ? localStorage.getItem('pycode_active_file') : null
+    loadSavedFiles(activeFileOnRefresh || undefined)
     return () => {
       if (workerRef.current) {
         workerRef.current.terminate()
@@ -502,12 +670,131 @@ export default function CodeEditorPage() {
     }
   }, [])
 
+  // Sequential execution queue processor for Jupyter Cells
+  useEffect(() => {
+    const processQueue = async () => {
+      if (runningCellQueue.length > 0 && !isRunning && workerRef.current && pyodideState === 'ready') {
+        const activeCellId = runningCellQueue[0]
+        const cell = cells.find(c => c.id === activeCellId)
+        if (!cell) {
+          setRunningCellQueue(prev => prev.slice(1))
+          return
+        }
+        
+        setIsRunning(true)
+        setCells(prev => prev.map(c => c.id === activeCellId ? { ...c, isRunning: true, output: '', error: '', plot: '' } : c))
+        
+        const execId = Math.random().toString(36).substring(7)
+        execIdRef.current = execId
+        
+        workerRef.current.postMessage({
+          type: 'RUN_CODE',
+          code: cell.code,
+          execId,
+          cellId: activeCellId,
+          customDatasets: importedDatasetsRef.current.map(d => ({ name: d.name, type: d.type }))
+        })
+      }
+    }
+    processQueue()
+  }, [runningCellQueue, isRunning, pyodideState, cells])
+
+  const runCell = (cellId: string) => {
+    setCells(prev => prev.map(c => c.id === cellId ? { ...c, output: '', error: '', plot: '', isRunning: true } : c))
+    setRunningCellQueue(prev => {
+      if (prev.includes(cellId)) return prev
+      return [...prev, cellId]
+    })
+  }
+
+  const runAllCells = () => {
+    setCells(prev => prev.map(c => ({ ...c, output: '', error: '', plot: '', isRunning: true })))
+    setRunningCellQueue(cells.map(c => c.id))
+  }
+
+  const shiftToCellFormat = () => {
+    const parts = code.split(/#\s*%%\s*(?:\n|$)/)
+    let parsedCells = parts.map((part, index) => ({
+      id: `cell_${index}_${Math.random().toString(36).substring(5)}`,
+      code: part,
+      output: '',
+      plot: '',
+      error: '',
+      isRunning: false
+    }))
+    if (parsedCells.length > 1 && parsedCells[0].code.trim() === '') {
+      parsedCells.shift()
+    }
+    if (parsedCells.length === 0) {
+      parsedCells = [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false }]
+    }
+    setCells(parsedCells)
+    setEditorFormat('cell')
+  }
+
+  const shiftToTerminalFormat = () => {
+    let mergedCode = ''
+    if (cells.length === 1) {
+      mergedCode = cells[0].code
+    } else {
+      mergedCode = cells.map(c => `# %%\n${c.code}`).join('\n\n')
+    }
+    setCode(mergedCode)
+    if (editorRef.current) {
+      editorRef.current.setValue(mergedCode)
+    }
+    setEditorFormat('terminal')
+  }
+
+  const moveCellUp = (index: number) => {
+    if (index === 0) return
+    setCells(prev => {
+      const next = [...prev]
+      const temp = next[index]
+      next[index] = next[index - 1]
+      next[index - 1] = temp
+      return next
+    })
+  }
+
+  const moveCellDown = (index: number) => {
+    setCells(prev => {
+      if (index === prev.length - 1) return prev
+      const next = [...prev]
+      const temp = next[index]
+      next[index] = next[index + 1]
+      next[index + 1] = temp
+      return next
+    })
+  }
+
+  const clearCellOutput = (cellId: string) => {
+    setCells(prev => prev.map(c => c.id === cellId ? { ...c, output: '', error: '', plot: '' } : c))
+  }
+
+  const focusCellTextarea = (cellId: string) => {
+    setTimeout(() => {
+      const textarea = document.getElementById(`textarea_${cellId}`) as HTMLTextAreaElement | null
+      if (textarea) {
+        textarea.focus()
+        textarea.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }
+    }, 100)
+  }
+
   const handleSaveFile = async () => {
     let name = saveFileName.trim()
     if (!name) return
-    if (!name.endsWith('.py')) {
-      name += '.py'
+    
+    if (editorFormat === 'cell') {
+      if (!name.endsWith('.ipynb')) name += '.ipynb'
+    } else {
+      if (!name.endsWith('.py')) name += '.py'
     }
+
+    const contentToSave = editorFormat === 'cell'
+      ? JSON.stringify(cellsToNotebook(cells), null, 2)
+      : code
 
     setIsSaving(true)
     try {
@@ -517,13 +804,13 @@ export default function CodeEditorPage() {
           .upsert({
             user_id: user.id,
             name,
-            code,
+            code: contentToSave,
             last_modified: new Date().toISOString()
           }, { onConflict: 'user_id, name' })
         
         if (!error) {
           await loadSavedFiles(name)
-          setLastSavedCode(code)
+          setLastSavedCode(contentToSave)
           setActiveFileName(name)
           setShowSaveModal(false)
           setSaveFileName('')
@@ -542,7 +829,7 @@ export default function CodeEditorPage() {
     // Optimistic local save
     const newFile = {
       name,
-      code,
+      code: contentToSave,
       lastModified: new Date().toLocaleString()
     }
     const updatedFiles = [...savedFiles]
@@ -554,7 +841,7 @@ export default function CodeEditorPage() {
     }
     setSavedFiles(updatedFiles)
     localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
-    setLastSavedCode(code)
+    setLastSavedCode(contentToSave)
     setActiveFileName(name)
     setShowSaveModal(false)
     setSaveFileName('')
@@ -563,6 +850,10 @@ export default function CodeEditorPage() {
   }
 
   const handleSaveFileDirectly = async (fileName: string) => {
+    const contentToSave = editorFormat === 'cell'
+      ? JSON.stringify(cellsToNotebook(cells), null, 2)
+      : code
+
     setIsSaving(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -571,13 +862,13 @@ export default function CodeEditorPage() {
           .upsert({
             user_id: user.id,
             name: fileName,
-            code,
+            code: contentToSave,
             last_modified: new Date().toISOString()
           }, { onConflict: 'user_id, name' })
 
         if (!error) {
           await loadSavedFiles(fileName)
-          setLastSavedCode(code)
+          setLastSavedCode(contentToSave)
           setIsSaving(false)
           triggerToast("File saved successfully.", "success")
           return
@@ -593,7 +884,7 @@ export default function CodeEditorPage() {
     // Local storage fallback
     const newFile = {
       name: fileName,
-      code,
+      code: contentToSave,
       lastModified: new Date().toLocaleString()
     }
     const updatedFiles = [...savedFiles]
@@ -605,7 +896,7 @@ export default function CodeEditorPage() {
     }
     setSavedFiles(updatedFiles)
     localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
-    setLastSavedCode(code)
+    setLastSavedCode(contentToSave)
     setIsSaving(false)
     triggerToast("File saved successfully.", "success")
   }
@@ -613,8 +904,12 @@ export default function CodeEditorPage() {
   const handleRenameFile = async () => {
     let newName = newFileName.trim()
     if (!newName || !renameFileName) return
-    if (!newName.endsWith('.py')) {
-      newName += '.py'
+    
+    const isNotebook = renameFileName.endsWith('.ipynb')
+    if (isNotebook) {
+      if (!newName.endsWith('.ipynb')) newName += '.ipynb'
+    } else {
+      if (!newName.endsWith('.py')) newName += '.py'
     }
 
     setIsSaving(true)
@@ -671,11 +966,28 @@ export default function CodeEditorPage() {
   }
 
   const handleLoadFile = (file: { name: string; code: string }) => {
-    setCode(file.code)
-    setLastSavedCode(file.code)
     setActiveFileName(file.name)
-    if (editorRef.current) {
-      editorRef.current.setValue(file.code)
+    setLastSavedCode(file.code)
+    
+    if (file.name.endsWith('.ipynb')) {
+      try {
+        const parsed = JSON.parse(file.code)
+        setCells(notebookToCells(parsed))
+        setEditorFormat('cell')
+      } catch (err) {
+        console.error("Failed to parse notebook JSON, loading as code:", err)
+        setCode(file.code)
+        setEditorFormat('terminal')
+        if (editorRef.current) {
+          editorRef.current.setValue(file.code)
+        }
+      }
+    } else {
+      setCode(file.code)
+      setEditorFormat('terminal')
+      if (editorRef.current) {
+        editorRef.current.setValue(file.code)
+      }
     }
   }
 
@@ -686,6 +998,8 @@ export default function CodeEditorPage() {
       const blank = '# Write your code here\n'
       setCode(blank)
       setLastSavedCode(blank)
+      setEditorFormat('terminal')
+      setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '' }])
       if (editorRef.current) editorRef.current.setValue(blank)
     }
     setSavedFiles(prev => prev.filter(f => f.name !== name))
@@ -1434,6 +1748,27 @@ export default function CodeEditorPage() {
                 )}
               </button>
 
+              {/* Format Toggle Button */}
+              {editorFormat === 'cell' ? (
+                <button
+                  onClick={shiftToTerminalFormat}
+                  className="px-3.5 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 shadow-sm"
+                  title="Shift to standard Python script editor and terminal"
+                >
+                  <Terminal className="w-3.5 h-3.5 text-primary" />
+                  <span>Shift to Terminal Format</span>
+                </button>
+              ) : (
+                <button
+                  onClick={shiftToCellFormat}
+                  className="px-3.5 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 shadow-sm"
+                  title="Shift to Jupyter cell editor format"
+                >
+                  <Database className="w-3.5 h-3.5 text-primary rotate-90" />
+                  <span>Shift to Cell Format</span>
+                </button>
+              )}
+
               <div className="h-4 w-[1px] bg-hairline mx-1"></div>
 
               {isRunning ? (
@@ -1452,77 +1787,320 @@ export default function CodeEditorPage() {
                 </div>
               ) : (
                 <button
-                  onClick={handleRunCode}
+                  onClick={editorFormat === 'cell' ? runAllCells : handleRunCode}
                   disabled={pyodideState !== 'ready'}
                   className="px-5 py-1.5 rounded-full bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98] text-[11px] font-extrabold cursor-pointer transition-all duration-200 flex items-center gap-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.15)]"
                 >
                   <Play className="w-3 h-3 fill-current" />
-                  Run Code
+                  {editorFormat === 'cell' ? 'Run All' : 'Run Code'}
                 </button>
               )}
             </div>
           </div>
 
-          {/* Monaco Editor Canvas */}
-          <div className="flex-1 min-h-0 relative bg-[#1e1e1e] select-text">
-            <Editor
-              height="100%"
-              defaultLanguage="python"
-              theme={theme === 'dark' ? 'vs-dark' : 'light'}
-              value={code}
-              onChange={(val) => setCode(val || '')}
-              onMount={handleEditorDidMount}
-              options={{
-                fontSize: 14,
-                fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
-                minimap: { enabled: false },
-                lineNumbers: 'on',
-                scrollBeyondLastLine: false,
-                readOnly: isRunning,
-                padding: { top: 16, bottom: 16 },
-                cursorBlinking: 'smooth',
-                cursorStyle: 'line',
-                cursorWidth: 2,
-                autoClosingBrackets: 'always',
-                autoClosingQuotes: 'always',
-                autoClosingDelete: 'always',
-                autoClosingOvertype: 'always',
-                matchBrackets: 'never',
-              }}
-            />
+          {/* Monaco Editor / Cell Canvas */}
+          <div className={`flex-1 min-h-0 relative select-text flex flex-col ${editorFormat === 'cell' ? 'bg-canvas overflow-y-auto' : 'bg-[#1e1e1e]'}`}>
+            {editorFormat === 'cell' ? (
+              <div className="w-full px-6 md:px-8 py-6 space-y-6 pb-24">
+                {/* Cell List Toolbar */}
+                <div className="flex items-center justify-between border-b border-hairline pb-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={runAllCells}
+                      disabled={pyodideState !== 'ready' || isRunning}
+                      className="px-3.5 py-1.5 rounded-xl bg-primary text-white text-xs font-bold flex items-center gap-1.5 hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer shadow-sm"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      Run All
+                    </button>
+                    <button
+                      onClick={() => {
+                        const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
+                        setCells(prev => [...prev, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false }])
+                        focusCellTextarea(newId)
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl border border-hairline bg-surface-soft hover:bg-surface-card text-ink text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Code Cell
+                    </button>
+                  </div>
+                  <span className="text-[10px] text-gray-500 font-mono font-bold">
+                    {cells.length} Cell{cells.length > 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                {/* Cells */}
+                {cells.map((cell, index) => {
+                  const isCellRunning = cell.isRunning || runningCellQueue.includes(cell.id)
+                  const isActive = activeCellId === cell.id
+                  return (
+                    <div
+                      key={cell.id}
+                      onClick={() => setActiveCellId(cell.id)}
+                      className={`group/cell relative flex flex-col border rounded-xl transition-all duration-200 pl-2 pr-4 py-3 bg-canvas dark:bg-canvas ${
+                        isActive 
+                          ? 'border-hairline shadow-md shadow-primary/5 ring-1 ring-primary/10' 
+                          : 'border-transparent hover:border-hairline/60 hover:shadow-xs'
+                      }`}
+                    >
+                      {/* Left vertical highlights bar for active cell */}
+                      {isActive && (
+                        <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-primary rounded-l-xl" />
+                      )}
+
+                      {/* Hover Actions Toolbar */}
+                      <div className="absolute -top-3.5 right-4 flex items-center gap-1 bg-canvas dark:bg-surface-soft border border-hairline px-1.5 py-0.5 rounded-lg shadow-sm opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); moveCellUp(index); }}
+                          disabled={index === 0}
+                          className="p-1 text-gray-500 hover:text-ink hover:bg-surface-soft rounded disabled:opacity-30 cursor-pointer transition-colors"
+                          title="Move cell up"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); moveCellDown(index); }}
+                          disabled={index === cells.length - 1}
+                          className="p-1 text-gray-500 hover:text-ink hover:bg-surface-soft rounded disabled:opacity-30 cursor-pointer transition-colors"
+                          title="Move cell down"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); clearCellOutput(cell.id); }}
+                          className="p-1 text-gray-500 hover:text-ink hover:bg-surface-soft rounded cursor-pointer transition-colors"
+                          title="Clear cell outputs"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        </button>
+                        <div className="w-[1px] h-3.5 bg-hairline mx-0.5" />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (cells.length === 1) {
+                              setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '' }])
+                            } else {
+                              setCells(prev => prev.filter(c => c.id !== cell.id))
+                            }
+                          }}
+                          className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded cursor-pointer transition-colors"
+                          title="Delete cell"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Main Cell Content Grid */}
+                      <div className="flex items-start gap-3 w-full">
+                        
+                        {/* Play Indicator Margin */}
+                        <div className="w-12 shrink-0 select-none flex flex-col items-center justify-start pt-1.5 relative">
+                          <div className="relative w-6 h-6 flex items-center justify-center">
+                            {/* Circular spinner when running */}
+                            {isCellRunning ? (
+                              <RefreshCw className="w-4 h-4 text-primary animate-spin" />
+                            ) : (
+                              <>
+                                {/* Play icon on hover / focus */}
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); runCell(cell.id); }}
+                                  disabled={pyodideState !== 'ready' || isRunning}
+                                  className="absolute inset-0 z-10 rounded-full bg-primary text-white flex items-center justify-center opacity-0 group-hover/cell:opacity-100 group-focus-within/cell:opacity-100 transition-opacity cursor-pointer shadow-sm disabled:opacity-50"
+                                >
+                                  <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+                                </button>
+                                {/* Default execution number index, hidden on hover */}
+                                <span className="pointer-events-none text-[11px] font-mono text-gray-400 dark:text-gray-500 font-bold group-hover/cell:opacity-0 group-focus-within/cell:opacity-0 transition-opacity">
+                                  [{index + 1}]
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Code Editor Column */}
+                        <div className="flex-1 min-w-0 bg-[#fafafa] dark:bg-[#151413] rounded-lg border border-gray-300 dark:border-[#403f3e] focus-within:border-primary/80 transition-colors p-2.5">
+                          <textarea
+                            id={`textarea_${cell.id}`}
+                            value={cell.code}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              setCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val } : c))
+                            }}
+                            placeholder="# Write your Python code here..."
+                            rows={Math.max(2, cell.code.split('\n').length)}
+                            onFocus={() => setActiveCellId(cell.id)}
+                            onPaste={(e) => {
+                              const target = e.currentTarget;
+                              setTimeout(() => {
+                                target.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                              }, 80);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && e.shiftKey) {
+                                e.preventDefault()
+                                runCell(cell.id)
+                              }
+                              if (e.key === 'Enter' && e.altKey) {
+                                e.preventDefault()
+                                runCell(cell.id)
+                                const newId = `cell_${Date.now()}`
+                                setCells(prev => {
+                                  const next = [...prev]
+                                  next.splice(index + 1, 0, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false })
+                                  return next
+                                })
+                                focusCellTextarea(newId)
+                              }
+                            }}
+                            disabled={isRunning}
+                            className="w-full bg-transparent text-ink font-mono text-sm focus:outline-none resize-none leading-relaxed p-1 border-0 select-text"
+                            style={{ fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace' }}
+                          />
+                        </div>
+
+                      </div>
+
+                      {/* Cell Output Section */}
+                      {(cell.output || cell.error || cell.plot) && (
+                        <div 
+                          id={`cell_output_${cell.id}`}
+                          className="mt-3 border-t border-hairline/30 pt-3 pl-12 flex items-start gap-3 w-full relative group/output"
+                        >
+                          {/* Close / Clear output button on left hover */}
+                          <div className="absolute left-3 top-3.5 opacity-0 group-hover/output:opacity-100 transition-opacity">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); clearCellOutput(cell.id); }}
+                              className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                              title="Clear output"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <div className="flex-1 min-w-0 space-y-4 font-mono text-xs select-text">
+                            {cell.output && (
+                              <div className="space-y-1">
+                                <pre className="whitespace-pre-wrap text-body leading-relaxed font-mono">{cell.output}</pre>
+                              </div>
+                            )}
+
+                            {cell.error && (
+                              <div className="space-y-1">
+                                <pre className="whitespace-pre-wrap text-red-650 dark:text-red-400 bg-red-50/50 dark:bg-red-950/10 p-3.5 rounded-xl border border-red-100/30 dark:border-red-950/20 leading-relaxed font-mono font-bold">{cell.error}</pre>
+                              </div>
+                            )}
+
+                            {cell.plot && (
+                              <div className="space-y-1">
+                                <div className="relative inline-block group/plot">
+                                  <img
+                                    src={cell.plot}
+                                    alt="Matplotlib visualization"
+                                    onClick={() => setFullscreenPlotUrl(cell.plot)}
+                                    className="max-h-[360px] object-contain rounded-xl border border-hairline cursor-zoom-in hover:opacity-95 transition-all shadow-sm"
+                                  />
+                                  <button
+                                    onClick={() => setFullscreenPlotUrl(cell.plot)}
+                                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover/plot:opacity-100 transition-opacity cursor-pointer flex items-center justify-center"
+                                    title="View full screen"
+                                  >
+                                    <Maximize2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Hover Add Cell Below center pill */}
+                      <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
+                            setCells(prev => {
+                              const next = [...prev]
+                              next.splice(index + 1, 0, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false })
+                              return next
+                            })
+                            focusCellTextarea(newId)
+                          }}
+                          className="px-3 py-1 rounded-full border border-gray-300 dark:border-[#403f3e] bg-canvas dark:bg-surface-soft hover:bg-surface-soft hover:text-primary dark:hover:bg-[#1a1a1a] text-ink text-[10px] font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
+                        >
+                          <Plus className="w-3 h-3 text-primary" />
+                          Code Cell
+                        </button>
+                      </div>
+
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <Editor
+                height="100%"
+                defaultLanguage="python"
+                theme={theme === 'dark' ? 'vs-dark' : 'light'}
+                value={code}
+                onChange={(val) => setCode(val || '')}
+                onMount={handleEditorDidMount}
+                options={{
+                  fontSize: 14,
+                  fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
+                  minimap: { enabled: false },
+                  lineNumbers: 'on',
+                  scrollBeyondLastLine: false,
+                  readOnly: isRunning,
+                  padding: { top: 16, bottom: 16 },
+                  cursorBlinking: 'smooth',
+                  cursorStyle: 'line',
+                  cursorWidth: 2,
+                  autoClosingBrackets: 'always',
+                  autoClosingQuotes: 'always',
+                  autoClosingDelete: 'always',
+                  autoClosingOvertype: 'always',
+                  matchBrackets: 'never',
+                }}
+              />
+            )}
           </div>
 
           {/* Resizer Handle Bar */}
-          <div 
-            onMouseDown={handleMouseDown}
-            className="h-2 bg-hairline hover:bg-primary/50 cursor-ns-resize transition-colors duration-200 select-none z-30 relative group" 
-          >
-            {/* Thicker invisible hover area to make resizing extremely easy and prevent overlap issues */}
-            <div className="absolute inset-x-0 -top-1.5 -bottom-1.5 cursor-ns-resize z-40" />
-          </div>
+          {editorFormat !== 'cell' && (
+            <div 
+              onMouseDown={handleMouseDown}
+              className="h-2 bg-hairline hover:bg-primary/50 cursor-ns-resize transition-colors duration-200 select-none z-30 relative group" 
+            >
+              {/* Thicker invisible hover area to make resizing extremely easy and prevent overlap issues */}
+              <div className="absolute inset-x-0 -top-1.5 -bottom-1.5 cursor-ns-resize z-40" />
+            </div>
+          )}
 
           {/* Console Output Panel */}
-          <div 
-            style={{ height: `${terminalHeight}px` }} 
-            className="border-t border-hairline flex flex-col bg-canvas shrink-0 overflow-hidden"
-          >
-            <div className="flex border-b border-hairline bg-surface-soft px-4 py-2">
-              <span className="text-[10px] uppercase font-mono font-extrabold text-gray-400 flex items-center gap-1.5">
-                <Terminal className="w-3.5 h-3.5 text-primary" />
-                Console Terminal
-              </span>
+          {editorFormat !== 'cell' && (
+            <div 
+              style={{ height: `${terminalHeight}px` }} 
+              className="border-t border-hairline flex flex-col bg-canvas shrink-0 overflow-hidden"
+            >
+              <div className="flex border-b border-hairline bg-surface-soft px-4 py-2">
+                <span className="text-[10px] uppercase font-mono font-extrabold text-gray-400 flex items-center gap-1.5">
+                  <Terminal className="w-3.5 h-3.5 text-primary" />
+                  Console Terminal
+                </span>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 font-mono text-xs text-body leading-relaxed bg-canvas select-text">
+                {consoleOutput ? (
+                  <pre className="whitespace-pre-wrap">{consoleOutput}</pre>
+                ) : (
+                  <p className="text-gray-400 font-light italic">Write Python code and click Run Code to execute and print outputs here...</p>
+                )}
+              </div>
             </div>
-
-
-
-            <div className="flex-1 overflow-y-auto p-4 font-mono text-xs text-body leading-relaxed bg-canvas select-text">
-              {consoleOutput ? (
-                <pre className="whitespace-pre-wrap">{consoleOutput}</pre>
-              ) : (
-                <p className="text-gray-400 font-light italic">Write Python code and click Run Code to execute and print outputs here...</p>
-              )}
-            </div>
-          </div>
+          )}
         </section>
       </div>
 
@@ -2004,6 +2582,29 @@ export default function CodeEditorPage() {
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Plot Zoom Modal Overlay */}
+      {fullscreenPlotUrl && (
+        <div 
+          className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[110] flex items-center justify-center p-6 animate-fade-in cursor-zoom-out"
+          onClick={() => setFullscreenPlotUrl(null)}
+        >
+          <div className="relative max-w-5xl max-h-[90vh] bg-canvas p-4 rounded-2xl border border-hairline shadow-2xl flex flex-col items-center">
+            <button
+              onClick={() => setFullscreenPlotUrl(null)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-surface-soft hover:bg-surface-card text-gray-500 hover:text-ink transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={fullscreenPlotUrl}
+              alt="Fullscreen matplotlib plot"
+              className="max-w-full max-h-[80vh] object-contain rounded-xl select-none"
+              onClick={(e) => e.stopPropagation()}
+            />
           </div>
         </div>
       )}

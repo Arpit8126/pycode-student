@@ -2,6 +2,7 @@ importScripts('https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js');
 
 let pyodide = null;
 let execId = 'default';
+let currentCellId = null;
 
 self.onmessage = async (e) => {
   const data = e.data;
@@ -11,10 +12,10 @@ self.onmessage = async (e) => {
       pyodide = await loadPyodide({
         indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/',
         stdout: (text) => {
-          postMessage({ type: 'STDOUT', text });
+          postMessage({ type: 'STDOUT', text, cellId: currentCellId });
         },
         stderr: (text) => {
-          postMessage({ type: 'STDERR', text });
+          postMessage({ type: 'STDERR', text, cellId: currentCellId });
         }
       });
       await pyodide.loadPackage(['pandas', 'numpy', 'matplotlib', 'scikit-learn', 'micropip']);
@@ -122,6 +123,7 @@ json.dumps(res)
     }
     
     execId = data.execId;
+    currentCellId = data.cellId || null;
     const code = data.code;
     
     const localSleep = (ms) => {
@@ -132,7 +134,7 @@ json.dumps(res)
     // Set custom prompt callback in Python environment
     pyodide.globals.set('_js_prompt', (promptText) => {
       // 1. Notify main thread to open custom React modal dialog
-      postMessage({ type: 'NEED_INPUT', prompt: promptText });
+      postMessage({ type: 'NEED_INPUT', prompt: promptText, cellId: currentCellId });
       
       // 2. Perform short-polling check loop using synchronous XHR
       while (true) {
@@ -151,7 +153,7 @@ json.dumps(res)
     });
 
     pyodide.globals.set('_js_write', (text) => {
-      postMessage({ type: 'STDOUT', text });
+      postMessage({ type: 'STDOUT', text, cellId: currentCellId });
     });
     
     try {
@@ -262,7 +264,7 @@ imgs[0] if imgs else ""
         });
       }
 
-      postMessage({ type: 'RUN_SUCCESS', plotData: plotData || null, updatedFiles });
+      postMessage({ type: 'RUN_SUCCESS', plotData: plotData || null, updatedFiles, cellId: currentCellId });
     } catch (err) {
       // Read current contents of datasets to return to main thread even on error
       const updatedFiles = {};
@@ -300,7 +302,7 @@ imgs[0] if imgs else ""
         });
       }
 
-      postMessage({ type: 'RUN_ERROR', message: err.message || String(err), updatedFiles });
+      postMessage({ type: 'RUN_ERROR', message: err.message || String(err), updatedFiles, cellId: currentCellId });
     }
   }
 };
