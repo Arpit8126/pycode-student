@@ -190,6 +190,17 @@ export default function CodeEditorPage() {
   const [newSaveFolderName, setNewSaveFolderName] = useState<string>('')
   const [showNewFolderSaveInput, setShowNewFolderSaveInput] = useState<boolean>(false)
 
+  const [fileToMove, setFileToMove] = useState<string | null>(null)
+  const [showMoveModal, setShowMoveModal] = useState(false)
+  const [moveToFolder, setMoveToFolder] = useState('')
+  const [newMoveFolderName, setNewMoveFolderName] = useState('')
+  const [showNewFolderMoveInput, setShowNewFolderMoveInput] = useState(false)
+  const [showSaveDropdownPanel, setShowSaveDropdownPanel] = useState(false)
+  const [showMoveDropdownPanel, setShowMoveDropdownPanel] = useState(false)
+  const [renamingFolder, setRenamingFolder] = useState<string | null>(null)
+  const [renameFolderInput, setRenameFolderInput] = useState('')
+  const [activeDragFolder, setActiveDragFolder] = useState<string | null>(null)
+
   const addCustomFolder = (folderName: string) => {
     const trimmed = folderName.trim()
     if (!trimmed) return
@@ -983,7 +994,7 @@ export default function CodeEditorPage() {
         const { error } = await (supabase.from('saved_scripts') as any)
           .update({
             name: newName,
-            updated_at: new Date().toISOString()
+            last_modified: new Date().toISOString()
           })
           .eq('user_id', user.id)
           .eq('name', renameFileName)
@@ -1112,6 +1123,120 @@ export default function CodeEditorPage() {
       setCurrentExplorerFolder(null)
     }
     triggerToast(`Folder "${folderName}" and its files deleted.`, "success")
+  }
+
+  const handleMoveFile = async (oldName: string, targetFolder: string | null) => {
+    const parts = oldName.split('/')
+    const baseName = parts[parts.length - 1]
+    const newName = targetFolder ? `${targetFolder}/${baseName}` : baseName
+    if (newName === oldName) return
+
+    setIsSaving(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { error } = await (supabase.from('saved_scripts') as any)
+          .update({
+            name: newName,
+            last_modified: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+          .eq('name', oldName)
+
+        if (!error) {
+          if (activeFileName === oldName) {
+            setActiveFileName(newName)
+          }
+          await loadSavedFiles()
+          setIsSaving(false)
+          triggerToast("File moved successfully.", "success")
+          return
+        } else {
+          console.error("Supabase move error:", error)
+          triggerToast("Failed to move file.", "error")
+        }
+      }
+    } catch (err) {
+      console.warn("Supabase move failed, falling back to localStorage:", err)
+    }
+
+    const filesStr = localStorage.getItem('pycode_saved_files')
+    if (filesStr) {
+      const files = JSON.parse(filesStr)
+      const updated = files.map((f: any) => {
+        if (f.name === oldName) {
+          return { ...f, name: newName }
+        }
+        return f
+      })
+      localStorage.setItem('pycode_saved_files', JSON.stringify(updated))
+      if (activeFileName === oldName) {
+        setActiveFileName(newName)
+      }
+      await loadSavedFiles()
+    }
+    setIsSaving(false)
+    triggerToast("File moved successfully.", "success")
+  }
+
+  const handleRenameFolder = async (oldFolder: string, newFolder: string) => {
+    const oldF = oldFolder.trim()
+    const newF = newFolder.trim()
+    if (!oldF || !newF || oldF === newF) return
+
+    setIsSaving(true)
+
+    setCustomFolders(prev => {
+      const updated = prev.map(f => f === oldF ? newF : f)
+      localStorage.setItem('pycode_custom_folders', JSON.stringify(updated))
+      return updated
+    })
+
+    const filesToMove = savedFiles.filter(f => f.name.startsWith(`${oldF}/`))
+    for (const f of filesToMove) {
+      const baseName = f.name.substring(oldF.length + 1)
+      const newName = `${newF}/${baseName}`
+      
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          await (supabase.from('saved_scripts') as any)
+            .update({
+              name: newName,
+              last_modified: new Date().toISOString()
+            })
+            .eq('user_id', user.id)
+            .eq('name', f.name)
+        }
+      } catch (err) {
+        console.warn("Folder file sync rename failed:", err)
+      }
+    }
+
+    const filesStr = localStorage.getItem('pycode_saved_files')
+    if (filesStr) {
+      const files = JSON.parse(filesStr)
+      const updated = files.map((f: any) => {
+        if (f.name.startsWith(`${oldF}/`)) {
+          const baseName = f.name.substring(oldF.length + 1)
+          return { ...f, name: `${newF}/${baseName}` }
+        }
+        return f
+      })
+      localStorage.setItem('pycode_saved_files', JSON.stringify(updated))
+    }
+
+    if (currentExplorerFolder === oldF) {
+      setCurrentExplorerFolder(newF)
+    }
+    if (activeFileName && activeFileName.startsWith(`${oldF}/`)) {
+      const baseName = activeFileName.substring(oldF.length + 1)
+      setActiveFileName(`${newF}/${baseName}`)
+    }
+
+    await loadSavedFiles()
+    setIsSaving(false)
+    triggerToast("Folder renamed successfully.", "success")
   }
 
   const handleDownloadFile = (file: { name: string; code: string }) => {
@@ -1603,7 +1728,20 @@ export default function CodeEditorPage() {
                           <div className="flex items-center gap-2 mb-3 shrink-0">
                             <button
                               onClick={() => setCurrentExplorerFolder(null)}
-                              className="px-2.5 py-1.5 rounded-xl border border-hairline bg-surface-soft hover:bg-surface-card text-gray-600 hover:text-ink text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer"
+                              onDragOver={(e) => e.preventDefault()}
+                              onDragEnter={() => setActiveDragFolder('__root__')}
+                              onDragLeave={() => setActiveDragFolder(null)}
+                              onDrop={(e) => {
+                                e.preventDefault()
+                                setActiveDragFolder(null)
+                                const filename = e.dataTransfer.getData('text/plain')
+                                handleMoveFile(filename, null)
+                              }}
+                              className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                                activeDragFolder === '__root__'
+                                  ? 'border-dashed border-primary bg-primary/5 text-primary scale-[0.98]'
+                                  : 'border-hairline bg-surface-soft text-gray-600 hover:text-ink hover:bg-surface-card'
+                              }`}
                             >
                               <ChevronLeft className="w-3.5 h-3.5" />
                               Back
@@ -1623,7 +1761,14 @@ export default function CodeEditorPage() {
                                 const isDropdownOpen = activeDropdownFile === file.name
                                 const displayName = file.name.substring(currentExplorerFolder.length + 1)
                                 return (
-                                  <div key={file.name} className="relative group animate-fade-in">
+                                  <div
+                                    key={file.name}
+                                    draggable={true}
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData('text/plain', file.name)
+                                    }}
+                                    className="relative group animate-fade-in"
+                                  >
                                     <button
                                       onClick={() => handleLoadFile(file)}
                                       className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 ${
@@ -1641,7 +1786,7 @@ export default function CodeEditorPage() {
                                       </div>
                                     </button>
 
-                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20 opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation()
@@ -1676,20 +1821,81 @@ export default function CodeEditorPage() {
                             <div className="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider font-mono">Folders</div>
                             {allFolders.map(folderName => (
                               <div key={folderName} className="group/folder relative flex items-center gap-1.5">
-                                <button
-                                  onClick={() => setCurrentExplorerFolder(folderName)}
-                                  className="flex-1 p-2.5 rounded-xl border border-hairline bg-canvas text-left flex items-center gap-2 hover:border-primary/50 hover:bg-surface-soft cursor-pointer transition-all duration-150 animate-fade-in"
-                                >
-                                  <Folder className="w-4 h-4 text-amber-500 shrink-0" />
-                                  <span className="text-xs font-bold text-ink truncate">{folderName}</span>
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteFolder(folderName)}
-                                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl opacity-0 group-hover/folder:opacity-100 transition-opacity cursor-pointer shrink-0"
-                                  title="Delete folder"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
+                                {renamingFolder === folderName ? (
+                                  <form
+                                    onSubmit={(e) => {
+                                      e.preventDefault()
+                                      handleRenameFolder(folderName, renameFolderInput)
+                                      setRenamingFolder(null)
+                                      setRenameFolderInput('')
+                                    }}
+                                    className="flex-1 flex items-center gap-1.5 animate-fade-in"
+                                  >
+                                    <input
+                                      type="text"
+                                      value={renameFolderInput}
+                                      onChange={e => setRenameFolderInput(e.target.value)}
+                                      className="flex-1 px-3 py-1.5 text-xs font-mono rounded-xl border border-hairline bg-surface-soft text-ink outline-none focus:border-primary/50 transition-colors"
+                                      autoFocus
+                                    />
+                                    <button
+                                      type="submit"
+                                      disabled={!renameFolderInput.trim() || renameFolderInput.trim() === folderName}
+                                      className="px-2.5 py-1.5 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-[10px] font-bold transition-all cursor-pointer shrink-0"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setRenamingFolder(null)}
+                                      className="px-2.5 py-1.5 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card text-[10px] font-semibold transition-colors cursor-pointer shrink-0"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </form>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => setCurrentExplorerFolder(folderName)}
+                                      onDragOver={(e) => e.preventDefault()}
+                                      onDragEnter={() => setActiveDragFolder(folderName)}
+                                      onDragLeave={() => setActiveDragFolder(null)}
+                                      onDrop={(e) => {
+                                        e.preventDefault()
+                                        setActiveDragFolder(null)
+                                        const filename = e.dataTransfer.getData('text/plain')
+                                        handleMoveFile(filename, folderName)
+                                      }}
+                                      className={`flex-1 p-2.5 rounded-xl border text-left flex items-center gap-2 hover:border-primary/50 hover:bg-surface-soft cursor-pointer transition-all duration-150 animate-fade-in ${
+                                        activeDragFolder === folderName
+                                          ? 'border-dashed border-primary bg-primary/5 shadow-xs ring-1 ring-primary/20 scale-[0.98]'
+                                          : 'bg-canvas border-hairline'
+                                      }`}
+                                    >
+                                      <Folder className="w-4 h-4 text-amber-500 shrink-0" />
+                                      <span className="text-xs font-bold text-ink truncate">{folderName}</span>
+                                    </button>
+                                    <div className="flex items-center gap-0.5 opacity-80 md:opacity-0 md:group-hover/folder:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={() => {
+                                          setRenamingFolder(folderName)
+                                          setRenameFolderInput(folderName)
+                                        }}
+                                        className="p-2 text-gray-400 hover:text-primary hover:bg-surface-soft rounded-xl cursor-pointer shrink-0"
+                                        title="Rename folder"
+                                      >
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteFolder(folderName)}
+                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl cursor-pointer shrink-0"
+                                        title="Delete folder"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             ))}
                           </div>
@@ -1710,7 +1916,14 @@ export default function CodeEditorPage() {
                               const isActive = activeFileName === file.name
                               const isDropdownOpen = activeDropdownFile === file.name
                               return (
-                                <div key={file.name} className="relative group animate-fade-in">
+                                <div
+                                  key={file.name}
+                                  draggable={true}
+                                  onDragStart={(e) => {
+                                    e.dataTransfer.setData('text/plain', file.name)
+                                  }}
+                                  className="relative group animate-fade-in"
+                                >
                                   <button
                                     onClick={() => handleLoadFile(file)}
                                     className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 pr-10 ${
@@ -1728,7 +1941,7 @@ export default function CodeEditorPage() {
                                     </div>
                                   </button>
 
-                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
+                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20 opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation()
@@ -2006,6 +2219,7 @@ export default function CodeEditorPage() {
                     const blank = '# Write your code here\n'
                     setCode(blank)
                     setLastSavedCode(blank)
+                    setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false }])
                     if (editorRef.current) editorRef.current.setValue(blank)
                   }}
                   title="Exit file — go to free scratch"
@@ -2601,28 +2815,74 @@ export default function CodeEditorPage() {
                   />
                 </div>
 
-                <div>
+                <div className="relative">
                   <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 font-mono">Select Folder</label>
-                  <select
-                    value={saveToFolder}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      setSaveToFolder(val)
-                      if (val === '__new__') {
-                        setShowNewFolderSaveInput(true)
-                      } else {
-                        setShowNewFolderSaveInput(false)
-                        setNewSaveFolderName('')
-                      }
-                    }}
-                    className="w-full px-4 py-2.5 rounded-xl border border-hairline bg-surface-soft text-sm text-ink outline-none focus:border-primary transition-colors cursor-pointer"
+                  
+                  {/* Custom Dropdown Trigger Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowSaveDropdownPanel(prev => !prev)}
+                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-hairline bg-surface-soft text-sm text-ink outline-none hover:bg-surface-card hover:border-gray-400 transition-colors cursor-pointer text-left font-medium"
                   >
-                    <option value="">Without Folder (Save in Root)</option>
-                    {allFolders.map(folder => (
-                      <option key={folder} value={folder}>{folder}</option>
-                    ))}
-                    <option value="__new__">+ Create New Folder...</option>
-                  </select>
+                    <div className="flex items-center gap-2">
+                      <Folder className={`w-4 h-4 ${saveToFolder ? 'text-amber-500' : 'text-gray-400'}`} />
+                      <span>{saveToFolder === '__new__' ? '+ Create New Folder...' : (saveToFolder || 'Without Folder (Save in Root)')}</span>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  </button>
+
+                  {/* Custom Dropdown Panel */}
+                  {showSaveDropdownPanel && (
+                    <>
+                      {/* Transparent page layer to close panel */}
+                      <div className="fixed inset-0 z-10 bg-transparent" onClick={() => setShowSaveDropdownPanel(false)} />
+                      <div className="absolute left-0 right-0 mt-1.5 bg-canvas border border-hairline rounded-xl shadow-xl z-20 py-1 max-h-48 overflow-y-auto animate-scale-in">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSaveToFolder('')
+                            setShowNewFolderSaveInput(false)
+                            setNewSaveFolderName('')
+                            setShowSaveDropdownPanel(false)
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-left hover:bg-surface-soft ${!saveToFolder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
+                        >
+                          <Folder className="w-3.5 h-3.5 text-gray-400" />
+                          <span>Without Folder (Save in Root)</span>
+                        </button>
+                        
+                        {allFolders.map(folder => (
+                          <button
+                            key={folder}
+                            type="button"
+                            onClick={() => {
+                              setSaveToFolder(folder)
+                              setShowNewFolderSaveInput(false)
+                              setNewSaveFolderName('')
+                              setShowSaveDropdownPanel(false)
+                            }}
+                            className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-medium text-left hover:bg-surface-soft ${saveToFolder === folder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
+                          >
+                            <Folder className="w-3.5 h-3.5 text-amber-500" />
+                            <span className="truncate">{folder}</span>
+                          </button>
+                        ))}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSaveToFolder('__new__')
+                            setShowNewFolderSaveInput(true)
+                            setShowSaveDropdownPanel(false)
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-left hover:bg-surface-soft ${saveToFolder === '__new__' ? 'text-primary bg-primary/5' : 'text-gray-500'} border-t border-hairline transition-colors cursor-pointer`}
+                        >
+                          <Plus className="w-3.5 h-3.5 text-primary" />
+                          <span>+ Create New Folder...</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {showNewFolderSaveInput && (
@@ -2663,6 +2923,151 @@ export default function CodeEditorPage() {
                         Saving...
                       </>
                     ) : 'Save'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Move File Modal Dialog */}
+      {showMoveModal && fileToMove && (() => {
+        const allFolders = Array.from(new Set([
+          ...customFolders,
+          ...savedFiles
+            .filter(f => f.name.includes('/'))
+            .map(f => f.name.split('/')[0])
+        ])).sort()
+        return (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-6 shadow-2xl space-y-4 animate-scale-in">
+              <h3 className="text-xs uppercase font-mono font-extrabold text-primary flex items-center gap-2">
+                <Folder className="w-4 h-4 text-amber-500" />
+                Move File
+              </h3>
+              <p className="text-sm font-medium text-ink">
+                Select target folder for <span className="font-mono text-primary font-bold">{fileToMove.split('/').pop()}</span>:
+              </p>
+              <div className="space-y-4">
+                <div className="relative">
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 font-mono">Target Folder</label>
+                  
+                  {/* Custom Trigger Dropdown for Move */}
+                  <button
+                    type="button"
+                    onClick={() => setShowMoveDropdownPanel(prev => !prev)}
+                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-hairline bg-surface-soft text-sm text-ink outline-none hover:bg-surface-card hover:border-gray-400 transition-colors cursor-pointer text-left font-medium"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Folder className={`w-4 h-4 ${moveToFolder ? 'text-amber-500' : 'text-gray-400'}`} />
+                      <span>{moveToFolder === '__new__' ? '+ Create New Folder...' : (moveToFolder || 'Root Directory')}</span>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  </button>
+
+                  {/* Custom Move Dropdown Panel */}
+                  {showMoveDropdownPanel && (
+                    <>
+                      {/* Transparent panel closer background */}
+                      <div className="fixed inset-0 z-10 bg-transparent" onClick={() => setShowMoveDropdownPanel(false)} />
+                      <div className="absolute left-0 right-0 mt-1.5 bg-canvas border border-hairline rounded-xl shadow-xl z-20 py-1 max-h-48 overflow-y-auto animate-scale-in">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMoveToFolder('')
+                            setShowNewFolderMoveInput(false)
+                            setNewMoveFolderName('')
+                            setShowMoveDropdownPanel(false)
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-left hover:bg-surface-soft ${!moveToFolder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
+                        >
+                          <Folder className="w-3.5 h-3.5 text-gray-400" />
+                          <span>Root Directory</span>
+                        </button>
+                        
+                        {allFolders.map(folder => (
+                          <button
+                            key={folder}
+                            type="button"
+                            onClick={() => {
+                              setMoveToFolder(folder)
+                              setShowNewFolderMoveInput(false)
+                              setNewMoveFolderName('')
+                              setShowMoveDropdownPanel(false)
+                            }}
+                            className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-medium text-left hover:bg-surface-soft ${moveToFolder === folder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
+                          >
+                            <Folder className="w-3.5 h-3.5 text-amber-500" />
+                            <span className="truncate">{folder}</span>
+                          </button>
+                        ))}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMoveToFolder('__new__')
+                            setShowNewFolderMoveInput(true)
+                            setShowMoveDropdownPanel(false)
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-left hover:bg-surface-soft ${moveToFolder === '__new__' ? 'text-primary bg-primary/5' : 'text-gray-500'} border-t border-hairline transition-colors cursor-pointer`}
+                        >
+                          <Plus className="w-3.5 h-3.5 text-primary" />
+                          <span>+ Create New Folder...</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {showNewFolderMoveInput && (
+                  <div className="animate-fade-in">
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 font-mono">New Folder Name</label>
+                    <input
+                      type="text"
+                      value={newMoveFolderName}
+                      onChange={(e) => setNewMoveFolderName(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-hairline bg-surface-soft text-sm font-mono text-ink outline-none focus:border-primary transition-colors"
+                      placeholder="e.g. Analytics"
+                    />
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMoveModal(false)
+                      setFileToMove(null)
+                      setMoveToFolder('')
+                      setNewMoveFolderName('')
+                      setShowNewFolderMoveInput(false)
+                    }}
+                    className="px-4 py-2 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card text-xs font-semibold cursor-pointer transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      let folder = moveToFolder
+                      if (moveToFolder === '__new__') {
+                        const newName = newMoveFolderName.trim()
+                        if (newName) {
+                          addCustomFolder(newName)
+                          folder = newName
+                        }
+                      }
+                      await handleMoveFile(fileToMove, folder || null)
+                      setShowMoveModal(false)
+                      setFileToMove(null)
+                      setMoveToFolder('')
+                      setNewMoveFolderName('')
+                      setShowNewFolderMoveInput(false)
+                    }}
+                    disabled={isSaving || (moveToFolder === '__new__' && !newMoveFolderName.trim())}
+                    className="px-5 py-2 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-xs font-extrabold cursor-pointer transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex items-center gap-2 min-w-[70px] justify-center"
+                  >
+                    {isSaving ? 'Moving...' : 'Move'}
                   </button>
                 </div>
               </div>
@@ -2722,7 +3127,7 @@ export default function CodeEditorPage() {
             }}
           />
           <div
-            className="fixed w-28 bg-canvas border border-hairline rounded-2xl p-1.5 shadow-2xl backdrop-blur-xl animate-scale-in z-50 space-y-0.5"
+            className="fixed w-32 bg-canvas border border-hairline rounded-2xl p-1.5 shadow-2xl backdrop-blur-xl animate-scale-in z-50 space-y-0.5"
             style={{
               top: `${dropdownPos.top}px`,
               right: `${dropdownPos.right}px`,
@@ -2744,6 +3149,20 @@ export default function CodeEditorPage() {
                   >
                     <Download className="w-3 h-3" />
                     Download
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setFileToMove(file.name)
+                      setMoveToFolder(file.name.includes('/') ? file.name.split('/')[0] : '')
+                      setShowMoveModal(true)
+                      setActiveDropdownFile(null)
+                      setDropdownPos(null)
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-gray-600 dark:text-gray-300 hover:bg-surface-soft hover:text-ink rounded-xl transition-colors cursor-pointer text-left"
+                  >
+                    <Folder className="w-3 h-3 text-amber-500" />
+                    Move to...
                   </button>
                   <button
                     onClick={(e) => {
