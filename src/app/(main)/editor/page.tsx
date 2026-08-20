@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2 } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
@@ -21,14 +21,16 @@ interface CellType {
   plot: string;
   error: string;
   isRunning?: boolean;
+  hasRun?: boolean;
 }
 
 const notebookToCells = (notebook: any): CellType[] => {
   if (!notebook || !Array.isArray(notebook.cells)) {
-    return [{ id: 'cell_default', code: '', output: '', plot: '', error: '' }];
+    return [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false }];
   }
   return notebook.cells.map((c: any, index: number) => {
     const source = Array.isArray(c.source) ? c.source.join('') : (c.source || '');
+    const cleanedSource = source.replace(/^\n+|\n+$/g, '');
     let outputText = '';
     let plotImg = '';
     let errorText = '';
@@ -51,11 +53,12 @@ const notebookToCells = (notebook: any): CellType[] => {
     }
     return {
       id: `cell_${index}_${Math.random().toString(36).substring(5)}`,
-      code: source,
+      code: cleanedSource,
       output: outputText,
       plot: plotImg,
       error: errorText,
-      isRunning: false
+      isRunning: false,
+      hasRun: outputText !== '' || errorText !== '' || plotImg !== ''
     };
   });
 };
@@ -90,12 +93,13 @@ const cellsToNotebook = (cellsList: CellType[]) => {
           traceback: [c.error]
         });
       }
+      const cleanCode = c.code.replace(/^\n+|\n+$/g, '');
       return {
         cell_type: 'code',
         execution_count: null,
         metadata: {},
         outputs: outputs,
-        source: c.code.split('\n').map((line, idx, arr) => line + (idx < arr.length - 1 ? '\n' : ''))
+        source: cleanCode.split('\n').map((line, idx, arr) => line + (idx < arr.length - 1 ? '\n' : ''))
       };
     }),
     metadata: {
@@ -178,6 +182,25 @@ export default function CodeEditorPage() {
   const [isWaitingForInput, setIsWaitingForInput] = useState(false)
   const [isRestored, setIsRestored] = useState(false)
 
+  const [customFolders, setCustomFolders] = useState<string[]>([])
+  const [currentExplorerFolder, setCurrentExplorerFolder] = useState<string | null>(null)
+  const [showNewFolderInput, setShowNewFolderInput] = useState(false)
+  const [folderInputName, setFolderInputName] = useState('')
+  const [saveToFolder, setSaveToFolder] = useState<string>('')
+  const [newSaveFolderName, setNewSaveFolderName] = useState<string>('')
+  const [showNewFolderSaveInput, setShowNewFolderSaveInput] = useState<boolean>(false)
+
+  const addCustomFolder = (folderName: string) => {
+    const trimmed = folderName.trim()
+    if (!trimmed) return
+    setCustomFolders(prev => {
+      if (prev.includes(trimmed)) return prev
+      const updated = [...prev, trimmed]
+      localStorage.setItem('pycode_custom_folders', JSON.stringify(updated))
+      return updated
+    })
+  }
+
   useEffect(() => {
     importedDatasetsRef.current = importedDatasets
   }, [importedDatasets])
@@ -186,6 +209,15 @@ export default function CodeEditorPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedFormat = localStorage.getItem('pycode_editor_format') as 'terminal' | 'cell' | null
+
+      const storedFolders = localStorage.getItem('pycode_custom_folders')
+      if (storedFolders) {
+        try {
+          setCustomFolders(JSON.parse(storedFolders))
+        } catch (e) {
+          console.error(e)
+        }
+      }
 
       if (globalActiveFileName !== null || globalDraftCode !== '# Write your code here\n' || globalDraftFormat === 'cell') {
         // Just reload from SPA global variables (user navigated within site)
@@ -202,7 +234,7 @@ export default function CodeEditorPage() {
         } else {
           // No active file, start fresh but preserve format preference
           setCode('# Write your code here\n')
-          setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false }])
+          setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false }])
           setEditorFormat(savedFormat || 'terminal')
           setActiveFileName(null)
           setLastSavedCode('# Write your code here\n')
@@ -440,7 +472,8 @@ export default function CodeEditorPage() {
             plot: (data.plotData && typeof data.plotData === 'string' && data.plotData.length > 100)
               ? `data:image/png;base64,${data.plotData}`
               : c.plot,
-            isRunning: false
+            isRunning: false,
+            hasRun: true
           } : c))
           setRunningCellQueue(prev => prev.slice(1))
           setTimeout(() => {
@@ -519,7 +552,8 @@ export default function CodeEditorPage() {
           setCells(prev => prev.map(c => c.id === data.cellId ? {
             ...c,
             error: cleanMsg,
-            isRunning: false
+            isRunning: false,
+            hasRun: true
           } : c))
           setRunningCellQueue(prev => prev.slice(1))
           setTimeout(() => {
@@ -700,7 +734,7 @@ export default function CodeEditorPage() {
   }, [runningCellQueue, isRunning, pyodideState, cells])
 
   const runCell = (cellId: string) => {
-    setCells(prev => prev.map(c => c.id === cellId ? { ...c, output: '', error: '', plot: '', isRunning: true } : c))
+    setCells(prev => prev.map(c => c.id === cellId ? { ...c, output: '', error: '', plot: '', isRunning: true, hasRun: false } : c))
     setRunningCellQueue(prev => {
       if (prev.includes(cellId)) return prev
       return [...prev, cellId]
@@ -708,7 +742,7 @@ export default function CodeEditorPage() {
   }
 
   const runAllCells = () => {
-    setCells(prev => prev.map(c => ({ ...c, output: '', error: '', plot: '', isRunning: true })))
+    setCells(prev => prev.map(c => ({ ...c, output: '', error: '', plot: '', isRunning: true, hasRun: false })))
     setRunningCellQueue(cells.map(c => c.id))
   }
 
@@ -716,17 +750,18 @@ export default function CodeEditorPage() {
     const parts = code.split(/#\s*%%\s*(?:\n|$)/)
     let parsedCells = parts.map((part, index) => ({
       id: `cell_${index}_${Math.random().toString(36).substring(5)}`,
-      code: part,
+      code: part.replace(/^\n+|\n+$/g, ''),
       output: '',
       plot: '',
       error: '',
-      isRunning: false
+      isRunning: false,
+      hasRun: false
     }))
     if (parsedCells.length > 1 && parsedCells[0].code.trim() === '') {
       parsedCells.shift()
     }
     if (parsedCells.length === 0) {
-      parsedCells = [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false }]
+      parsedCells = [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false }]
     }
     setCells(parsedCells)
     setEditorFormat('cell')
@@ -735,9 +770,9 @@ export default function CodeEditorPage() {
   const shiftToTerminalFormat = () => {
     let mergedCode = ''
     if (cells.length === 1) {
-      mergedCode = cells[0].code
+      mergedCode = cells[0].code.replace(/^\n+|\n+$/g, '')
     } else {
-      mergedCode = cells.map(c => `# %%\n${c.code}`).join('\n\n')
+      mergedCode = cells.map(c => `# %%\n${c.code.replace(/^\n+|\n+$/g, '')}`).join('\n\n')
     }
     setCode(mergedCode)
     if (editorRef.current) {
@@ -783,14 +818,27 @@ export default function CodeEditorPage() {
   }
 
   const handleSaveFile = async () => {
-    let name = saveFileName.trim()
-    if (!name) return
+    let baseName = saveFileName.trim()
+    if (!baseName) return
     
     if (editorFormat === 'cell') {
-      if (!name.endsWith('.ipynb')) name += '.ipynb'
+      if (!baseName.endsWith('.ipynb')) baseName += '.ipynb'
     } else {
-      if (!name.endsWith('.py')) name += '.py'
+      if (!baseName.endsWith('.py')) baseName += '.py'
     }
+
+    let targetFolder = ''
+    if (saveToFolder === '__new__') {
+      const folderName = newSaveFolderName.trim()
+      if (folderName) {
+        addCustomFolder(folderName)
+        targetFolder = folderName
+      }
+    } else if (saveToFolder) {
+      targetFolder = saveToFolder
+    }
+
+    const name = targetFolder ? `${targetFolder}/${baseName}` : baseName
 
     const contentToSave = editorFormat === 'cell'
       ? JSON.stringify(cellsToNotebook(cells), null, 2)
@@ -812,8 +860,16 @@ export default function CodeEditorPage() {
           await loadSavedFiles(name)
           setLastSavedCode(contentToSave)
           setActiveFileName(name)
+          if (targetFolder) {
+            setCurrentExplorerFolder(targetFolder)
+          } else {
+            setCurrentExplorerFolder(null)
+          }
           setShowSaveModal(false)
           setSaveFileName('')
+          setSaveToFolder('')
+          setNewSaveFolderName('')
+          setShowNewFolderSaveInput(false)
           setIsSaving(false)
           triggerToast("File saved successfully.", "success")
           return
@@ -843,8 +899,16 @@ export default function CodeEditorPage() {
     localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
     setLastSavedCode(contentToSave)
     setActiveFileName(name)
+    if (targetFolder) {
+      setCurrentExplorerFolder(targetFolder)
+    } else {
+      setCurrentExplorerFolder(null)
+    }
     setShowSaveModal(false)
     setSaveFileName('')
+    setSaveToFolder('')
+    setNewSaveFolderName('')
+    setShowNewFolderSaveInput(false)
     setIsSaving(false)
     triggerToast("File saved successfully.", "success")
   }
@@ -1026,6 +1090,28 @@ export default function CodeEditorPage() {
     } finally {
       setDeletingFileName(null)
     }
+  }
+
+  const handleDeleteFolder = async (folderName: string) => {
+    if (!window.confirm(`Are you sure you want to delete folder "${folderName}" and all scripts inside it?`)) return
+
+    // Remove folder from custom folders list
+    setCustomFolders(prev => {
+      const updated = prev.filter(f => f !== folderName)
+      localStorage.setItem('pycode_custom_folders', JSON.stringify(updated))
+      return updated
+    })
+
+    // Find and delete all files in this folder
+    const filesToDelete = savedFiles.filter(f => f.name.startsWith(`${folderName}/`))
+    for (const f of filesToDelete) {
+      await handleDeleteFile(f.name)
+    }
+
+    if (currentExplorerFolder === folderName) {
+      setCurrentExplorerFolder(null)
+    }
+    triggerToast(`Folder "${folderName}" and its files deleted.`, "success")
   }
 
   const handleDownloadFile = (file: { name: string; code: string }) => {
@@ -1363,15 +1449,56 @@ export default function CodeEditorPage() {
 
             {leftSidebarTab === 'savedFiles' ? (
               <div className="flex-1 flex flex-col min-h-0 space-y-3">
-                <div>
-                  <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5 mb-1">
-                    <FileCode className="w-3.5 h-3.5 text-primary" />
-                    Your Saved Scripts
-                  </h3>
-                  <p className="text-[11px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
-                    Resumable Python code files saved locally in browser.
-                  </p>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5 mb-1">
+                      <FileCode className="w-3.5 h-3.5 text-primary" />
+                      Your Saved Scripts
+                    </h3>
+                    <p className="text-[11px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
+                      Resumable Python code files saved locally in browser.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowNewFolderInput(prev => !prev)}
+                    className="p-1 rounded-lg border border-hairline hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-colors shrink-0"
+                    title="Create New Folder"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
                 </div>
+
+                {showNewFolderInput && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      const name = folderInputName.trim()
+                      if (name) {
+                        addCustomFolder(name)
+                        setFolderInputName('')
+                        setShowNewFolderInput(false)
+                        triggerToast("Folder created successfully.", "success")
+                      }
+                    }}
+                    className="flex items-center gap-2 animate-fade-in"
+                  >
+                    <input
+                      type="text"
+                      value={folderInputName}
+                      onChange={e => setFolderInputName(e.target.value)}
+                      placeholder="New folder name..."
+                      className="flex-1 px-3 py-1.5 text-[11px] font-mono rounded-xl border border-hairline bg-surface-soft text-ink outline-none focus:border-primary/50 transition-colors"
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      disabled={!folderInputName.trim()}
+                      className="px-3 py-1.5 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-[11px] font-bold transition-all cursor-pointer shrink-0"
+                    >
+                      Create
+                    </button>
+                  </form>
+                )}
 
                 {/* Search bar */}
                 {savedFiles.length > 0 && (
@@ -1404,57 +1531,228 @@ export default function CodeEditorPage() {
                       <p className="text-[10px] text-gray-500 dark:text-gray-400 font-light mt-1">Click &quot;Save&quot; in toolbar to store progress!</p>
                     </div>
                   ) : (() => {
-                    const filtered = savedFiles.filter(f =>
-                      f.name.toLowerCase().includes(fileSearch.toLowerCase())
-                    )
-                    return filtered.length === 0 ? (
-                      <div className="text-center py-6 px-2">
-                        <p className="text-[11px] text-gray-500 font-mono">No files match &quot;{fileSearch}&quot;</p>
-                      </div>
-                    ) : filtered.map((file) => {
-                      const isActive = activeFileName === file.name
-                      const isDropdownOpen = activeDropdownFile === file.name
-                      return (
-                        <div key={file.name} className="relative group animate-fade-in">
-                          <button
-                            onClick={() => handleLoadFile(file)}
-                            className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 ${
-                              isActive
-                                ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
-                                : 'bg-canvas border-hairline text-gray-500 hover:text-ink hover:border-gray-400'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5 overflow-hidden w-full">
-                              <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
-                              <div className="flex flex-col overflow-hidden">
-                                <span className="text-xs font-bold font-mono truncate">{file.name}</span>
-                                <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
-                              </div>
-                            </div>
-                          </button>
+                    const allFolders = Array.from(new Set([
+                      ...customFolders,
+                      ...savedFiles
+                        .filter(f => f.name.includes('/'))
+                        .map(f => f.name.split('/')[0])
+                    ])).sort()
+                    const rootFiles = savedFiles.filter(f => !f.name.includes('/'))
 
-                          {/* Three-dot trigger — dropdown rendered fixed outside scroll container */}
-                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
+                    if (fileSearch) {
+                      const filtered = savedFiles.filter(f =>
+                        f.name.toLowerCase().includes(fileSearch.toLowerCase())
+                      )
+                      return filtered.length === 0 ? (
+                        <div className="text-center py-6 px-2">
+                          <p className="text-[11px] text-gray-500 font-mono">No files match &quot;{fileSearch}&quot;</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {filtered.map((file) => {
+                            const isActive = activeFileName === file.name
+                            const isDropdownOpen = activeDropdownFile === file.name
+                            return (
+                              <div key={file.name} className="relative group animate-fade-in">
+                                <button
+                                  onClick={() => handleLoadFile(file)}
+                                  className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 pr-10 ${
+                                    isActive
+                                      ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
+                                      : 'bg-canvas border-hairline text-gray-500 hover:text-ink hover:border-gray-400'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2.5 overflow-hidden w-full">
+                                    <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
+                                    <div className="flex flex-col overflow-hidden">
+                                      <span className="text-xs font-bold font-mono truncate">{file.name}</span>
+                                      <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
+                                    </div>
+                                  </div>
+                                </button>
+
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      if (isDropdownOpen) {
+                                        setActiveDropdownFile(null)
+                                        setDropdownPos(null)
+                                      } else {
+                                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                                        setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                                        setActiveDropdownFile(file.name)
+                                      }
+                                    }}
+                                    className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                                  >
+                                    <MoreVertical className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )
+                    }
+
+                    if (currentExplorerFolder !== null) {
+                      const folderFiles = savedFiles.filter(f => f.name.startsWith(`${currentExplorerFolder}/`))
+                      return (
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 mb-3 shrink-0">
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                if (isDropdownOpen) {
-                                  setActiveDropdownFile(null)
-                                  setDropdownPos(null)
-                                } else {
-                                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-                                  setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
-                                  setActiveDropdownFile(file.name)
-                                }
-                              }}
-                              className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                              onClick={() => setCurrentExplorerFolder(null)}
+                              className="px-2.5 py-1.5 rounded-xl border border-hairline bg-surface-soft hover:bg-surface-card text-gray-600 hover:text-ink text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer"
                             >
-                              <MoreVertical className="w-3.5 h-3.5" />
+                              <ChevronLeft className="w-3.5 h-3.5" />
+                              Back
                             </button>
+                            <span className="text-xs font-extrabold text-ink font-mono truncate bg-primary/10 text-primary px-2.5 py-1 rounded-lg">
+                              {currentExplorerFolder}
+                            </span>
+                          </div>
+                          <div className="space-y-1.5">
+                            {folderFiles.length === 0 ? (
+                              <div className="text-center py-8 px-2 border border-dashed border-hairline rounded-2xl bg-surface-soft">
+                                <p className="text-[11px] text-gray-500">No files in this folder.</p>
+                              </div>
+                            ) : (
+                              folderFiles.map((file) => {
+                                const isActive = activeFileName === file.name
+                                const isDropdownOpen = activeDropdownFile === file.name
+                                const displayName = file.name.substring(currentExplorerFolder.length + 1)
+                                return (
+                                  <div key={file.name} className="relative group animate-fade-in">
+                                    <button
+                                      onClick={() => handleLoadFile(file)}
+                                      className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 ${
+                                        isActive
+                                          ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
+                                          : 'bg-canvas border-hairline text-gray-500 hover:text-ink hover:border-gray-400'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2.5 overflow-hidden w-full">
+                                        <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
+                                        <div className="flex flex-col overflow-hidden">
+                                          <span className="text-xs font-bold font-mono truncate">{displayName}</span>
+                                          <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
+                                        </div>
+                                      </div>
+                                    </button>
+
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          if (isDropdownOpen) {
+                                            setActiveDropdownFile(null)
+                                            setDropdownPos(null)
+                                          } else {
+                                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                                            setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                                            setActiveDropdownFile(file.name)
+                                          }
+                                        }}
+                                        className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                                      >
+                                        <MoreVertical className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                )
+                              })
+                            )}
                           </div>
                         </div>
                       )
-                    })
+                    }
+
+                    return (
+                      <div className="space-y-4">
+                        {/* Folders List */}
+                        {allFolders.length > 0 && (
+                          <div className="space-y-1.5">
+                            <div className="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider font-mono">Folders</div>
+                            {allFolders.map(folderName => (
+                              <div key={folderName} className="group/folder relative flex items-center gap-1.5">
+                                <button
+                                  onClick={() => setCurrentExplorerFolder(folderName)}
+                                  className="flex-1 p-2.5 rounded-xl border border-hairline bg-canvas text-left flex items-center gap-2 hover:border-primary/50 hover:bg-surface-soft cursor-pointer transition-all duration-150 animate-fade-in"
+                                >
+                                  <Folder className="w-4 h-4 text-amber-500 shrink-0" />
+                                  <span className="text-xs font-bold text-ink truncate">{folderName}</span>
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteFolder(folderName)}
+                                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl opacity-0 group-hover/folder:opacity-100 transition-opacity cursor-pointer shrink-0"
+                                  title="Delete folder"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Root Files List */}
+                        <div className="space-y-1.5">
+                          {allFolders.length > 0 && rootFiles.length > 0 && (
+                            <div className="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider font-mono mt-2">Files</div>
+                          )}
+                          {rootFiles.length === 0 && allFolders.length === 0 ? (
+                            <div className="text-center py-8 px-2 border border-dashed border-hairline rounded-2xl bg-surface-soft animate-fade-in">
+                              <p className="text-[11px] text-gray-700 dark:text-gray-300 font-semibold">No saved files yet.</p>
+                              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-light mt-1">Click &quot;Save&quot; in toolbar to store progress!</p>
+                            </div>
+                          ) : (
+                            rootFiles.map((file) => {
+                              const isActive = activeFileName === file.name
+                              const isDropdownOpen = activeDropdownFile === file.name
+                              return (
+                                <div key={file.name} className="relative group animate-fade-in">
+                                  <button
+                                    onClick={() => handleLoadFile(file)}
+                                    className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 pr-10 ${
+                                      isActive
+                                        ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
+                                        : 'bg-canvas border-hairline text-gray-500 hover:text-ink hover:border-gray-400'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2.5 overflow-hidden w-full">
+                                      <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
+                                      <div className="flex flex-col overflow-hidden">
+                                        <span className="text-xs font-bold font-mono truncate">{file.name}</span>
+                                        <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
+                                      </div>
+                                    </div>
+                                  </button>
+
+                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (isDropdownOpen) {
+                                          setActiveDropdownFile(null)
+                                          setDropdownPos(null)
+                                        } else {
+                                          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                                          setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                                          setActiveDropdownFile(file.name)
+                                        }
+                                      }}
+                                      className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                                    >
+                                      <MoreVertical className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                              )
+                            })
+                          )}
+                        </div>
+                      </div>
+                    )
                   })()}
                 </div>
               </div>
@@ -1896,7 +2194,7 @@ export default function CodeEditorPage() {
                         
                         {/* Play Indicator Margin */}
                         <div className="w-12 shrink-0 select-none flex flex-col items-center justify-start pt-1.5 relative">
-                          <div className="relative w-6 h-6 flex items-center justify-center">
+                          <div className="relative w-12 h-6 flex items-center justify-center">
                             {/* Circular spinner when running */}
                             {isCellRunning ? (
                               <RefreshCw className="w-4 h-4 text-primary animate-spin" />
@@ -1906,14 +2204,19 @@ export default function CodeEditorPage() {
                                 <button
                                   onClick={(e) => { e.stopPropagation(); runCell(cell.id); }}
                                   disabled={pyodideState !== 'ready' || isRunning}
-                                  className="absolute inset-0 z-10 rounded-full bg-primary text-white flex items-center justify-center opacity-0 group-hover/cell:opacity-100 group-focus-within/cell:opacity-100 transition-opacity cursor-pointer shadow-sm disabled:opacity-50"
+                                  className="absolute inset-x-3 inset-y-0 z-10 rounded-full bg-primary text-white flex items-center justify-center opacity-0 group-hover/cell:opacity-100 group-focus-within/cell:opacity-100 transition-opacity cursor-pointer shadow-sm disabled:opacity-50"
                                 >
                                   <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
                                 </button>
                                 {/* Default execution number index, hidden on hover */}
-                                <span className="pointer-events-none text-[11px] font-mono text-gray-400 dark:text-gray-500 font-bold group-hover/cell:opacity-0 group-focus-within/cell:opacity-0 transition-opacity">
-                                  [{index + 1}]
-                                </span>
+                                <div className="flex items-center gap-0.5 pointer-events-none group-hover/cell:opacity-0 group-focus-within/cell:opacity-0 transition-opacity">
+                                  <span className="text-[11px] font-mono text-gray-400 dark:text-gray-500 font-bold">
+                                    [{index + 1}]
+                                  </span>
+                                  {cell.hasRun && (
+                                    <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                  )}
+                                </div>
                               </>
                             )}
                           </div>
@@ -2268,53 +2571,105 @@ export default function CodeEditorPage() {
       )}
 
       {/* Save File Modal Dialog */}
-      {showSaveModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-6 shadow-2xl space-y-4 animate-scale-in">
-            <h3 className="text-xs uppercase font-mono font-extrabold text-primary flex items-center gap-2">
-              <Save className="w-4 h-4" />
-              Save Code Script
-            </h3>
-            <p className="text-sm font-medium text-ink">
-              Enter a filename to save this script in your browser workspace:
-            </p>
-            <div className="space-y-4">
-              <input
-                type="text"
-                value={saveFileName}
-                onChange={(e) => setSaveFileName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-hairline bg-surface-soft text-sm font-mono text-ink outline-none focus:border-primary transition-colors"
-                placeholder="e.g. solution.py"
-                autoFocus
-              />
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowSaveModal(false)
-                    setSaveFileName('')
-                  }}
-                  className="px-4 py-2 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card text-xs font-semibold cursor-pointer transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveFile}
-                  disabled={!saveFileName.trim() || isSaving}
-                  className="px-5 py-2 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-xs font-extrabold cursor-pointer transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex items-center gap-2 min-w-[70px] justify-center"
-                >
-                  {isSaving ? (
-                    <>
-                      <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Saving...
-                    </>
-                  ) : 'Save'}
-                </button>
+      {showSaveModal && (() => {
+        const allFolders = Array.from(new Set([
+          ...customFolders,
+          ...savedFiles
+            .filter(f => f.name.includes('/'))
+            .map(f => f.name.split('/')[0])
+        ])).sort()
+        return (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-6 shadow-2xl space-y-4 animate-scale-in">
+              <h3 className="text-xs uppercase font-mono font-extrabold text-primary flex items-center gap-2">
+                <Save className="w-4 h-4" />
+                Save Code Script
+              </h3>
+              <p className="text-sm font-medium text-ink">
+                Configure path and filename to save this script in your browser workspace:
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 font-mono">File Name</label>
+                  <input
+                    type="text"
+                    value={saveFileName}
+                    onChange={(e) => setSaveFileName(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-hairline bg-surface-soft text-sm font-mono text-ink outline-none focus:border-primary transition-colors"
+                    placeholder="e.g. solution.py"
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 font-mono">Select Folder</label>
+                  <select
+                    value={saveToFolder}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setSaveToFolder(val)
+                      if (val === '__new__') {
+                        setShowNewFolderSaveInput(true)
+                      } else {
+                        setShowNewFolderSaveInput(false)
+                        setNewSaveFolderName('')
+                      }
+                    }}
+                    className="w-full px-4 py-2.5 rounded-xl border border-hairline bg-surface-soft text-sm text-ink outline-none focus:border-primary transition-colors cursor-pointer"
+                  >
+                    <option value="">Without Folder (Save in Root)</option>
+                    {allFolders.map(folder => (
+                      <option key={folder} value={folder}>{folder}</option>
+                    ))}
+                    <option value="__new__">+ Create New Folder...</option>
+                  </select>
+                </div>
+
+                {showNewFolderSaveInput && (
+                  <div className="animate-fade-in">
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 font-mono">New Folder Name</label>
+                    <input
+                      type="text"
+                      value={newSaveFolderName}
+                      onChange={(e) => setNewSaveFolderName(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-hairline bg-surface-soft text-sm font-mono text-ink outline-none focus:border-primary transition-colors"
+                      placeholder="e.g. Analytics"
+                    />
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowSaveModal(false)
+                      setSaveFileName('')
+                      setSaveToFolder('')
+                      setNewSaveFolderName('')
+                      setShowNewFolderSaveInput(false)
+                    }}
+                    className="px-4 py-2 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card text-xs font-semibold cursor-pointer transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveFile}
+                    disabled={!saveFileName.trim() || isSaving || (saveToFolder === '__new__' && !newSaveFolderName.trim())}
+                    className="px-5 py-2 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-xs font-extrabold cursor-pointer transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex items-center gap-2 min-w-[70px] justify-center"
+                  >
+                    {isSaving ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Saving...
+                      </>
+                    ) : 'Save'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Guest Save Modal — shown when non-logged-in user clicks Save File */}
       {showGuestSaveModal && (
