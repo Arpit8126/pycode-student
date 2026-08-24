@@ -151,56 +151,92 @@ export default function ExamAttemptPage() {
     if (!activeQ) return
     if (submittedQuestions[activeQ.id]) return // LOCK: already submitted questions cannot be submitted again!
 
-    const check = testChecks[activeQ.id]
-    const passed = check?.passed || 0
-    const state = evalStates[activeQ.id]
+    let check = testChecks[activeQ.id]
+    let state = evalStates[activeQ.id]
 
-    // Submit question locally
-    const nextSubmitted = { ...submittedQuestions, [activeQ.id]: true }
-    setSubmittedQuestions(nextSubmitted)
-
-    // Build test case data for this question (use actual run data as ground truth)
-    const qTotal = (check && check.total > 0) ? check.total : getQuestionTotalCases(activeQ.verification_script)
-    const qPassed = (check && check.total > 0) ? check.passed : (state === 'success' ? qTotal : 0)
-
-    // Save state to DB asynchronously — also save testCasesSummary so beacon auto-submit can use it
-    if (attemptId) {
-      // Build complete testCasesSummary for all currently submitted questions
-      const updatedSummary: Record<number, { passed: number; total: number }> = {}
-      questions.forEach((q: any) => {
-        if (!nextSubmitted[q.id]) return
-        if (q.id === activeQ.id) {
-          updatedSummary[q.id] = { passed: qPassed, total: qTotal }
-        } else {
-          const c = testChecks[q.id]
-          const qt = (c && c.total > 0) ? c.total : getQuestionTotalCases(q.verification_script)
-          const qp = (c && c.total > 0) ? c.passed : (evalStates[q.id] === 'success' ? qt : 0)
-          updatedSummary[q.id] = { passed: qp, total: qt }
+    if (!check) {
+      // Dynamically run checks if not run yet
+      setIsRunning(true)
+      setRightTab('terminal')
+      setConsoleOutput(prev => ({ ...prev, [activeQ.id]: 'Compiler: Running checks before submit...' }))
+      try {
+        const userCode = answers[activeQ.id] || ''
+        const outcome = await runCode(userCode, activeQ.verification_script || '')
+        
+        const outputText = outcome.output || 'Execution complete with no console output.'
+        setConsoleOutput(prev => ({ ...prev, [activeQ.id]: outputText }))
+        
+        check = {
+          passed: outcome.passed_cases ?? 0,
+          total: outcome.total_cases ?? 1
         }
-      })
-
-      supabase
-        .from('quiz_attempts')
-        .update({
-          student_details: {
-            fullName,
-            rollNumber,
-            courseClass,
-            section,
-            submittedQuestions: nextSubmitted,
-            testCasesSummary: updatedSummary
-          }
-        })
-        .eq('id', attemptId)
-        .then((res: any) => {
-          if (res.error) console.error('Failed to sync submittedQuestions to DB:', res.error)
-        })
+        setTestChecks(prev => ({ ...prev, [activeQ.id]: check }))
+        state = outcome.status === 'accepted' ? 'success' : (outcome.status === 'wrong_answer' ? 'wrong' : 'error')
+        setEvalStates(prev => ({ ...prev, [activeQ.id]: state }))
+      } catch (err) {
+        console.error("Auto-run on submit failed:", err)
+      } finally {
+        setIsRunning(false)
+      }
     }
 
-    showCustomAlert(
-      'Question Submitted Successfully',
-      `Challenge "${activeQ.title}" has been successfully completed and submitted. A green status indicator has been recorded.`
-    )
+    const proceedWithSubmission = () => {
+      // Submit question locally
+      const nextSubmitted = { ...submittedQuestions, [activeQ.id]: true }
+      setSubmittedQuestions(nextSubmitted)
+
+      // Build test case data for this question
+      const qTotal = (check && check.total > 0) ? check.total : getQuestionTotalCases(activeQ.verification_script)
+      const qPassed = (check && check.total > 0) ? check.passed : (state === 'success' ? qTotal : 0)
+
+      // Save state to DB asynchronously
+      if (attemptId) {
+        const updatedSummary: Record<number, { passed: number; total: number }> = {}
+        questions.forEach((q: any) => {
+          if (!nextSubmitted[q.id]) return
+          if (q.id === activeQ.id) {
+            updatedSummary[q.id] = { passed: qPassed, total: qTotal }
+          } else {
+            const c = testChecks[q.id]
+            const qt = (c && c.total > 0) ? c.total : getQuestionTotalCases(q.verification_script)
+            const qp = (c && c.total > 0) ? c.passed : (evalStates[q.id] === 'success' ? qt : 0)
+            updatedSummary[q.id] = { passed: qp, total: qt }
+          }
+        })
+
+        supabase
+          .from('quiz_attempts')
+          .update({
+            student_details: {
+              fullName,
+              rollNumber,
+              courseClass,
+              section,
+              submittedQuestions: nextSubmitted,
+              testCasesSummary: updatedSummary
+            }
+          })
+          .eq('id', attemptId)
+          .then((res: any) => {
+            if (res.error) console.error('Failed to sync submittedQuestions to DB:', res.error)
+          })
+      }
+
+      showCustomAlert(
+        'Question Submitted Successfully',
+        `Challenge "${activeQ.title}" has been successfully completed and submitted. A green status indicator has been recorded.`
+      )
+    }
+
+    if (state === 'error') {
+      showCustomConfirm(
+        'Code Contains Errors',
+        'Your code contains a compilation, syntax, or runtime error. Would you still like to submit it, or would you prefer to correct the code first?',
+        () => { proceedWithSubmission() }
+      )
+    } else {
+      proceedWithSubmission()
+    }
   }
 
   // Sandbox outcome states per question
@@ -733,17 +769,53 @@ export default function ExamAttemptPage() {
 
         const passed = outcome.passed_cases || 0
         const total = outcome.total_cases || 0
+        const newCheck = { passed, total }
         setTestChecks(prev => ({ 
           ...prev, 
-          [activeQ.id]: { passed, total } 
+          [activeQ.id]: newCheck 
         }))
 
+        let newState: 'success' | 'wrong' | 'error' = 'error'
         if (outcome.status === 'accepted') {
-          setEvalStates(prev => ({ ...prev, [activeQ.id]: 'success' }))
+          newState = 'success'
         } else if (outcome.status === 'wrong_answer') {
-          setEvalStates(prev => ({ ...prev, [activeQ.id]: 'wrong' }))
-        } else {
-          setEvalStates(prev => ({ ...prev, [activeQ.id]: 'error' }))
+          newState = 'wrong'
+        }
+        setEvalStates(prev => ({ ...prev, [activeQ.id]: newState }))
+
+        if (attemptId) {
+          const nextChecks = { ...testChecks, [activeQ.id]: newCheck }
+          const nextEvalStates = { ...evalStates, [activeQ.id]: newState }
+          
+          const updatedSummary: Record<number, { passed: number; total: number }> = {}
+          questions.forEach((q: any) => {
+            const c = nextChecks[q.id]
+            if (c && c.total > 0) {
+              updatedSummary[q.id] = { passed: c.passed, total: c.total }
+            } else {
+              const est = nextEvalStates[q.id]
+              const qTotal = getQuestionTotalCases(q.verification_script)
+              updatedSummary[q.id] = { passed: est === 'success' ? qTotal : 0, total: qTotal }
+            }
+          })
+
+          supabase
+            .from('quiz_attempts')
+            .update({
+              answers: answers,
+              student_details: {
+                fullName,
+                rollNumber,
+                courseClass,
+                section,
+                submittedQuestions: submittedQuestions,
+                testCasesSummary: updatedSummary
+              }
+            })
+            .eq('id', attemptId)
+            .then((res: any) => {
+              if (res.error) console.error('Failed to sync execution checks to DB:', res.error)
+            })
         }
       } catch (err: any) {
         setConsoleOutput(prev => ({ ...prev, [activeQ.id]: `Failed to execute: ${err.message}` }))
