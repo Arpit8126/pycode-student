@@ -713,13 +713,19 @@ export default function PracticeWorkspacePage() {
                   ) : (
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
-                        {evalStatus === 'success' ? (
+                        {evalStatus === 'success' && (
                           <div className="px-3 py-1 rounded-full bg-semantic-success/10 border border-semantic-success/20 text-semantic-success text-xs font-semibold uppercase">
                             Challenge Accepted
                           </div>
-                        ) : (
+                        )}
+                        {evalStatus === 'wrong' && (
                           <div className="px-3 py-1 rounded-full bg-error/10 border border-error/20 text-error text-xs font-semibold uppercase">
-                            Wrong Answer / Compilation Failed
+                            Wrong Answer
+                          </div>
+                        )}
+                        {evalStatus === 'error' && (
+                          <div className="px-3 py-1 rounded-full bg-rose-700/10 border border-rose-700/20 text-rose-600 dark:text-rose-400 text-xs font-semibold uppercase">
+                            Runtime Error / Compilation Failed
                           </div>
                         )}
                       </div>
