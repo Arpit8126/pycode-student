@@ -274,6 +274,24 @@ try:
                 _out.append(_indent + 'if _current_ok: print(f"✅ Test Case {_tc_num}: Passed")')
                 _out.append(_indent + 'else: print(f"❌ Test Case {_tc_num}: FAILED | Got: {res!r} | Expected: {expected!r}")')
                 _out.append(_indent + 'exec_globals["_tc_idx"] = _tc_num + 1')
+            elif _stripped.startswith('assert exp == got,'):
+                _indent = _ln[:len(_ln) - len(_stripped)]
+                _out.append(_indent + '_current_ok = (exp == got)')
+                _out.append(_indent + 'exec_globals["_current_ok"] = _current_ok')
+                _out.append(_indent + '_tc_num = exec_globals.get("_tc_idx", 1)')
+                _out.append(_indent + 'if _current_ok: print(f"✅ Test Case {_tc_num}: Passed")')
+                _out.append(_indent + 'else:')
+                _out.append(_indent + '    print(f"❌ Test Case {_tc_num}: FAILED")')
+                _out.append(_indent + '    max_len = max(len(exp), len(got))')
+                _out.append(_indent + '    exp_padded = exp + [""] * (max_len - len(exp))')
+                _out.append(_indent + '    got_padded = got + [""] * (max_len - len(got))')
+                _out.append(_indent + '    max_w = max((len(line) for line in exp_padded), default=20)')
+                _out.append(_indent + '    print(f"%-{max_w}s   |   %s" % ("EXPECTED", "GOT"))')
+                _out.append(_indent + '    print("-" * (max_w * 2 + 10))')
+                _out.append(_indent + '    for e, g in zip(exp_padded, got_padded):')
+                _out.append(_indent + '        print(f"%-{max_w}s   |   %s" % (e, g))')
+                _out.append(_indent + '    print("----------------")')
+                _out.append(_indent + 'exec_globals["_tc_idx"] = _tc_num + 1')
             elif _stripped == 'passed += 1':
                 _indent = _ln[:len(_ln) - len(_stripped)]
                 _out.append(_indent + 'if exec_globals.get("_current_ok", True): passed += 1')
