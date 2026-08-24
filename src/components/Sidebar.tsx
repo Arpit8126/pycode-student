@@ -230,6 +230,7 @@ export default function Sidebar() {
                 key={item.path}
                 href={item.path}
                 onClick={() => {
+                    if (pathname === item.path) return
                     if (loadingPath === item.path) return
                     if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current)
                     setLoadingPath(item.path)
@@ -263,6 +264,7 @@ export default function Sidebar() {
                 <Link
                   href={item.path}
                   onClick={() => {
+                    if (pathname === item.path) return
                     if (loadingPath === item.path) return
                     if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current)
                     setLoadingPath(item.path)

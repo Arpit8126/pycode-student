@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
@@ -1631,10 +1631,11 @@ export default function CodeEditorPage() {
                   </div>
                   <button
                     onClick={() => setShowNewFolderInput(prev => !prev)}
-                    className="p-1 rounded-lg border border-hairline hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-colors shrink-0"
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-hairline hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-all shrink-0 text-[10px] font-bold uppercase tracking-wider font-mono bg-canvas"
                     title="Create New Folder"
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <FolderPlus className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Create Folder</span>
                   </button>
                 </div>
 
@@ -2122,9 +2123,14 @@ export default function CodeEditorPage() {
                                         : 'bg-canvas border-hairline text-gray-700 dark:text-gray-400 hover:text-ink hover:border-gray-400'
                                     }`}
                                   >
-                                    <div className="flex items-center gap-2 overflow-hidden w-full">
-                                      <FileCode className="w-3.5 h-3.5 shrink-0 text-primary" />
-                                      <span className="text-[11px] font-bold font-mono truncate">{filename}</span>
+                                    <div className="flex items-start gap-2 overflow-hidden w-full">
+                                      <FileCode className="w-3.5 h-3.5 shrink-0 text-primary mt-0.5" />
+                                      <div className="flex flex-col min-w-0">
+                                        <span className="text-[11px] font-bold font-mono truncate">{filename}</span>
+                                        <span className="text-[9px] text-gray-500 font-medium font-sans truncate leading-normal">
+                                          {getDatasetPurpose(filename)}
+                                        </span>
+                                      </div>
                                     </div>
                                   </button>
 
@@ -3470,5 +3476,28 @@ export default function CodeEditorPage() {
 
     </div>
   )
+}
+
+function getDatasetPurpose(filename: string): string {
+  switch (filename) {
+    case 'dirty_store_transactions.csv':
+      return 'Retail transactions, sales cleaning & outliers'
+    case 'student_performance_factors.csv':
+      return 'Hours vs scores regression & correlation mapping'
+    case 'sensor_readings_noisy.csv':
+      return 'IoT cyclic temperature logs & rolling smoothing'
+    case 'store_dim_customers.csv':
+      return 'Customer VIP tiers relational join dimension table'
+    case 'corporate_financials_wide.csv':
+      return 'Wide quarter revenues reshaping (pd.melt)'
+    case 'high_frequency_stock_ticks.csv':
+      return 'Microsecond stock updates (resampling to OHLC)'
+    case 'financial_transactions_part1.csv':
+      return 'Ledger part 1 data chunk'
+    case 'financial_transactions_part2.csv':
+      return 'Ledger part 2 data chunk'
+    default:
+      return 'Reference database table'
+  }
 }
 

@@ -50,10 +50,17 @@ export default function PracticeListPage() {
     if (!loading && typeof window !== 'undefined') {
       const savedPos = sessionStorage.getItem('practice_scroll_pos')
       if (savedPos) {
-        setTimeout(() => {
-          window.scrollTo(0, parseInt(savedPos))
+        const pos = parseInt(savedPos)
+        window.scrollTo(0, pos)
+        const timer1 = setTimeout(() => window.scrollTo(0, pos), 150)
+        const timer2 = setTimeout(() => {
+          window.scrollTo(0, pos)
           sessionStorage.removeItem('practice_scroll_pos')
-        }, 150)
+        }, 450)
+        return () => {
+          clearTimeout(timer1)
+          clearTimeout(timer2)
+        }
       }
     }
   }, [loading])
