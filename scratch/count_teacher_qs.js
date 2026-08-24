@@ -1,0 +1,11 @@
+const fs = require('fs');
+const content = fs.readFileSync('../pycode-teacher/src/lib/localQuestions.ts', 'utf8');
+const matches = [...content.matchAll(/"id":\s*(\d+)/g)].map(m => parseInt(m[1]));
+console.log('Total questions in teacher:', matches.length);
+console.log('Min ID:', Math.min(...matches), 'Max ID:', Math.max(...matches));
+const categories = [...content.matchAll(/"category":\s*"([^"]+)"/g)].map(m => m[1]);
+const catCounts = {};
+categories.forEach(c => catCounts[c] = (catCounts[c] || 0) + 1);
+console.log('Category distribution in teacher:', catCounts);
+const first15 = [...content.matchAll(/"title":\s*"([^"]+)"/g)].slice(0, 15).map(m => m[1]);
+console.log('First 15 titles in teacher:', first15);
