@@ -713,7 +713,7 @@ export default function ProfilePage() {
                             onMouseEnter={(e) => {
                               const rect = (e.target as HTMLElement).getBoundingClientRect()
                               setHeatmapTooltip({
-                                text: day.title,
+                                text: day.title ?? '',
                                 x: rect.left + rect.width / 2 - 60,
                                 y: rect.top - 36
                               })
