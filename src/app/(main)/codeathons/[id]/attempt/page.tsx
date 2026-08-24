@@ -149,19 +149,11 @@ export default function ExamAttemptPage() {
   const handleSubmitQuestion = async () => {
     const activeQ = questions[activeQuestionIdx]
     if (!activeQ) return
+    if (submittedQuestions[activeQ.id]) return // LOCK: already submitted questions cannot be submitted again!
 
     const check = testChecks[activeQ.id]
     const passed = check?.passed || 0
     const state = evalStates[activeQ.id]
-
-    // Check if at least one test case is passed
-    if (passed <= 0 && state !== 'success') {
-      showCustomAlert(
-        'Submission Blocked',
-        'No test cases passed. You must pass at least one test case by running checks before you can submit this question.'
-      )
-      return
-    }
 
     // Submit question locally
     const nextSubmitted = { ...submittedQuestions, [activeQ.id]: true }
@@ -399,6 +391,10 @@ export default function ExamAttemptPage() {
               setCourseClass(inProgressAttempt.student_details.courseClass || '')
               setSection(inProgressAttempt.student_details.section || '')
               setSubmittedQuestions(inProgressAttempt.student_details.submittedQuestions || {})
+            }
+          } else {
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem(`pycode_exam_answers_${quizId}`)
             }
           }
         } else {
@@ -699,6 +695,10 @@ export default function ExamAttemptPage() {
   const handleExecuteCode = () => {
     const activeQ = questions[activeQuestionIdx]
     if (!activeQ) return
+    if (submittedQuestions[activeQ.id]) {
+      showCustomAlert('Question Locked', 'This question has already been submitted and is locked from further execution.')
+      return
+    }
     if (pyodideState !== 'ready') {
       showCustomAlert('Compiler Initializing', `The Python compiler execution environment is not ready yet: ${pyodideProgress}`)
       return
@@ -791,18 +791,40 @@ export default function ExamAttemptPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated.')
 
+      // Automatically re-run all unsubmitted questions before calculating scores
+      const updatedSubmittedQuestions = { ...submittedQuestions }
+      const updatedTestChecks = { ...testChecks }
+      const updatedEvalStates = { ...evalStates }
+
+      for (const q of questions) {
+        if (!updatedSubmittedQuestions[q.id] && !disqualified && warnings < 2) {
+          const userCode = answers[q.id] || ''
+          try {
+            const outcome = await runCode(userCode, q.verification_script || '')
+            updatedTestChecks[q.id] = {
+              passed: outcome.passed_cases ?? 0,
+              total: outcome.total_cases ?? 1
+            }
+            updatedEvalStates[q.id] = outcome.status
+            updatedSubmittedQuestions[q.id] = true
+          } catch (e) {
+            console.error(`Auto-run failed for question ${q.id}:`, e)
+          }
+        }
+      }
+
       // 1. Calculate Score
       let totalPoints = 0
       let earnedPoints = 0
 
       questions.forEach((q) => {
         totalPoints += q.points
-        if (!submittedQuestions[q.id]) return
-        const check = testChecks[q.id]
+        if (!updatedSubmittedQuestions[q.id]) return
+        const check = updatedTestChecks[q.id]
         if (check && check.total > 0) {
           earnedPoints += (check.passed / check.total) * q.points
         } else {
-          if (evalStates[q.id] === 'success') earnedPoints += q.points
+          if (updatedEvalStates[q.id] === 'success') earnedPoints += q.points
         }
       })
 
@@ -812,17 +834,16 @@ export default function ExamAttemptPage() {
       const testCasesSummary: Record<number, { passed: number, total: number }> = {}
       questions.forEach((q) => {
         const qTotal = getQuestionTotalCases(q.verification_script)
-        const isSubmitted = !!submittedQuestions[q.id]
+        const isSubmitted = !!updatedSubmittedQuestions[q.id]
         if (!isSubmitted) {
           testCasesSummary[q.id] = { passed: 0, total: qTotal }
           return
         }
-        const check = testChecks[q.id]
+        const check = updatedTestChecks[q.id]
         if (check && check.total > 0) {
-          // Use ACTUAL run data from Pyodide — ground truth
           testCasesSummary[q.id] = { passed: check.passed, total: check.total }
         } else {
-          const outcome = evalStates[q.id]
+          const outcome = updatedEvalStates[q.id]
           testCasesSummary[q.id] = { passed: outcome === 'success' ? qTotal : 0, total: qTotal }
         }
       })
@@ -832,7 +853,7 @@ export default function ExamAttemptPage() {
         rollNumber: rollNumber.trim(),
         courseClass: courseClass.trim(),
         section: section.trim(),
-        submittedQuestions,
+        submittedQuestions: updatedSubmittedQuestions,
         testCasesSummary
       }
 
@@ -875,8 +896,8 @@ export default function ExamAttemptPage() {
 
       // Start attempt write immediately, don't await yet
       const submissionPromises = questions.map((q) => {
-        const isSubmitted = !!submittedQuestions[q.id]
-        const check = testChecks[q.id]
+        const isSubmitted = !!updatedSubmittedQuestions[q.id]
+        const check = updatedTestChecks[q.id]
         let pointsEarned = 0
         let isSuccess = false
 
@@ -884,7 +905,7 @@ export default function ExamAttemptPage() {
           if (check && check.total > 0) {
             pointsEarned = Math.round((check.passed / check.total) * q.points)
             isSuccess = check.passed === check.total
-          } else if (evalStates[q.id] === 'success') {
+          } else if (updatedEvalStates[q.id] === 'success') {
             pointsEarned = q.points
             isSuccess = true
           }
@@ -1433,8 +1454,8 @@ export default function ExamAttemptPage() {
           {/* Run button */}
           <button
             onClick={handleExecuteCode}
-            disabled={isRunning}
-            className="px-5 py-2.5 rounded-full bg-primary hover:opacity-90 disabled:opacity-50 text-on-primary text-xs font-bold cursor-pointer transition-all duration-200 flex items-center gap-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:scale-[1.02] active:scale-[0.98]"
+            disabled={isRunning || (activeQ && !!submittedQuestions[activeQ.id])}
+            className="px-5 py-2.5 rounded-full bg-primary hover:opacity-90 disabled:opacity-50 text-on-primary text-xs font-bold cursor-pointer transition-all duration-200 flex items-center gap-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed"
           >
             <Play className="w-3.5 h-3.5" />
             {isRunning ? 'Running...' : 'Run Checks'}
@@ -1517,10 +1538,11 @@ export default function ExamAttemptPage() {
                 <button
                   type="button"
                   onClick={handleSubmitQuestion}
-                  className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-all ${
+                  disabled={!!submittedQuestions[activeQ.id]}
+                  className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all ${
                     submittedQuestions[activeQ.id]
-                      ? 'bg-semantic-success/15 border border-semantic-success/30 text-semantic-success'
-                      : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.15)] active:scale-[0.97]'
+                      ? 'bg-semantic-success/15 border border-semantic-success/30 text-semantic-success cursor-not-allowed opacity-80'
+                      : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.15)] active:scale-[0.97] cursor-pointer'
                   }`}
                 >
                   <CheckCircle className="w-3 h-3" />
@@ -1562,7 +1584,7 @@ export default function ExamAttemptPage() {
                 minimap: { enabled: false },
                 lineNumbers: 'on',
                 scrollBeyondLastLine: false,
-                readOnly: isRunning,
+                readOnly: isRunning || (activeQ && !!submittedQuestions[activeQ.id]),
                 padding: { top: 16, bottom: 16 },
                 cursorBlinking: 'smooth',
                 contextmenu: false,

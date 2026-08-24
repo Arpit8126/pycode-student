@@ -129,12 +129,11 @@ export default function PracticeListPage() {
             const attempted = new Set<number>()
 
             submissions.forEach((sub: any) => {
+              if (sub.quiz_attempt_id) return
               if (sub.status === 'accepted') {
                 solved.add(sub.question_id)
               } else {
-                if (!sub.quiz_attempt_id) {
-                  attempted.add(sub.question_id)
-                }
+                attempted.add(sub.question_id)
               }
             })
 

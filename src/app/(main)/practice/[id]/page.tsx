@@ -147,6 +147,7 @@ export default function PracticeWorkspacePage() {
                   .select('submitted_code')
                   .eq('user_id', user.id)
                   .eq('question_id', questionId)
+                  .is('quiz_attempt_id', null)
                   .order('created_at', { ascending: false })
                   .limit(1)
                   .maybeSingle()

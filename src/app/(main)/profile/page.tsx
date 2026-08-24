@@ -157,6 +157,7 @@ export default function ProfilePage() {
         const { data: subs } = await (supabase.from('coding_submissions') as any)
           .select('*, coding_questions(title, points, difficulty)')
           .eq('user_id', targetUserId)
+          .is('quiz_attempt_id', null)
           .order('created_at', { ascending: false })
         
         if (subs) {
@@ -321,6 +322,7 @@ export default function ProfilePage() {
           .from('coding_submissions')
           .select('*, coding_questions(title, points, difficulty)')
           .eq('user_id', user.id)
+          .is('quiz_attempt_id', null)
           .order('created_at', { ascending: false })
 
         if (subs) {
