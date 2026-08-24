@@ -257,80 +257,96 @@ export default function ExamAttemptPage() {
 
   const editorRef = useRef<any>(null)
 
-  // Keep track of debounce timers per question
-  const backgroundRunTimeoutRef = useRef<Record<number, NodeJS.Timeout>>({})
+  // Keep track of text draft sync timeout per question
+  const syncTimeoutRef = useRef<Record<number, NodeJS.Timeout>>({})
 
-  // Debounced background compiler and database syncer
-  const triggerBackgroundRun = (questionId: number, code: string) => {
-    if (backgroundRunTimeoutRef.current[questionId]) {
-      clearTimeout(backgroundRunTimeoutRef.current[questionId])
+  // Debounced draft code text syncer (very fast, no compilation, zero UI lag)
+  const triggerTextDraftSync = (questionId: number, code: string) => {
+    if (syncTimeoutRef.current[questionId]) {
+      clearTimeout(syncTimeoutRef.current[questionId])
     }
 
-    const q = questions.find(item => item.id === questionId)
-    if (!q || !attemptId) return
+    syncTimeoutRef.current[questionId] = setTimeout(() => {
+      if (!attemptId) return
 
-    backgroundRunTimeoutRef.current[questionId] = setTimeout(async () => {
-      try {
-        const outcome = await runCode(code, q.verification_script || '')
-        const passed = outcome.passed_cases || 0
-        const total = outcome.total_cases || 0
-        const newCheck = { passed, total }
+      const nextAnswers = { ...answers, [questionId]: code }
+      supabase
+        .from('quiz_attempts')
+        .update({
+          answers: nextAnswers
+        })
+        .eq('id', attemptId)
+        .then((res: any) => {
+          if (res.error) console.error('Failed to sync text draft to DB:', res.error)
+        })
+    }, 1500)
+  }
 
-        // Update local state without outputting to student's console terminal
-        setTestChecks(prev => {
-          const next = { ...prev, [q.id]: newCheck }
-          
-          let newState: 'success' | 'wrong' | 'error' = 'error'
-          if (outcome.status === 'accepted') {
-            newState = 'success'
-          } else if (outcome.status === 'wrong_answer') {
-            newState = 'wrong'
+  // Silent background checks run on blur or question switch
+  const runSilentChecks = async (questionIdx: number) => {
+    const q = questions[questionIdx]
+    if (!q || !attemptId || submittedQuestions[q.id]) return
+
+    const code = answers[q.id] || ''
+    if (!code.trim() || code === q.starter_code) return // Don't run empty or starter code
+
+    try {
+      const outcome = await runCode(code, q.verification_script || '')
+      const passed = outcome.passed_cases || 0
+      const total = outcome.total_cases || 0
+      const newCheck = { passed, total }
+
+      setTestChecks(prev => {
+        const next = { ...prev, [q.id]: newCheck }
+
+        let newState: 'success' | 'wrong' | 'error' = 'error'
+        if (outcome.status === 'accepted') {
+          newState = 'success'
+        } else if (outcome.status === 'wrong_answer') {
+          newState = 'wrong'
+        }
+        setEvalStates(prevStates => ({ ...prevStates, [q.id]: newState }))
+
+        // Update testCasesSummary in database
+        const updatedSummary: Record<number, { passed: number; total: number }> = {}
+        questions.forEach((item: any) => {
+          const c = item.id === q.id ? newCheck : prev[item.id]
+          if (c && c.total > 0) {
+            updatedSummary[item.id] = { passed: c.passed, total: c.total }
+          } else {
+            const est = item.id === q.id ? newState : evalStates[item.id]
+            const qTotal = getQuestionTotalCases(item.verification_script)
+            updatedSummary[item.id] = { passed: est === 'success' ? qTotal : 0, total: qTotal }
           }
-          setEvalStates(prevStates => ({ ...prevStates, [q.id]: newState }))
+        })
 
-          // Sync immediately to DB
-          const updatedSummary: Record<number, { passed: number; total: number }> = {}
-          questions.forEach((item: any) => {
-            const c = item.id === q.id ? newCheck : prev[item.id]
-            if (c && c.total > 0) {
-              updatedSummary[item.id] = { passed: c.passed, total: c.total }
-            } else {
-              const est = item.id === q.id ? newState : evalStates[item.id]
-              const qTotal = getQuestionTotalCases(item.verification_script)
-              updatedSummary[item.id] = { passed: est === 'success' ? qTotal : 0, total: qTotal }
+        supabase
+          .from('quiz_attempts')
+          .update({
+            student_details: {
+              fullName,
+              rollNumber,
+              courseClass,
+              section,
+              submittedQuestions: submittedQuestions,
+              testCasesSummary: updatedSummary
             }
           })
+          .eq('id', attemptId)
+          .then((res: any) => {
+            if (res.error) console.error('Failed to sync silent checks to DB:', res.error)
+          })
 
-          const nextAnswers = { ...answers, [q.id]: code }
-          supabase
-            .from('quiz_attempts')
-            .update({
-              answers: nextAnswers,
-              student_details: {
-                fullName,
-                rollNumber,
-                courseClass,
-                section,
-                submittedQuestions: submittedQuestions,
-                testCasesSummary: updatedSummary
-              }
-            })
-            .eq('id', attemptId)
-            .then((res: any) => {
-              if (res.error) console.error('Failed to auto-sync background checks to DB:', res.error)
-            })
-
-          return next
-        })
-      } catch (err) {
-        console.error("Background auto-run checks failed:", err)
-      }
-    }, 2500)
+        return next
+      })
+    } catch (e) {
+      console.error("Silent background checks failed:", e)
+    }
   }
 
   useEffect(() => {
     return () => {
-      Object.values(backgroundRunTimeoutRef.current).forEach(t => clearTimeout(t))
+      Object.values(syncTimeoutRef.current).forEach(t => clearTimeout(t))
     }
   }, [])
 
@@ -379,6 +395,13 @@ export default function ExamAttemptPage() {
 
   const handleEditorDidMount = (editor: any, monaco: Monaco) => {
     editorRef.current = editor
+
+    editor.onDidBlurEditorText(() => {
+      const activeQ = questions[activeQuestionIdx]
+      if (activeQ) {
+        runSilentChecks(activeQuestionIdx)
+      }
+    })
 
     // Prevent copy, cut, paste via browser events on the Monaco editor DOM node
     const domNode = editor.getDomNode()
@@ -1632,6 +1655,9 @@ export default function ExamAttemptPage() {
               <button
                 key={q.id}
                 onClick={() => {
+                  if (activeQuestionIdx !== idx) {
+                    runSilentChecks(activeQuestionIdx)
+                  }
                   setActiveQuestionIdx(idx)
                 }}
                 className={`w-full py-3 px-4 rounded-xl border flex items-center justify-between font-bold text-xs cursor-pointer transition-all ${
@@ -1725,7 +1751,7 @@ export default function ExamAttemptPage() {
                 if (activeQ) {
                   const newCode = val || ''
                   setAnswers(prev => ({ ...prev, [activeQ.id]: newCode }))
-                  triggerBackgroundRun(activeQ.id, newCode)
+                  triggerTextDraftSync(activeQ.id, newCode)
                 }
               }}
               onMount={handleEditorDidMount}
