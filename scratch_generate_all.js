@@ -14,10 +14,39 @@ function html(strings, ...vals) {
 }
 
 function desc(statement, examples, constraints) {
-  const stmtHtml = statement
-    .split('\n\n')
-    .map(p => `<p class="mb-4 leading-relaxed text-sm font-normal text-ink font-sans">${p.trim()}</p>`)
-    .join('');
+  const paragraphs = statement.split('\n\n');
+  const stmtParts = paragraphs.map(p => {
+    p = p.trim();
+    if (!p) return '';
+    
+    // Check if paragraph contains bullet points (lines starting with '- ')
+    if (p.startsWith('- ') || p.includes('\n- ')) {
+      const lines = p.split('\n');
+      const listItems = [];
+      let intro = '';
+      
+      lines.forEach((line, idx) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('-')) {
+          const itemText = trimmed.replace(/^-\s*/, '').trim();
+          listItems.push(`  <li class="py-0.5">${itemText}</li>`);
+        } else if (idx === 0) {
+          intro = trimmed;
+        }
+      });
+      
+      let html = '';
+      if (intro) {
+        html += `<p class="mb-2 leading-relaxed text-sm font-normal text-ink font-sans">${intro}</p>\n`;
+      }
+      html += `<ul class="list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans">\n${listItems.join('\n')}\n</ul>`;
+      return html;
+    }
+    
+    return `<p class="mb-4 leading-relaxed text-sm font-normal text-ink font-sans">${p}</p>`;
+  });
+  
+  const stmtHtml = stmtParts.join('\n');
 
   const exHtml = examples.map((ex, i) => {
     const isPattern = ex.output && (ex.output.includes('\n') || ex.output.includes('*'));
@@ -33,9 +62,9 @@ function desc(statement, examples, constraints) {
   }).join('');
 
   const cHtml = constraints && constraints.length
-    ? `<h3 class="text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6">Constraints</h3>
-<ul class="list-disc pl-5 text-xs text-ink space-y-1.5 font-normal">
-  ${constraints.map(c => `<li><code>${c}</code></li>`).join('')}
+    ? `<h3 class="text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6">Constraints / Edge Cases</h3>
+<ul class="list-disc pl-5 text-xs text-ink space-y-1.5 font-normal font-sans">
+  ${constraints.map(c => `<li class="py-0.5"><code>${c}</code></li>`).join('\n')}
 </ul>`
     : '';
 
@@ -482,10 +511,10 @@ const ifElseQuestions = [
     description: desc(
       `Write a function <code>calculate_grade(score)</code> that takes a score (0-100) and returns a letter grade:\n- Score >= 90 → <code>"A"</code>\n- Score >= 80 → <code>"B"</code>\n- Score >= 70 → <code>"C"</code>\n- Score >= 60 → <code>"D"</code>\n- Score < 60 → <code>"F"</code>\n- Score < 0 or > 100 → <code>"Invalid"</code>`,
       [
-        { input: 'score = 95', output: '"A"' },
-        { input: 'score = 72', output: '"C"' },
-        { input: 'score = 55', output: '"F"' },
-        { input: 'score = -5', output: '"Invalid"' }
+        { input: 'score = 95', output: '"A"', explanation: '95 is greater than or equal to 90, yielding an A grade.' },
+        { input: 'score = 72', output: '"C"', explanation: '72 is between 70 and 79, yielding a C grade.' },
+        { input: 'score = 55', output: '"F"', explanation: '55 is less than 60, yielding an F grade.' },
+        { input: 'score = -5', output: '"Invalid"', explanation: '-5 is out of bounds (0-100).' }
       ],
       []
     ),
@@ -498,9 +527,9 @@ const ifElseQuestions = [
     description: desc(
       `Write a function <code>get_season(month)</code> that takes a month number (1-12) and returns the season:\n- Dec, Jan, Feb (12, 1, 2) → <code>"Winter"</code>\n- Mar, Apr, May (3, 4, 5) → <code>"Spring"</code>\n- Jun, Jul, Aug (6, 7, 8) → <code>"Summer"</code>\n- Sep, Oct, Nov (9, 10, 11) → <code>"Autumn"</code>\n- Any other number → <code>"Invalid"</code>`,
       [
-        { input: 'month = 1', output: '"Winter"' },
-        { input: 'month = 7', output: '"Summer"' },
-        { input: 'month = 13', output: '"Invalid"' }
+        { input: 'month = 1', output: '"Winter"', explanation: 'Month 1 is January, which is a Winter month.' },
+        { input: 'month = 7', output: '"Summer"', explanation: 'Month 7 is July, which is a Summer month.' },
+        { input: 'month = 13', output: '"Invalid"', explanation: '13 is not a valid month number (1-12).' }
       ],
       []
     ),
@@ -528,10 +557,10 @@ const ifElseQuestions = [
     description: desc(
       `Write a function <code>ticket_price(age, is_student)</code> that returns ticket price based on rules:\n- Children under 5 → Free (<code>0</code>)\n- Seniors 65+ → <code>5</code> (50% discount)\n- Students → <code>8</code> (20% discount)\n- Everyone else → <code>10</code> (full price)\n\nNote: the age rules take priority over the student discount.`,
       [
-        { input: 'age=4, is_student=False', output: '0' },
-        { input: 'age=70, is_student=False', output: '5' },
-        { input: 'age=20, is_student=True', output: '8' },
-        { input: 'age=30, is_student=False', output: '10' }
+        { input: 'age=4, is_student=False', output: '0', explanation: 'Age is under 5, ticket is free.' },
+        { input: 'age=70, is_student=False', output: '5', explanation: 'Age is 65+, ticket is discounted to 5.' },
+        { input: 'age=20, is_student=True', output: '8', explanation: 'Age is 20 and student flag is True, ticket is discounted to 8.' },
+        { input: 'age=30, is_student=False', output: '10', explanation: 'Full price ticket.' }
       ],
       []
     ),
