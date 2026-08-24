@@ -270,7 +270,11 @@ try:
                 _indent = _ln[:len(_ln) - len(_stripped)]
                 _out.append(_indent + '_current_ok = (res == expected)')
                 _out.append(_indent + 'exec_globals["_current_ok"] = _current_ok')
-                _out.append(_indent + 'if not _current_ok: import sys; print(f"❌ Test FAILED: got {res!r}, expected {expected!r}", file=sys.stderr)')
+                _out.append(_indent + 'import sys')
+                _out.append(_indent + '_tc_num = exec_globals.get("_tc_idx", 1)')
+                _out.append(_indent + 'if _current_ok: print(f"✓ Test Case {_tc_num} Passed")')
+                _out.append(_indent + 'else: print(f"❌ Test Case {_tc_num} FAILED: got {res!r}, expected {expected!r}", file=sys.stderr)')
+                _out.append(_indent + 'exec_globals["_tc_idx"] = _tc_num + 1')
             elif _stripped == 'passed += 1':
                 _indent = _ln[:len(_ln) - len(_stripped)]
                 _out.append(_indent + 'if exec_globals.get("_current_ok", True): passed += 1')
@@ -278,6 +282,7 @@ try:
                 _out.append(_ln)
         _patched_verification = chr(10).join(_out)
         exec_globals["_current_ok"] = True
+        exec_globals["_tc_idx"] = 1
         exec(_patched_verification, exec_globals)
         passed = exec_globals.get("passed_cases", exec_globals.get("passed", 0))
         total = exec_globals.get("total_cases", exec_globals.get("_total", 1))
