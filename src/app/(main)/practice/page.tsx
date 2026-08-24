@@ -495,9 +495,6 @@ export default function PracticeListPage() {
                     }`}
                   >
                     <span className="font-sans">All Topics</span>
-                    {selectedSection === 'all' && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                    )}
                   </button>
 
                   <div className="my-1 border-t border-hairline dark:border-[#232630]" />
@@ -521,9 +518,6 @@ export default function PracticeListPage() {
                         <span className="font-sans truncate mr-2">
                           {cat.name.replace(/^\d+\.\s*/, '')}
                         </span>
-                        {isSelected && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                        )}
                       </button>
                     )
                   })}
