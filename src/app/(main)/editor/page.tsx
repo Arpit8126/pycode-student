@@ -1628,19 +1628,11 @@ export default function CodeEditorPage() {
 
             {leftSidebarTab === 'savedFiles' ? (
               <div className="flex-1 flex flex-col min-h-0 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5 mb-1">
-                      <FileCode className="w-3.5 h-3.5 text-primary" />
-                      Your Saved Scripts
-                    </h3>
-                    <div className="mt-1 flex items-start gap-1.5 p-2 rounded-xl bg-primary/[0.04] dark:bg-primary/[0.07] border border-primary/10 max-w-sm">
-                      <Info className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-                      <p className="text-[10px] text-gray-600 dark:text-gray-400 font-light leading-relaxed">
-                        Resumable Python code files saved locally in browser.
-                      </p>
-                    </div>
-                  </div>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5">
+                    <FileCode className="w-3.5 h-3.5 text-primary" />
+                    Your Saved Scripts
+                  </h3>
                   <button
                     onClick={() => setShowNewFolderInput(prev => !prev)}
                     className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-hairline hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-all shrink-0 text-[10px] font-bold uppercase tracking-wider font-mono bg-canvas"
@@ -1649,6 +1641,13 @@ export default function CodeEditorPage() {
                     <FolderPlus className="w-3.5 h-3.5 text-amber-500" />
                     <span>Create Folder</span>
                   </button>
+                </div>
+
+                <div className="flex items-start gap-1.5 p-2 rounded-xl bg-primary/[0.04] dark:bg-primary/[0.07] border border-primary/10 w-full">
+                  <Info className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-gray-600 dark:text-gray-400 font-light leading-relaxed">
+                    Resumable Python code files saved locally in browser.
+                  </p>
                 </div>
 
                 {showNewFolderInput && (
