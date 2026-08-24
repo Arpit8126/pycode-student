@@ -20,7 +20,18 @@ export default function PracticeListPage() {
   const [isSectionDropdownOpen, setIsSectionDropdownOpen] = useState(false)
   const [isOnline, setIsOnline] = useState<boolean>(true)
   const [disqualifiedMessage, setDisqualifiedMessage] = useState<string | null>(null)
+  const [lastVisitedId, setLastVisitedId] = useState<number | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('practice_last_visited_id')
+      if (saved) {
+        setLastVisitedId(parseInt(saved))
+        sessionStorage.removeItem('practice_last_visited_id')
+      }
+    }
+  }, [])
 
   // Click outside to close dropdown
   useEffect(() => {
@@ -259,6 +270,9 @@ export default function PracticeListPage() {
     const pool = unsolved.length > 0 ? unsolved : questions
     if (pool.length > 0) {
       const rand = pool[Math.floor(Math.random() * pool.length)]
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('practice_last_visited_id', String(rand.id))
+      }
       window.location.href = `/practice/${rand.id}`
     }
   }
@@ -687,20 +701,28 @@ export default function PracticeListPage() {
                                   )}
                                 </td>
                                 <td className="px-6 py-3.5 font-semibold text-ink">
-                                  <Link
-                                    href={`/practice/${q.id}`}
-                                    className="text-ink hover:underline group-hover:text-primary transition-colors"
-                                    onClick={() => {
-                                      if (typeof window !== 'undefined') {
-                                        const mainEl = document.querySelector('main')
-                                        if (mainEl) {
-                                          sessionStorage.setItem('practice_scroll_pos', String(mainEl.scrollTop))
+                                  <div className="flex items-center gap-2">
+                                    <Link
+                                      href={`/practice/${q.id}`}
+                                      className="text-ink hover:underline group-hover:text-primary transition-colors"
+                                      onClick={() => {
+                                        if (typeof window !== 'undefined') {
+                                          const mainEl = document.querySelector('main')
+                                          if (mainEl) {
+                                            sessionStorage.setItem('practice_scroll_pos', String(mainEl.scrollTop))
+                                          }
+                                          sessionStorage.setItem('practice_last_visited_id', String(q.id))
                                         }
-                                      }
-                                    }}
-                                  >
-                                    {cleanTitle(q.title)}
-                                  </Link>
+                                      }}
+                                    >
+                                      {cleanTitle(q.title)}
+                                    </Link>
+                                    {lastVisitedId === q.id && (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-primary/10 text-primary border border-primary/20 font-mono animate-pulse">
+                                        Last Visited
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
                                 <td className="px-6 py-3.5 w-36 min-w-[9rem]">
                                   <span className={`text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full border font-mono ${
