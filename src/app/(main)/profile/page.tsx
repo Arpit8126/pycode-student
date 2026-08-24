@@ -107,6 +107,7 @@ export default function ProfilePage() {
 
   // Heatmap states (365 days counts)
   const [heatmapData, setHeatmapData] = useState<Record<string, number>>({})
+  const [heatmapTooltip, setHeatmapTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
 
   // Search & viewing other user profiles states
   const [searchQuery, setSearchQuery] = useState('')
@@ -664,7 +665,17 @@ export default function ProfilePage() {
     }
 
     return (
-      <div className="w-full overflow-x-auto p-4 bg-canvas border border-hairline rounded-2xl scrollbar-none shadow-[0_4px_16px_rgba(0,0,0,0.02)]">
+      <>
+        {/* Fixed tooltip portal — above overflow-x-auto clipping */}
+        {heatmapTooltip && (
+          <div
+            className="fixed z-[9999] pointer-events-none bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 text-[11px] font-semibold font-sans px-2.5 py-1.5 rounded-lg shadow-xl border border-white/10 dark:border-zinc-200 whitespace-nowrap animate-fade-in"
+            style={{ left: heatmapTooltip.x, top: heatmapTooltip.y }}
+          >
+            {heatmapTooltip.text}
+          </div>
+        )}
+        <div className="w-full overflow-x-auto p-4 bg-canvas border border-hairline rounded-2xl scrollbar-none shadow-[0_4px_16px_rgba(0,0,0,0.02)]">
         {/* Min width ensures horizontal scroll on overflow without scaling cells down */}
         <div className="min-w-[1100px] flex items-start gap-2">
             {/* Weekday indicators on left (Sun to Sat aligned with grid rows) */}
@@ -696,21 +707,19 @@ export default function ProfilePage() {
                         day.type === 'empty' ? (
                           <div key={day.key} className="w-4 h-4 rounded-[3px] bg-transparent border border-transparent" />
                         ) : (
-                          <div key={day.key} className="group relative">
-                            <div
-                              className={`w-4 h-4 rounded-[3px] border transition-all cursor-pointer ${day.color}`}
-                            />
-                            {/* Custom CSS Hover Tooltip — always above, never under cursor */}
-                            <div className={`pointer-events-none absolute hidden group-hover:block bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 text-[10px] font-semibold font-sans px-2 py-1 rounded shadow-xl whitespace-nowrap z-[200] animate-fade-in border border-white/10 dark:border-zinc-800 bottom-full mb-2 ${
-                              mIdx >= 10 
-                                ? 'right-0' 
-                                : mIdx === 0 
-                                  ? 'left-0' 
-                                  : 'left-1/2 -translate-x-1/2'
-                            }`}>
-                              {day.title}
-                            </div>
-                          </div>
+                          <div
+                            key={day.key}
+                            className={`w-4 h-4 rounded-[3px] border transition-all cursor-pointer ${day.color}`}
+                            onMouseEnter={(e) => {
+                              const rect = (e.target as HTMLElement).getBoundingClientRect()
+                              setHeatmapTooltip({
+                                text: day.title,
+                                x: rect.left + rect.width / 2 - 60,
+                                y: rect.top - 36
+                              })
+                            }}
+                            onMouseLeave={() => setHeatmapTooltip(null)}
+                          />
                         )
                       ))}
                     </div>
@@ -721,7 +730,8 @@ export default function ProfilePage() {
           </div>
 
         </div>
-      </div>
+        </div>
+      </>
     )
   }
 

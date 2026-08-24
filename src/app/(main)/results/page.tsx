@@ -72,6 +72,7 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
   const [userSubmissions, setUserSubmissions] = useState<any[]>([])
   const [modalLoading, setModalLoading] = useState(false)
   const [userHeatmap, setUserHeatmap] = useState<Record<string, number>>({})
+  const [heatmapTooltip, setHeatmapTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
 
   // Leetcode style difficulty categories
   const [viewedEasy, setViewedEasy] = useState(0)
@@ -295,7 +296,16 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
     }
 
     return (
-      <div className="w-full overflow-x-auto p-4 bg-canvas border border-hairline rounded-2xl scrollbar-none shadow-sm">
+      <>
+        {heatmapTooltip && (
+          <div
+            className="fixed z-[9999] pointer-events-none bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 text-[11px] font-semibold font-sans px-2.5 py-1.5 rounded-lg shadow-xl border border-white/10 dark:border-zinc-200 whitespace-nowrap animate-fade-in"
+            style={{ left: heatmapTooltip.x, top: heatmapTooltip.y }}
+          >
+            {heatmapTooltip.text}
+          </div>
+        )}
+        <div className="w-full overflow-x-auto p-4 bg-canvas border border-hairline rounded-2xl scrollbar-none shadow-sm">
         <div className="min-w-[1100px] flex items-start gap-2">
             <div className="flex flex-col gap-1 text-[8px] font-bold text-gray-500 font-mono pr-1.5 select-none pt-[20px]">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
@@ -324,8 +334,16 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
                         ) : (
                           <div
                             key={day.key}
-                            className={`w-4 h-4 rounded-[3px] border transition-all ${day.color}`}
-                            title={day.title}
+                            className={`w-4 h-4 rounded-[3px] border transition-all cursor-pointer ${day.color}`}
+                            onMouseEnter={(e) => {
+                              const rect = (e.target as HTMLElement).getBoundingClientRect()
+                              setHeatmapTooltip({
+                                text: day.title,
+                                x: rect.left + rect.width / 2 - 60,
+                                y: rect.top - 36
+                              })
+                            }}
+                            onMouseLeave={() => setHeatmapTooltip(null)}
                           />
                         )
                       ))}
@@ -337,7 +355,8 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
           </div>
 
         </div>
-      </div>
+        </div>
+      </>
     )
   }
 

@@ -259,21 +259,30 @@ try:
                     pass
 
     if verification_code:
-        # ── Transform assert-based tests into non-fatal per-test checks ──
-        # Replace: "assert res == expected, msg\n    passed += 1"
-        # With:    "if res == expected: passed += 1 else: print(failure)
-        import re as _re
-        def _patch_assertions(code):
-            # Match the common pattern: assert res == expected, f"..."
-            # followed by passed += 1 on the next line (with any indentation)
-            patched = _re.sub(
-                r'([ \t]+)assert (res) == (expected),(.*?)\n([ \t]+)passed \+= 1',
-                r'\1try:\n\1    if \2 == \3:\n\5    passed += 1\n\1    else:\n\5    _msg = f"❌ Test {passed+1} FAILED:\n   Got:      {\2!r}\n   Expected: {\3!r}"\n\5    print(_msg, file=sys.stderr)\n\1except Exception as _exc:\n\5    print(f"❌ Test {passed+1} ERROR: {_exc}", file=sys.stderr)',
-                code, flags=_re.DOTALL
-            )
-            return patched
-        patched_verification = _patch_assertions(verification_code)
-        exec(patched_verification, exec_globals)
+        # ── Line-by-line transform: make assert-based tests non-fatal ──
+        # Replaces "assert res == expected, msg" + next "passed += 1" line
+        # with an if/else that continues running all test cases
+        _lines = verification_code.split(chr(10))
+        _out = []
+        _i = 0
+        while _i < len(_lines):
+            _ln = _lines[_i]
+            _stripped = _ln.lstrip()
+            if _stripped.startswith('assert res == expected,'):
+                _indent = _ln[:len(_ln) - len(_stripped)]
+                _next_ln = _lines[_i + 1] if _i + 1 < len(_lines) else ''
+                _ns = _next_ln.lstrip()
+                _inner = _next_ln[:len(_next_ln) - len(_ns)] if _ns else _indent + '    '
+                _out.append(_indent + 'if res == expected:')
+                _out.append(_inner + 'passed += 1')
+                _out.append(_indent + 'else:')
+                _out.append(_inner + 'print(f"FAILED: got {res!r}, expected {expected!r}", file=sys.stderr)')
+                _i += 2  # skip next "passed += 1" line
+            else:
+                _out.append(_ln)
+                _i += 1
+        _patched_verification = chr(10).join(_out)
+        exec(_patched_verification, exec_globals)
         passed = exec_globals.get("passed_cases", exec_globals.get("passed", 0))
         total = exec_globals.get("total_cases", exec_globals.get("_total", 1))
         
