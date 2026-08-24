@@ -18,8 +18,8 @@ function loadQuestions() {
 // 1. Load the 167 Python questions currently in localQuestions.ts
 let pythonQs = loadQuestions();
 
-// Keep only the Python questions with ID >= 11 (removes variables, basic operators, types)
-pythonQs = pythonQs.filter(q => q.id >= 11);
+// Keep only the Python questions with ID >= 11 (removes variables, basic operators, types) and exclude scientific categories to prevent duplication
+pythonQs = pythonQs.filter(q => q.id >= 11 && !['numpy', 'pandas', 'matplotlib-seaborn'].includes(q.category));
 
 // 2. Load the 117 scientific questions from our backup
 const scientificQs = JSON.parse(fs.readFileSync('scientific_questions.json', 'utf8'));
@@ -107,8 +107,16 @@ TRUNCATE public.coding_questions RESTART IDENTITY CASCADE;
 restructured.forEach(q => {
   const esc = s => (s || '').replace(/'/g, "''");
   const dv = q.dataset_name ? `'${esc(q.dataset_name)}'` : 'NULL';
+  let dbCategory = q.category;
+  if (!['numpy', 'pandas', 'matplotlib-seaborn'].includes(dbCategory)) {
+    if (['python-ifelse', 'python-loops', 'python-patterns', 'python-strings'].includes(dbCategory)) {
+      dbCategory = 'python-basics';
+    } else {
+      dbCategory = 'python-advanced';
+    }
+  }
   sql += `INSERT INTO public.coding_questions (id,title,description,difficulty,points,category,starter_code,verification_script,dataset_name)
-VALUES (${q.id},'${esc(q.title)}','${esc(q.description)}','${q.difficulty}',${q.points},'${q.category}','${esc(q.starter_code)}','${esc(q.verification_script||'')}',${dv});\n\n`;
+VALUES (${q.id},'${esc(q.title)}','${esc(q.description)}','${q.difficulty}',${q.points},'${dbCategory}','${esc(q.starter_code)}','${esc(q.verification_script||'')}',${dv});\n\n`;
 });
 sql += 'COMMIT;\n';
 

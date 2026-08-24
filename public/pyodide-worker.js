@@ -21,6 +21,91 @@ self.onmessage = async (e) => {
       await pyodide.loadPackage(['pandas', 'numpy', 'matplotlib', 'scikit-learn', 'micropip']);
       await pyodide.runPythonAsync('import micropip; await micropip.install(["seaborn", "openpyxl"])');
       
+      // Dynamically generate the Excel spreadsheets inside Pyodide filesystem
+      await pyodide.runPythonAsync(`
+import pandas as pd
+import numpy as np
+import random
+from openpyxl import Workbook
+
+# 1. budget_2026.xlsx
+writer = pd.ExcelWriter("budget_2026.xlsx", engine="openpyxl")
+df_north = pd.DataFrame({
+    "ProjID": ["P100", "P101", "P102", "P103", "P100"],
+    "Dept": ["IT", "HR", "Sales", "Finance", "IT"],
+    "North_Budget": [150000, 80000, None, 200000, 150000]
+})
+df_north.to_excel(writer, sheet_name="North", index=False)
+
+df_south = pd.DataFrame({
+    "Project_ID": ["P104", "P105", "P101", "P106", "P104"],
+    "Department": ["IT", "R&D", "HR", "Sales", "IT"],
+    "South_Budget": [120000, 300000, None, 180000, 120000]
+})
+df_south.to_excel(writer, sheet_name="South", index=False)
+
+df_east = pd.DataFrame({
+    "Proj_Code": ["P107", "P108", "P102", "P109", "P107"],
+    "Dept": ["Marketing", "IT", "Sales", "HR", "Marketing"],
+    "East_Budget": [95000, None, 110000, 85000, 95000]
+})
+df_east.to_excel(writer, sheet_name="East", index=False)
+writer.close()
+
+# 2. retail_inventory_merged.xlsx
+wb_inventory = Workbook()
+ws_inv = wb_inventory.active
+ws_inv.title = "Inventory"
+ws_inv.append(["Category", "SKU", "StockQuantity", "StockStatus"])
+ws_inv.append(["Electronics", "SKU-001", 45, "In Stock"])
+ws_inv.append(["", "SKU-002", None, "In Stock"])
+ws_inv.append(["", "SKU-003", 12, "Low Stock"])
+ws_inv.append(["Clothing", "SKU-004", 110, "In Stock"])
+ws_inv.append(["", "SKU-005", None, "Out of Stock"])
+ws_inv.append(["", "SKU-004", 110, "In Stock"])
+ws_inv.merge_cells("A2:A4")
+ws_inv.merge_cells("A5:A7")
+wb_inventory.save("retail_inventory_merged.xlsx")
+
+# 3. employee_performance_irregular.xlsx
+wb_perf = Workbook()
+ws_perf = wb_perf.active
+ws_perf.title = "Performance"
+ws_perf.append(["HR PERFORMANCE REPORT 2026"])
+ws_perf.append(["Confidential - Internal Use Only"])
+ws_perf.append(["Generated on: 2026-08-24"])
+ws_perf.append([])
+ws_perf.append(["EmployeeID", "Dept", "AppraisalScore", "EmploymentType"])
+ws_perf.append(["E101", "Sales", 4.2, "Full-Time"])
+ws_perf.append(["E102", "Engineering", None, "Full-Time"])
+ws_perf.append(["E103", "HR", 3.8, "Contractor"])
+ws_perf.append(["E101", "Sales", 4.2, "Full-Time"])
+ws_perf.append(["E104", "Engineering", 4.9, None])
+wb_perf.save("employee_performance_irregular.xlsx")
+
+# 4. property_appraisals_corrupt.xlsx
+df_prop = pd.DataFrame({
+    "PropertyID": ["PROP1", "PROP2", "PROP3", "PROP1", "PROP4"],
+    "ZipCode": ["10001", "10002", "10001", "10001", "10003"],
+    "Price": ["$1,200,000", "$950,000", None, "$1,200,000", "$1,550,000"],
+    "SquareFootage": [1500, 1200, 1400, 1500, 1800]
+})
+df_prop.to_excel("property_appraisals_corrupt.xlsx", index=False)
+
+# 5. smart_meter_consumption.xlsx
+np.random.seed(42)
+random.seed(42)
+times_energy = pd.date_range(start="2026-06-01 00:00:00", periods=20, freq="H").strftime("%Y-%m-%d %H:%M:%S").tolist()
+times_energy[5] = times_energy[4]
+loads = [round(random.uniform(1.2, 5.8), 2) if i != 10 else None for i in range(20)]
+df_energy = pd.DataFrame({
+    "Timestamp": times_energy,
+    "MeterID": ["M_01"] * 20,
+    "PowerLoad_kW": loads
+})
+df_energy.set_index(["MeterID", "Timestamp"]).to_excel("smart_meter_consumption.xlsx")
+      `);
+      
       // Load default CSV files passed from main thread
       if (data.datasets) {
         Object.entries(data.datasets).forEach(([filename, info]) => {
@@ -236,12 +321,29 @@ imgs[0] if imgs else ""
         'sensor_readings_noisy.csv',
         'store_dim_customers.csv',
         'corporate_financials_wide.csv',
-        'high_frequency_stock_ticks.csv'
+        'high_frequency_stock_ticks.csv',
+        'financial_transactions_part1.csv',
+        'financial_transactions_part2.csv',
+        'customer_churn_dirty.csv',
+        'iot_telemetry_corrupt.csv',
+        'healthcare_demographics_raw.csv',
+        'logistics_tracking_dirty.csv',
+        'branch_quarterly_revenue.csv',
+        'budget_2026.xlsx',
+        'retail_inventory_merged.xlsx',
+        'employee_performance_irregular.xlsx',
+        'property_appraisals_corrupt.xlsx',
+        'smart_meter_consumption.xlsx'
       ];
       filenames.forEach(filename => {
         try {
-          const content = pyodide.FS.readFile(filename, { encoding: 'utf8' });
-          updatedFiles[filename] = content;
+          if (filename.endsWith('.xlsx')) {
+            const content = pyodide.FS.readFile(filename);
+            updatedFiles[filename] = content.buffer;
+          } else {
+            const content = pyodide.FS.readFile(filename, { encoding: 'utf8' });
+            updatedFiles[filename] = content;
+          }
         } catch (e) {
           console.warn(`[pyodide-worker] Could not read ${filename} after execution:`, e);
         }
@@ -274,12 +376,29 @@ imgs[0] if imgs else ""
         'sensor_readings_noisy.csv',
         'store_dim_customers.csv',
         'corporate_financials_wide.csv',
-        'high_frequency_stock_ticks.csv'
+        'high_frequency_stock_ticks.csv',
+        'financial_transactions_part1.csv',
+        'financial_transactions_part2.csv',
+        'customer_churn_dirty.csv',
+        'iot_telemetry_corrupt.csv',
+        'healthcare_demographics_raw.csv',
+        'logistics_tracking_dirty.csv',
+        'branch_quarterly_revenue.csv',
+        'budget_2026.xlsx',
+        'retail_inventory_merged.xlsx',
+        'employee_performance_irregular.xlsx',
+        'property_appraisals_corrupt.xlsx',
+        'smart_meter_consumption.xlsx'
       ];
       filenames.forEach(filename => {
         try {
-          const content = pyodide.FS.readFile(filename, { encoding: 'utf8' });
-          updatedFiles[filename] = content;
+          if (filename.endsWith('.xlsx')) {
+            const content = pyodide.FS.readFile(filename);
+            updatedFiles[filename] = content.buffer;
+          } else {
+            const content = pyodide.FS.readFile(filename, { encoding: 'utf8' });
+            updatedFiles[filename] = content;
+          }
         } catch (e) {
           // ignore
         }

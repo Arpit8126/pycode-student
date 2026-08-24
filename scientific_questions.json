@@ -1168,5 +1168,115 @@
     "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">This final challenge brings together all the key areas of the curriculum—data cleaning, joining, aggregation, and structural reshaping—into a single, unified production pipeline. You must design an end-to-end data transformation engine that ingests raw, messy transaction files and processes them into clean analytical features. Write a Python function orchestrate_data_pipeline(df_transactions: pd. DataFrame, df_customers: pd. DataFrame) -> pd. DataFrame that coordinates a complete multi-step transformation pipeline:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Data Sanitization Step:</strong> Clean the df_transactions table by stripping all leading/trailing whitespaces from the ProductCategory column and forcing all characters to lowercase. Remove any rows where Profit or CustomerID is missing (NaN).</li><li class=\"py-0.5\"><strong>Relational Ingestion Step:</strong> Merge the cleaned transactions DataFrame with the df_customers master dimension table using an Inner Join on the shared CustomerID column.</li><li class=\"py-0.5\"><strong>Advanced Group Aggregation Step:</strong> Group the combined dataset by Region and the cleaned ProductCategory columns simultaneously. For each group, calculate two statistics:The total cumulative sum of the Quantity column (name this output column TotalQuantity). The volume-weighted average profit using the formula:$$\\text{WeightedProfit} = \\frac{\\sum (\\text{Quantity} \\times \\text{Profit})}{\\sum \\text{Quantity}}$$Structural</li><li class=\"py-0.5\"><strong>Pivot Reshaping Step:</strong> Pivot the aggregated results so that Region becomes the explicit row index, and unique values within the ProductCategory column swing horizontally into the primary column layout. The cells at each intersection must display the calculated WeightedProfit metric.</li><li class=\"py-0.5\"><strong>Final Output Formatting:</strong> Fill any missing or empty grid cells (NaN) inside the final pivot grid with a flat default value of 0.00. Round all float metrics to exactly 2 decimal places. Return the finalized pivoted DataFrame.</li></ul>\n  </div>\n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Input Schema</h4>\n    <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal whitespace-pre-wrap select-all\">df_transactions: A DataFrame structured like dirty_store_transactions.csv.\ndf_customers: A DataFrame structured like store_dim_customers.csv.</pre>\n  </div>\n  \n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Constraints</h4>\n    <ul class=\"list-disc pl-5 mt-2 space-y-1.5 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\">$10 \\le \\text{df\\_transactions.shape}[0] \\le 1500$$</li><li class=\"py-0.5\">5 \\le \\text{df\\_customers.shape}[0] \\le 500</li></ul>\n  </div>\n  \n  \n  \n  <div class=\"mt-6 border-t border-hairline pt-6\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Example 1</h4>\n    \n    <div class=\"space-y-4 mt-3\">\n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Input Data:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">----------------|------------|---------------|----------|\r</pre>\n        <p class=\"mt-2 text-xs text-ink font-sans font-normal leading-relaxed pl-1\">Input Summary Walkthrough:Transactions are cleaned and joined with customers.Quantities and weighted profits are computed across Region + Category intersections.The table shapes into a clean, flat wide matrix showing regions as rows and category profiles as columns.Output Matrix Structure:ProductCategory | \"clothing\" | \"electronics\" | \"office\" |\r Region          |            |               |          |\r \"EAST\"          | 45.50      | 120.25        | 0.00     |\r \"WEST\"          | 30.00      | 85.10         | 15.40    |</p>\n      </div>\n      \n    </div>\n        \n  </div>\n  \n</div>\n",
     "starter_code": "import pandas as pd\nimport numpy as np\n\ndef orchestrate_data_pipeline(df_transactions, df_customers):\n    # Write your code here\n    pass",
     "dataset_name": "dirty_store_transactions.csv"
+  },
+  {
+    "id": 211,
+    "title": "211. High-Volume Financial Transaction Pipeline",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">You are processing a multi-gigabyte financial transaction dataset stored across multiple CSV fragments. The data contains duplicate transaction IDs due to network retries, structural formatting errors in string fields, and missing values in numeric transaction amounts and categorical merchant types. Write a Python function <code>process_financial_pipeline(file1: str, file2: str)</code> using Pandas to cleanse the dataset:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Sequential Read:</strong> Read both CSV fragments sequentially and merge/concatenate them into a single DataFrame.</li>\n      <li class=\"py-0.5\"><strong>Drop Duplicates:</strong> Drop exact duplicate rows based on the <code>TransactionID</code> column.</li>\n      <li class=\"py-0.5\"><strong>Clean Strings:</strong> Standardize the <code>MerchantType</code> values by removing leading/trailing spaces and forcing Title case.</li>\n      <li class=\"py-0.5\"><strong>Impute Amount:</strong> Impute missing values in the <code>TransactionAmount</code> column using the group-wise median grouped by <code>MerchantType</code>.</li>\n      <li class=\"py-0.5\"><strong>Impute Merchant:</strong> Fill any remaining missing <code>MerchantType</code> values using the mode.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef process_financial_pipeline(file1, file2):\n    # Write your pipeline code here\n    pass",
+    "dataset_name": "financial_transactions_part1.csv"
+  },
+  {
+    "id": 212,
+    "title": "212. E-Commerce Customer Churn Cleaning & Mapping",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">An e-commerce platform provides a customer behavior CSV file filled with dirty data, including trailing whitespace in categorical labels, hidden nulls represented as string question marks (?), duplicate customer profiles from multi-device logins, and missing tenure values. Write a Python function <code>clean_customer_churn(df: pd.DataFrame)</code> to sanitize the data:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Hidden Nulls:</strong> Replace non-standard missing values (specifically string question marks <code>?</code> and spacing blanks) with <code>NaN</code>.</li>\n      <li class=\"py-0.5\"><strong>Clean Profile Duplicates:</strong> Remove duplicate user profiles based on <code>CustomerID</code>.</li>\n      <li class=\"py-0.5\"><strong>Numeric Imputation:</strong> Fill missing numeric <code>Tenure</code> values with the mean of the column.</li>\n      <li class=\"py-0.5\"><strong>Categorical Imputation:</strong> Fill missing <code>Segment</code> values using the mode.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef clean_customer_churn(df):\n    # Write your cleaning code here\n    return df",
+    "dataset_name": "customer_churn_dirty.csv"
+  },
+  {
+    "id": 213,
+    "title": "213. IoT Sensor Stream Anomaly Preprocessing",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">An industrial IoT sensor log CSV file suffers from overlapping timestamps, corrupted missing fields, and duplicate entries generated during system reboots. Write a Python function <code>preprocess_iot_stream(df: pd.DataFrame)</code> to sanitize the telemetry logs:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>DateTime Parsing:</strong> Parse the <code>Timestamp</code> column to DateTime format and sort the DataFrame chronologically.</li>\n      <li class=\"py-0.5\"><strong>Deduplicate Timestamps:</strong> Drop duplicate rows sharing identical <code>Timestamp</code> values, keeping only the latest record.</li>\n      <li class=\"py-0.5\"><strong>Hybrid Temperature Imputation:</strong> Handle missing <code>Temperature</code> values using a hybrid strategy: fill short gaps via forward-fill (limit=1), and fill any remaining structural blanks with the median sensor reading of that specific <code>DeviceID</code>.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef preprocess_iot_stream(df):\n    # Write your preprocessing code here\n    return df",
+    "dataset_name": "iot_telemetry_corrupt.csv"
+  },
+  {
+    "id": 214,
+    "title": "214. Healthcare Demographic Record Imputation",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">A public health CSV database contains missing data in critical columns like age, blood pressure, and hospital stay duration, along with duplicate patient identification entries. Write a Python function <code>impute_healthcare_records(df: pd.DataFrame)</code> to cleanse the records:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Deduplicate Patients:</strong> Drop duplicate patient identification rows based on patient hashes (<code>PatientHash</code>).</li>\n      <li class=\"py-0.5\"><strong>Group Imputation:</strong> Calculate and apply group-wise mean imputation for missing <code>Age</code> values stratified by <code>DiseaseCategory</code>.</li>\n      <li class=\"py-0.5\"><strong>Severity Mode:</strong> Impute missing categorical <code>SeverityGrade</code> entries with the mode.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef impute_healthcare_records(df):\n    # Write your imputation code here\n    return df",
+    "dataset_name": "healthcare_demographics_raw.csv"
+  },
+  {
+    "id": 215,
+    "title": "215. Supply Chain Logistics Data Cleansing",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">A logistics tracking CSV contains shipping delays with structural inconsistencies, duplicate tracking numbers, and missing transit days. Write a Python function <code>cleanse_logistics_data(df: pd.DataFrame)</code> to cleanse the data:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Deduplicate Logs:</strong> Drop duplicate tracking records based on <code>TrackingNumber</code>.</li>\n      <li class=\"py-0.5\"><strong>Transit Median:</strong> Fill missing <code>TransitDays</code> using the median grouped by <code>ShippingTier</code>.</li>\n      <li class=\"py-0.5\"><strong>Carrier Imputation:</strong> Impute missing <code>CarrierName</code> with the mode.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef cleanse_logistics_data(df):\n    # Write your cleansing code here\n    return df",
+    "dataset_name": "logistics_tracking_dirty.csv"
+  },
+  {
+    "id": 216,
+    "title": "216. Multi-Sheet Corporate Budget Consolidation",
+    "difficulty": "hard",
+    "points": 300,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">You are given a corporate financial Excel workbook (<code>budget_2026.xlsx</code>) containing multiple sheets representing different regional offices, each with slightly varying column headers, duplicate project IDs, and missing budget allocations. Write a Python function <code>consolidate_regional_budgets(file_path: str)</code> to align and merge them:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Iterate Sheets:</strong> Iterate through all sheets in the Excel workbook.</li>\n      <li class=\"py-0.5\"><strong>Standardize Headers:</strong> Standardize varying project ID columns (<code>ProjID</code>, <code>Project_ID</code>, <code>Proj_Code</code>) to <code>ProjectID</code>, department columns (<code>Dept</code>, <code>Department</code>) to <code>Department</code>, and regional budget columns to <code>Budget</code>.</li>\n      <li class=\"py-0.5\"><strong>Deduplicate:</strong> Remove duplicate project listings based on <code>ProjectID</code>.</li>\n      <li class=\"py-0.5\"><strong>Department Imputation:</strong> Fill missing <code>Budget</code> allocations using the group-wise median per <code>Department</code>.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef consolidate_regional_budgets(file_path):\n    # Write your consolidation code here\n    pass",
+    "dataset_name": "budget_2026.xlsx"
+  },
+  {
+    "id": 217,
+    "title": "217. Retail Inventory Unmerging and Cleaning",
+    "difficulty": "hard",
+    "points": 300,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">A retail inventory Excel file (<code>retail_inventory_merged.xlsx</code>) contains merged cells for category names, formatting errors, duplicate SKU listings, and blank stock count entries. Write a Python function <code>clean_retail_inventory(file_path: str)</code> to preprocess the sheets:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Unmerge Fill:</strong> Load the Excel workbook and properly forward-fill category names (which are merged cells).</li>\n      <li class=\"py-0.5\"><strong>Deduplicate SKUs:</strong> Remove duplicate SKU entries.</li>\n      <li class=\"py-0.5\"><strong>Inventory Imputation:</strong> Impute missing stock values: use the mode for categorical stock status flags, and the mean for numeric stock quantities.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef clean_retail_inventory(file_path):\n    # Write your inventory cleaning code here\n    pass",
+    "dataset_name": "retail_inventory_merged.xlsx"
+  },
+  {
+    "id": 218,
+    "title": "218. HR Performance Multi-Table Extraction",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">An employee performance Excel workbook has irregular tabular layouts with metadata rows at the top, duplicate employee IDs from transitions, and missing evaluation scores. Write a Python function <code>extract_hr_performance(file_path: str)</code> to parse and clean the ledger:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Skip Metadata:</strong> Programmatically skip metadata rows at the top to locate actual headers.</li>\n      <li class=\"py-0.5\"><strong>Clean ID Duplicates:</strong> Drop duplicate rows based on <code>EmployeeID</code>.</li>\n      <li class=\"py-0.5\"><strong>Score Imputation:</strong> Impute missing performance scores using the department-wise median.</li>\n      <li class=\"py-0.5\"><strong>Employment Mode:</strong> Fill missing <code>EmploymentType</code> values with the mode.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef extract_hr_performance(file_path):\n    # Write your HR parsing code here\n    pass",
+    "dataset_name": "employee_performance_irregular.xlsx"
+  },
+  {
+    "id": 219,
+    "title": "219. Real Estate Property Appraisal Pipeline",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">A real estate Excel file contains property appraisals with missing valuations, duplicate property listings from multi-agent entries, and corrupt currency string formats. Write a Python function <code>clean_property_appraisals(file_path: str)</code> to clean and parse the properties:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Parse Currency:</strong> Clean currency strings (e.g. <code>$1,200,000</code>) by removing symbols and commas, converting them to numeric types.</li>\n      <li class=\"py-0.5\"><strong>Deduplicate Properties:</strong> Drop duplicate listings based on <code>PropertyID</code>.</li>\n      <li class=\"py-0.5\"><strong>Price Imputation:</strong> Impute missing property valuations using the median price per zip code.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef clean_property_appraisals(file_path):\n    # Write your appraisal parsing code here\n    pass",
+    "dataset_name": "property_appraisals_corrupt.xlsx"
+  },
+  {
+    "id": 220,
+    "title": "220. Smart-Meter Energy Consumption Cleaning",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">An energy utility Excel workbook tracks smart-meter power loads, featuring missing hourly readings and duplicate timestamps due to synchronization glitches. Write a Python function <code>clean_energy_consumption(file_path: str)</code> to cleanse the smart meter log:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Clean Multi-Index:</strong> Handle the multi-index spreadsheet layout correctly.</li>\n      <li class=\"py-0.5\"><strong>Deduplicate Timestamps:</strong> Remove duplicate timestamps, keeping only the first record.</li>\n      <li class=\"py-0.5\"><strong>Rolling Imputation:</strong> Impute missing power load readings using a rolling mean (window size 3).</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef clean_energy_consumption(file_path):\n    # Write your energy consumption cleaning code here\n    pass",
+    "dataset_name": "smart_meter_consumption.xlsx"
+  },
+  {
+    "id": 221,
+    "title": "221. Global Branch Quarterly Revenue Analysis",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "matplotlib-seaborn",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">You have preprocessed quarterly revenue data for 50 global branches. Write a Python function <code>plot_branch_revenue(file_path: str)</code> using Matplotlib or Seaborn to visualize the branch performance:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Grouped/Stacked Plot:</strong> Plot quarterly revenues (Q1 to Q4) for each branch as a grouped or stacked bar chart.</li>\n      <li class=\"py-0.5\"><strong>Labels Customization:</strong> Rotate branch category labels by 90 degrees.</li>\n      <li class=\"py-0.5\"><strong>Error Bars:</strong> Include explicit standard deviation error bars (from the <code>StdDev</code> column) representing variance.</li>\n      <li class=\"py-0.5\"><strong>Return Object:</strong> Return the Matplotlib <code>Axes</code> object (<code>ax</code>).</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport matplotlib.pyplot as plt\n\ndef plot_branch_revenue(file_path):\n    fig, ax = plt.subplots()\n    # Write your plotting code here\n    return ax",
+    "dataset_name": "branch_quarterly_revenue.csv"
   }
 ]

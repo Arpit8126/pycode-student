@@ -13,117 +13,7 @@ export interface LocalQuestion {
 export const LOCAL_QUESTIONS: LocalQuestion[] = [
   {
     "id": 1,
-    "title": "1. Positive, Negative or Zero",
-    "difficulty": "easy",
-    "points": 100,
-    "category": "python-ifelse",
-    "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>classify_number(n)</code> that takes a number and returns <code>\"Positive\"</code>, <code>\"Negative\"</code>, or <code>\"Zero\"</code>.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">This is the simplest if/elif/else chain — the foundation of all decision-making in Python.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Positive\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The number 5 is strictly greater than 0, so it is classified as positive.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = -3</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Negative\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The number -3 is strictly less than 0, so it is classified as negative.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Zero\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The number 0 is equal to 0, so it is classified as zero.</span></div>\n</div>",
-    "starter_code": "def classify_number(n):\n    # Return \"Positive\", \"Negative\", or \"Zero\"\n    pass",
-    "verification_script": "def ref_impl(*args):\n    if args[0] > 0: return \"Positive\"\n    elif args[0] < 0: return \"Negative\"\n    return \"Zero\"\n\nassert \"classify_number\" in exec_globals, \"Function classify_number not found\"\nfn = exec_globals[\"classify_number\"]\ntest_cases = [5, -3, 0, -100, 0.0, 0.1]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 6",
-    "dataset_name": null
-  },
-  {
-    "id": 2,
-    "title": "2. Absolute Value Without abs()",
-    "difficulty": "easy",
-    "points": 100,
-    "category": "python-ifelse",
-    "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>my_abs(n)</code> that returns the absolute value of a number <em>without</em> using Python's built-in <code>abs()</code> function.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use an <code>if/else</code> statement: if the number is negative, negate it; otherwise return it as-is.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = -7</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>7</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Since -7 is negative, we multiply it by -1 to get its absolute positive value, which is 7.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>5</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Since 5 is positive, its absolute value remains 5.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>0</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Since 0 has no positive or negative sign, its absolute value remains 0.</span></div>\n</div>",
-    "starter_code": "def my_abs(n):\n    # Return absolute value without abs()\n    pass",
-    "verification_script": "def ref_impl(*args):\n    return -args[0] if args[0] < 0 else args[0]\n\nassert \"my_abs\" in exec_globals, \"Function my_abs not found\"\nfn = exec_globals[\"my_abs\"]\ntest_cases = [-7, 5, 0, -100, 3.14, -2.5]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 6",
-    "dataset_name": null
-  },
-  {
-    "id": 3,
-    "title": "3. Find Maximum of Three",
-    "difficulty": "easy",
-    "points": 100,
-    "category": "python-ifelse",
-    "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>max_of_three(a, b, c)</code> that returns the largest of three numbers <em>without</em> using the built-in <code>max()</code> function.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use nested <code>if/elif/else</code> to compare all three values.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>a=1, b=2, c=3</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>3</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Comparing 1, 2, and 3: 3 is greater than 1 and 3 is also greater than 2, so 3 is the largest number.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>a=10, b=10, c=5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>10</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Comparing 10, 10, and 5: 10 is equal to 10 and both are greater than 5, so the maximum is 10.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>a=-1, b=-5, c=-2</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>-1</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Comparing -1, -5, and -2: -1 is greater than -2 and -1 is also greater than -5, so -1 is the largest number.</span></div>\n</div>",
-    "starter_code": "def max_of_three(a, b, c):\n    # Return the largest without using max()\n    pass",
-    "verification_script": "def ref_impl(*args):\n    a,b,c=args[0],args[1],args[2]\n    if a>=b and a>=c: return a\n    elif b>=a and b>=c: return b\n    return c\n\nassert \"max_of_three\" in exec_globals, \"Function max_of_three not found\"\nfn = exec_globals[\"max_of_three\"]\ntest_cases = [(1,2,3), (5,3,4), (-1,-5,-2), (10,10,10), (0,0,1)]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
-    "dataset_name": null
-  },
-  {
-    "id": 4,
-    "title": "4. FizzBuzz",
-    "difficulty": "easy",
-    "points": 100,
-    "category": "python-ifelse",
-    "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>fizzbuzz(n)</code> that takes an integer and returns:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li><code>\"FizzBuzz\"</code> if divisible by both 3 and 5</li>\n<li><code>\"Fizz\"</code> if divisible by 3 only</li>\n<li><code>\"Buzz\"</code> if divisible by 5 only</li>\n<li>The number itself as a string otherwise</li>\n</ul><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">This is the most famous coding interview warm-up question. Order matters — always check the combined divisibility first.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 15</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"FizzBuzz\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">15 is divisible by both 3 (15/3 = 5) and 5 (15/5 = 3), so we return 'FizzBuzz'.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 9</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Fizz\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">9 is divisible by 3 (9/3 = 3) but not by 5, so we return 'Fizz'.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 20</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Buzz\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">20 is divisible by 5 (20/5 = 4) but not by 3, so we return 'Buzz'.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 4</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 7</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"7\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">7 is not divisible by 3 or 5, so we return the number itself as a string '7'.</span></div>\n</div>",
-    "starter_code": "def fizzbuzz(n):\n    # Return FizzBuzz, Fizz, Buzz, or the number as string\n    pass",
-    "verification_script": "def ref_impl(*args):\n    n=args[0]\n    if n%15==0: return \"FizzBuzz\"\n    elif n%3==0: return \"Fizz\"\n    elif n%5==0: return \"Buzz\"\n    return str(n)\n\nassert \"fizzbuzz\" in exec_globals, \"Function fizzbuzz not found\"\nfn = exec_globals[\"fizzbuzz\"]\ntest_cases = [15, 9, 20, 7, 1, 30, 5, 3]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 8",
-    "dataset_name": null
-  },
-  {
-    "id": 5,
-    "title": "5. Vowel or Consonant",
-    "difficulty": "easy",
-    "points": 100,
-    "category": "python-ifelse",
-    "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>vowel_or_consonant(ch)</code> that takes a single character and returns <code>\"Vowel\"</code>, <code>\"Consonant\"</code>, or <code>\"Neither\"</code>.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Vowels are: a, e, i, o, u (both upper and lowercase). Any other letter is a consonant. Non-letter characters (digits, symbols, spaces) return <code>\"Neither\"</code>.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>ch = \"a\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Vowel\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The character 'a' is in the vowels list (a, e, i, o, u), so it is a Vowel.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>ch = \"B\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Consonant\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The character 'B' is a letter but not a vowel, so it is a Consonant.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>ch = \"3\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Neither\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The character '3' is a number and not a letter, so it is classified as Neither.</span></div>\n</div>",
-    "starter_code": "def vowel_or_consonant(ch):\n    # Return \"Vowel\", \"Consonant\", or \"Neither\"\n    pass",
-    "verification_script": "def ref_impl(*args):\n    c=args[0].lower()\n    if not c.isalpha(): return \"Neither\"\n    return \"Vowel\" if c in \"aeiou\" else \"Consonant\"\n\nassert \"vowel_or_consonant\" in exec_globals, \"Function vowel_or_consonant not found\"\nfn = exec_globals[\"vowel_or_consonant\"]\ntest_cases = [\"a\", \"B\", \"3\", \"U\", \"z\", \"!\", \" \"]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 7",
-    "dataset_name": null
-  },
-  {
-    "id": 6,
-    "title": "6. Leap Year Check",
-    "difficulty": "easy",
-    "points": 100,
-    "category": "python-ifelse",
-    "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>is_leap_year(year)</code> that returns <code>True</code> if the given year is a leap year, <code>False</code> otherwise.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Leap year rules:</p>\n<ol class=\"list-decimal pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li>Divisible by 4 → potentially a leap year</li>\n<li>But if also divisible by 100 → NOT a leap year</li>\n<li>Unless also divisible by 400 → IS a leap year</li>\n</ol><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">This requires nested conditions or a single compound boolean expression.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>year = 2024</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>True</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">2024 is divisible by 4, and it is not a century year (not divisible by 100), so it is a leap year.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>year = 1900</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>False</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">1900 is a century year divisible by 100 but not by 400, so it is not a leap year.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>year = 2000</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>True</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">2000 is a century year divisible by both 100 and 400, so it is a leap year.</span></div>\n</div>",
-    "starter_code": "def is_leap_year(year):\n    # Return True if leap year, False otherwise\n    pass",
-    "verification_script": "def ref_impl(*args):\n    y=args[0]\n    return y%4==0 and (y%100!=0 or y%400==0)\n\nassert \"is_leap_year\" in exec_globals, \"Function is_leap_year not found\"\nfn = exec_globals[\"is_leap_year\"]\ntest_cases = [2024, 1900, 2000, 2023, 100, 400]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 6",
-    "dataset_name": null
-  },
-  {
-    "id": 7,
-    "title": "7. Grade Calculator",
-    "difficulty": "easy",
-    "points": 100,
-    "category": "python-ifelse",
-    "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>calculate_grade(score)</code> that takes a score (0-100) and returns a letter grade:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li>Score >= 90 → <code>\"A\"</code></li>\n<li>Score >= 80 → <code>\"B\"</code></li>\n<li>Score >= 70 → <code>\"C\"</code></li>\n<li>Score >= 60 → <code>\"D\"</code></li>\n<li>Score < 60 → <code>\"F\"</code></li>\n<li>Score < 0 or > 100 → <code>\"Invalid\"</code></li>\n</ul><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>score = 95</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"A\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The score 95 is 90 or above, which corresponds to grade 'A'.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>score = 72</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"C\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The score 72 is between 70 and 79, which corresponds to grade 'C'.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>score = 55</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"F\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The score 55 is below 60, which corresponds to grade 'F'.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 4</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>score = -5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Invalid\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">A negative score like -5 is outside the valid range of 0 to 100, so it is Invalid.</span></div>\n</div>",
-    "starter_code": "def calculate_grade(score):\n    # Return letter grade A-F or Invalid\n    pass",
-    "verification_script": "def ref_impl(*args):\n    s=args[0]\n    if s<0 or s>100: return \"Invalid\"\n    elif s>=90: return \"A\"\n    elif s>=80: return \"B\"\n    elif s>=70: return \"C\"\n    elif s>=60: return \"D\"\n    return \"F\"\n\nassert \"calculate_grade\" in exec_globals, \"Function calculate_grade not found\"\nfn = exec_globals[\"calculate_grade\"]\ntest_cases = [95, 82, 70, 59, -5, 101, 60, 80, 90]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 9",
-    "dataset_name": null
-  },
-  {
-    "id": 8,
-    "title": "8. Season Detector",
-    "difficulty": "easy",
-    "points": 100,
-    "category": "python-ifelse",
-    "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>get_season(month)</code> that takes a month number (1-12) and returns the season:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li>Dec, Jan, Feb (12, 1, 2) → <code>\"Winter\"</code></li>\n<li>Mar, Apr, May (3, 4, 5) → <code>\"Spring\"</code></li>\n<li>Jun, Jul, Aug (6, 7, 8) → <code>\"Summer\"</code></li>\n<li>Sep, Oct, Nov (9, 10, 11) → <code>\"Autumn\"</code></li>\n<li>Any other number → <code>\"Invalid\"</code></li>\n</ul><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>month = 1</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Winter\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Month 1 (January) belongs to the Winter months (December, January, and February).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>month = 7</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Summer\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Month 7 (July) belongs to the Summer months (June, July, and August).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>month = 13</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Invalid\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Month 13 is outside the valid range of 1 to 12, so it is Invalid.</span></div>\n</div>",
-    "starter_code": "def get_season(month):\n    # Return the season name\n    pass",
-    "verification_script": "def ref_impl(*args):\n    m=args[0]\n    if m in [12,1,2]: return \"Winter\"\n    elif m in [3,4,5]: return \"Spring\"\n    elif m in [6,7,8]: return \"Summer\"\n    elif m in [9,10,11]: return \"Autumn\"\n    return \"Invalid\"\n\nassert \"get_season\" in exec_globals, \"Function get_season not found\"\nfn = exec_globals[\"get_season\"]\ntest_cases = [1, 2, 3, 6, 9, 12, 13, 0]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 8",
-    "dataset_name": null
-  },
-  {
-    "id": 9,
-    "title": "9. Valid Triangle Check",
-    "difficulty": "easy",
-    "points": 100,
-    "category": "python-ifelse",
-    "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>is_valid_triangle(a, b, c)</code> that returns <code>True</code> if the three sides form a valid triangle, <code>False</code> otherwise.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">A triangle is valid if the sum of any two sides is strictly greater than the third side. This must hold for all three combinations.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>a=3, b=4, c=5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>True</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">For sides 3, 4, and 5: 3+4>5, 3+5>4, and 4+5>3. Since the sum of any two sides is greater than the third, it is a valid triangle.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>a=1, b=2, c=3</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>False</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">For sides 1, 2, and 3: the sum of side 1 and 2 is 3, which is not strictly greater than side 3. Thus, it cannot form a triangle.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>a=0, b=2, c=3</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>False</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">A side length of 0 is impossible in geometry, so it cannot form a valid triangle.</span></div>\n</div>",
-    "starter_code": "def is_valid_triangle(a, b, c):\n    # Return True if valid triangle\n    pass",
-    "verification_script": "def ref_impl(*args):\n    a,b,c=args[0],args[1],args[2]\n    return a+b>c and a+c>b and b+c>a\n\nassert \"is_valid_triangle\" in exec_globals, \"Function is_valid_triangle not found\"\nfn = exec_globals[\"is_valid_triangle\"]\ntest_cases = [(3,4,5), (1,2,3), (5,12,13), (0,2,3), (10,1,1)]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
-    "dataset_name": null
-  },
-  {
-    "id": 10,
-    "title": "10. Ticket Price Calculator",
-    "difficulty": "easy",
-    "points": 100,
-    "category": "python-ifelse",
-    "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>ticket_price(age, is_student)</code> that returns ticket price based on rules:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li>Children under 5 → Free (<code>0</code>)</li>\n<li>Seniors 65+ → <code>5</code> (50% discount)</li>\n<li>Students → <code>8</code> (20% discount)</li>\n<li>Everyone else → <code>10</code> (full price)</li>\n</ul><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Note: the age rules take priority over the student discount.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>age=4, is_student=False</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>0</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Age 4 is under 5, which qualifies for free admission (price is 0).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>age=70, is_student=False</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>5</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Age 70 is 65 or older, qualifying for the senior ticket price of 5.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>age=20, is_student=True</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>8</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Age 20 is not a child or senior, but has student status, getting the student price of 8.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 4</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>age=30, is_student=False</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>10</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Age 30 has no special discounts, paying the full standard price of 10.</span></div>\n</div>",
-    "starter_code": "def ticket_price(age, is_student):\n    # Return ticket price as integer\n    pass",
-    "verification_script": "def ref_impl(*args):\n    age,stud=args[0],args[1]\n    if age<5: return 0\n    elif age>=65: return 5\n    elif stud: return 8\n    return 10\n\nassert \"ticket_price\" in exec_globals, \"Function ticket_price not found\"\nfn = exec_globals[\"ticket_price\"]\ntest_cases = [(4,False), (70,False), (20,True), (25,False), (5,True), (64,True)]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 6",
-    "dataset_name": null
-  },
-  {
-    "id": 11,
-    "title": "11. BMI Classifier",
+    "title": "1. BMI Classifier",
     "difficulty": "easy",
     "points": 100,
     "category": "python-ifelse",
@@ -133,8 +23,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 12,
-    "title": "12. Rock Paper Scissors",
+    "id": 2,
+    "title": "2. Rock Paper Scissors",
     "difficulty": "easy",
     "points": 100,
     "category": "python-ifelse",
@@ -144,8 +34,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 13,
-    "title": "13. Simple Calculator",
+    "id": 3,
+    "title": "3. Simple Calculator",
     "difficulty": "easy",
     "points": 100,
     "category": "python-ifelse",
@@ -155,8 +45,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 14,
-    "title": "14. Character Classifier",
+    "id": 4,
+    "title": "4. Character Classifier",
     "difficulty": "easy",
     "points": 100,
     "category": "python-ifelse",
@@ -166,8 +56,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 15,
-    "title": "15. Quadratic Roots Counter",
+    "id": 5,
+    "title": "5. Quadratic Roots Counter",
     "difficulty": "medium",
     "points": 200,
     "category": "python-ifelse",
@@ -177,118 +67,118 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 16,
-    "title": "16. Number Reverse",
+    "id": 6,
+    "title": "6. Number Reverse",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-loops",
+    "category": "python-ifelse",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given a signed integer n, reverse its digits mathematically. You must extract each digit from the back of the number using the modulo operator (% 10), add it to a running total scaled by 10, and then truncate the last digit of the original number using integer division (/ 10).</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5792</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> 2975</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Reversing the digits of 5792 from right to left gives 2, 9, 7, and 5, which forms the integer 2975.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = -408</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> -804</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">For -408, we ignore the sign and reverse the digits of 408 to get 804, then re-apply the negative sign to get -804.</span></div>\n</div>",
     "starter_code": "def even_or_odd(n):\n    # Return \"Even\" or \"Odd\"\n    pass",
     "verification_script": "def ref_impl(*args):\n    return \"Even\" if args[0] % 2 == 0 else \"Odd\"\n\nassert \"even_or_odd\" in exec_globals, \"Function even_or_odd not found\"\nfn = exec_globals[\"even_or_odd\"]\ntest_cases = [42, -17, 0, -2, 100]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 17,
-    "title": "17. String Reverse",
+    "id": 7,
+    "title": "7. String Reverse",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-loops",
+    "category": "python-ifelse",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given a string s, reverse the sequence of its characters. This is a foundational memory manipulation problem. The standard approach requires a two-pointer logic: one pointer at the start (0) and one at the end (s.length() - 1), swapping characters while moving toward the center.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"hello\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> \"olleh\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Reversing 'hello' character-by-character from right to left gives 'o', 'l', 'l', 'e', 'h', which forms 'olleh'.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"Data Science\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> \"ecneicS ataD\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Reversing 'Data Science' including spaces and capitals gives 'ecneicS ataD'.</span></div>\n</div>",
     "starter_code": "def reverse_integer(n):\n    # Reverse the digits of n\n    pass",
     "verification_script": "def ref_impl(*args):\n    sign=-1 if args[0]<0 else 1\n    return int(str(abs(args[0]))[::-1])*sign\n\nassert \"reverse_integer\" in exec_globals, \"Function reverse_integer not found\"\nfn = exec_globals[\"reverse_integer\"]\ntest_cases = [5792, -408, 9300, 0, 7]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 18,
-    "title": "18. Count Digits in a Number",
+    "id": 8,
+    "title": "8. Count Digits in a Number",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-loops",
+    "category": "python-ifelse",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, compute the total number of digits present in its base-10 representation. This can be solved iteratively by dividing the number by 10 until it reaches 0, or mathematically using the base-10 logarithm formula: $\\lfloor \\log_{10}(\\vert{}n\\vert{}) \\rfloor + 1$.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 34521</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> 5</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The number 34521 contains five digits: 3, 4, 5, 2, and 1.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = -9</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> 1</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The number -9 contains only one digit: 9. The negative sign is not counted as a digit.</span></div>\n</div>",
     "starter_code": "def count_digits(n):\n    # Count digits in n\n    pass",
     "verification_script": "def ref_impl(*args):\n    return len(str(abs(args[0])))\n\nassert \"count_digits\" in exec_globals, \"Function count_digits not found\"\nfn = exec_globals[\"count_digits\"]\ntest_cases = [34521, -9, 0, -500, 100000]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 19,
-    "title": "19. Sum of Digits of a Number",
+    "id": 9,
+    "title": "9. Sum of Digits of a Number",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-loops",
+    "category": "python-ifelse",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, calculate the absolute sum of all its individual digits. You must iteratively isolate each digit from the units place upwards and accumulate the total value.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 1234</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> 10 (Since $1 + 2 + 3 + 4 = 10$)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Summing the individual digits of 1234: 1 + 2 + 3 + 4 = 10.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = -506</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> 11 (Since $\\vert{}-5\\vert{} + 0 + 6 = 11$)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Summing the digits of -506 (ignoring the sign): 5 + 0 + 6 = 11.</span></div>\n</div>",
     "starter_code": "def sum_of_digits(n):\n    # Sum all digits of n\n    pass",
     "verification_script": "def ref_impl(*args):\n    return sum(int(d) for d in str(abs(args[0])))\n\nassert \"sum_of_digits\" in exec_globals, \"Function sum_of_digits not found\"\nfn = exec_globals[\"sum_of_digits\"]\ntest_cases = [1234, -506, 0, -45]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 20,
-    "title": "20. Swap Two Numbers",
+    "id": 10,
+    "title": "10. Swap Two Numbers",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-loops",
+    "category": "python-ifelse",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given two variables a and b, interchange their values. You must be prepared to demonstrate this using two distinct logical strategies:Using a temporary placeholder variable.Without any additional memory variables (using arithmetic addition/subtraction or bitwise XOR operations).</p>",
     "starter_code": "def swap_numbers(a, b):\n    # Return (b, a) swapped\n    pass",
     "verification_script": "def ref_impl(*args):\n    return (args[1],args[0])\n\nassert \"swap_numbers\" in exec_globals, \"Function swap_numbers not found\"\nfn = exec_globals[\"swap_numbers\"]\ntest_cases = [(5,10), (-3,7), (4,4)]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 21,
-    "title": "21. Check Even or Odd",
+    "id": 11,
+    "title": "11. Check Even or Odd",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-loops",
+    "category": "python-ifelse",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, determine whether it is completely divisible by 2 (Even) or leaves a remainder (Odd). This can be executed using the standard arithmetic modulo operator (n % 2 == 0) or optimized via bitwise logic checking the Least Significant Bit (LSB) ((n & 1) == 0).</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 42</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> \"Even\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">42 divided by 2 leaves a remainder of 0, which means it is an Even number.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = -17</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> \"Odd\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">-17 divided by 2 leaves a remainder of 1 (or -1), which means it is an Odd number.</span></div>\n</div>",
     "starter_code": "def is_palindrome_number(n):\n    # Return True if palindrome number\n    pass",
     "verification_script": "def ref_impl(*args):\n    n=args[0]\n    if n<0: return False\n    return str(n)==str(n)[::-1]\n\nassert \"is_palindrome_number\" in exec_globals, \"Function is_palindrome_number not found\"\nfn = exec_globals[\"is_palindrome_number\"]\ntest_cases = [1221, -121, 10, 0, 12321]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 22,
-    "title": "22. Fibonacci Series Generation",
+    "id": 12,
+    "title": "12. Fibonacci Series Generation",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-loops",
+    "category": "python-ifelse",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, generate the first n terms of the Fibonacci sequence. The sequence begins with 0 and 1, and each subsequent number is the sum of the previous two numbers ($F_n = F_{n-1} + F_{n-2}$). The output should be a sequence or list containing exactly n elements.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> [0, 1, 1, 2, 3]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The first 5 terms of the Fibonacci sequence starting from 0 and 1 are 0, 1, 1, 2, and 3.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 1</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> [0]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">With n=1, only the first Fibonacci term 0 is requested, returning [0].</span></div>\n</div>",
     "starter_code": "def is_armstrong(n):\n    # Return True if Armstrong number\n    pass",
     "verification_script": "def ref_impl(*args):\n    n=args[0]\n    s=str(n)\n    l=len(s)\n    return sum(int(d)**l for d in s)==n\n\nassert \"is_armstrong\" in exec_globals, \"Function is_armstrong not found\"\nfn = exec_globals[\"is_armstrong\"]\ntest_cases = [153, 123, 1634, 0, 7, 370]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 6",
     "dataset_name": null
   },
   {
-    "id": 23,
-    "title": "23. Nth Fibonacci Number",
+    "id": 13,
+    "title": "13. Nth Fibonacci Number",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-loops",
+    "category": "python-ifelse",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, calculate the exact value of the $n$-th Fibonacci number. While the generation problem requires tracking the whole list, this problem requires optimizing space complexity down to $O(1)$ by only storing the last two terms during iteration instead of maintaining an entire history array.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> 0</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">F(0) represents the first term in the sequence, which is defined as 0.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 9</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> 34</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">F(9) is the 10th term in the sequence (0, 1, 1, 2, 3, 5, 8, 13, 21, 34), which is 34.</span></div>\n</div>",
     "starter_code": "def generate_fibonacci(n):\n    # Return list of first n Fibonacci numbers\n    pass",
     "verification_script": "def ref_impl(*args):\n    n=args[0]\n    if n<=0: return []\n    if n==1: return [0]\n    res=[0,1]\n    while len(res)<n:\n        res.append(res[-1]+res[-2])\n    return res\n\nassert \"generate_fibonacci\" in exec_globals, \"Function generate_fibonacci not found\"\nfn = exec_globals[\"generate_fibonacci\"]\ntest_cases = [5, 1, 0, 2, 8]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 24,
-    "title": "24. Factorial of a Number",
+    "id": 14,
+    "title": "14. Factorial of a Number",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-loops",
+    "category": "python-ifelse",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given a non-negative integer n, compute the product of all positive integers less than or equal to n ($n! = n \\times (n-1) \\times \\dots \\times 1$).</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> 120</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">5! is the product of all positive integers up to 5: 5 * 4 * 3 * 2 * 1 = 120.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> 1</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">By mathematical definition, the factorial of 0 (0!) is equal to 1.</span></div>\n</div>",
     "starter_code": "def nth_fibonacci(n):\n    # Return the nth Fibonacci number (0-indexed)\n    pass",
     "verification_script": "def ref_impl(*args):\n    n=args[0]\n    if n<=0: return 0\n    if n==1: return 1\n    a,b=0,1\n    for _ in range(2,n+1):\n        a,b=b,a+b\n    return b\n\nassert \"nth_fibonacci\" in exec_globals, \"Function nth_fibonacci not found\"\nfn = exec_globals[\"nth_fibonacci\"]\ntest_cases = [0, 1, 2, 9, 10]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 25,
-    "title": "25. Check Prime Number",
+    "id": 15,
+    "title": "15. Check Prime Number",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-loops",
+    "category": "python-ifelse",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, check whether it is a prime number (divisible only by 1 and itself). A naive loop checking up to $n$ yields an inefficient $O(n)$ footprint. The solution must use mathematical logic to optimize verification to $O(\\sqrt{n})$ by checking factors up to the square root of n.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 11</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> true</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">11 has no divisors other than 1 and itself, so it is a prime number (returns True).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 4</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> false (Since $2 \\times 2 = 4$)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">4 can be divided evenly by 2 (2 * 2 = 4), which means it is not a prime number (returns False).</span></div>\n</div>",
     "starter_code": "def factorial(n):\n    # Return n! (n factorial)\n    pass",
     "verification_script": "def ref_impl(*args):\n    import math\n    return math.factorial(args[0])\n\nassert \"factorial\" in exec_globals, \"Function factorial not found\"\nfn = exec_globals[\"factorial\"]\ntest_cases = [5, 0, 1, 10, 7]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 26,
-    "title": "26. Armstrong Number Check",
+    "id": 16,
+    "title": "16. Armstrong Number Check",
     "difficulty": "easy",
     "points": 100,
     "category": "python-loops",
@@ -298,8 +188,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 27,
-    "title": "27. Palindrome Number",
+    "id": 17,
+    "title": "17. Palindrome Number",
     "difficulty": "medium",
     "points": 200,
     "category": "python-loops",
@@ -309,8 +199,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 28,
-    "title": "28. Add Digits (Digital Root)",
+    "id": 18,
+    "title": "18. Add Digits (Digital Root)",
     "difficulty": "easy",
     "points": 100,
     "category": "python-loops",
@@ -320,8 +210,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 29,
-    "title": "29. Base 7 / Binary Conversion (Arbitrary Base Conversion)",
+    "id": 19,
+    "title": "19. Base 7 / Binary Conversion (Arbitrary Base Conversion)",
     "difficulty": "easy",
     "points": 100,
     "category": "python-loops",
@@ -331,8 +221,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 30,
-    "title": "30. Integer to Roman",
+    "id": 20,
+    "title": "20. Integer to Roman",
     "difficulty": "easy",
     "points": 100,
     "category": "python-loops",
@@ -342,8 +232,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 31,
-    "title": "31. Roman to Integer",
+    "id": 21,
+    "title": "21. Roman to Integer",
     "difficulty": "easy",
     "points": 100,
     "category": "python-loops",
@@ -353,8 +243,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 32,
-    "title": "32. Excel Sheet Column Number",
+    "id": 22,
+    "title": "22. Excel Sheet Column Number",
     "difficulty": "easy",
     "points": 100,
     "category": "python-loops",
@@ -364,8 +254,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 33,
-    "title": "33. Multiply Strings (BigInteger Simulation)",
+    "id": 23,
+    "title": "23. Multiply Strings (BigInteger Simulation)",
     "difficulty": "medium",
     "points": 200,
     "category": "python-loops",
@@ -375,8 +265,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 34,
-    "title": "34. String to Integer (atoi implementation)",
+    "id": 24,
+    "title": "24. String to Integer (atoi implementation)",
     "difficulty": "easy",
     "points": 100,
     "category": "python-loops",
@@ -386,8 +276,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 35,
-    "title": "35. Next Greater Element III (Digit Permutation)",
+    "id": 25,
+    "title": "25. Next Greater Element III (Digit Permutation)",
     "difficulty": "medium",
     "points": 200,
     "category": "python-loops",
@@ -397,8 +287,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 36,
-    "title": "36. Count Primes (Sieve of Eratosthenes)",
+    "id": 26,
+    "title": "26. Count Primes (Sieve of Eratosthenes)",
     "difficulty": "medium",
     "points": 200,
     "category": "python-loops",
@@ -408,8 +298,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 37,
-    "title": "37. Greatest Common Divisor (GCD) & LCM",
+    "id": 27,
+    "title": "27. Greatest Common Divisor (GCD) & LCM",
     "difficulty": "medium",
     "points": 200,
     "category": "python-loops",
@@ -419,8 +309,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 38,
-    "title": "38. Factorial Trailing Zeroes",
+    "id": 28,
+    "title": "28. Factorial Trailing Zeroes",
     "difficulty": "medium",
     "points": 200,
     "category": "python-loops",
@@ -430,8 +320,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 39,
-    "title": "39. Super Pow (Modular Exponentiation)",
+    "id": 29,
+    "title": "29. Super Pow (Modular Exponentiation)",
     "difficulty": "medium",
     "points": 200,
     "category": "python-loops",
@@ -441,8 +331,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 40,
-    "title": "40. Ugly Number",
+    "id": 30,
+    "title": "30. Ugly Number",
     "difficulty": "easy",
     "points": 100,
     "category": "python-loops",
@@ -452,8 +342,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 41,
-    "title": "41. Happy Number",
+    "id": 31,
+    "title": "31. Happy Number",
     "difficulty": "hard",
     "points": 300,
     "category": "python-loops",
@@ -463,8 +353,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 42,
-    "title": "42. Integer Break",
+    "id": 32,
+    "title": "32. Integer Break",
     "difficulty": "hard",
     "points": 300,
     "category": "python-loops",
@@ -474,8 +364,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 43,
-    "title": "43. Perfect Squares (Lagrange's Four-Square Properties)",
+    "id": 33,
+    "title": "33. Perfect Squares (Lagrange's Four-Square Properties)",
     "difficulty": "medium",
     "points": 200,
     "category": "python-loops",
@@ -485,8 +375,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 44,
-    "title": "44. Nim Game (Game Theory Logic)",
+    "id": 34,
+    "title": "34. Nim Game (Game Theory Logic)",
     "difficulty": "easy",
     "points": 100,
     "category": "python-loops",
@@ -496,8 +386,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 45,
-    "title": "45. Pow(x, n) (Binary Exponentiation)",
+    "id": 35,
+    "title": "35. Pow(x, n) (Binary Exponentiation)",
     "difficulty": "easy",
     "points": 100,
     "category": "python-loops",
@@ -507,118 +397,118 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 46,
-    "title": "46. Solid Star Square Pattern",
+    "id": 36,
+    "title": "36. Solid Star Square Pattern",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-patterns",
+    "category": "python-loops",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, print a solid square pattern composed of asterisks (*). The grid must contain exactly n rows, and each row must contain exactly n asterisks. Each asterisk in a row should be separated by a single space character.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">If n is less than or equal to 0, the pattern cannot be formed; in this scenario, print nothing (an empty output).</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\"> \r\n\r\n* * * * *\r\n* * * * *\r\n* * * * *\r\n* * * * *\r\n* * * * *</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 2</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">* *\r\n* *</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n = 1 (The absolute minimal single-cell grid boundary condition)</code></li><li><code>n = -3 (Negative constraint handling resulting in zero operations)</code></li><li><code>n = 10 (Large uniform grid tracking row/column loop termination)</code></li>\n</ul>",
     "starter_code": "def solid_square(n):\n    # Write your code here\n    pass",
     "verification_script": "def ref_impl(*args):\n    if args[0] <= 0: return \"\"\n    return \"\\n\".join([\" \".join([\"*\"] * args[0])] * args[0])\n\nassert \"solid_square\" in exec_globals, \"Function solid_square not found\"\nfn = exec_globals[\"solid_square\"]\n\n# Show live output for 2 sample sizes\nprint(\"--- YOUR PATTERN FOR n=4 ---\")\ntry:\n    fn(4)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\nprint(\"--- YOUR PATTERN FOR n=5 ---\")\ntry:\n    fn(5)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\n\ndef capture(func, n):\n    import io, sys\n    buf = io.StringIO()\n    old = sys.stdout\n    sys.stdout = buf\n    try:\n        func(n)\n    finally:\n        sys.stdout = old\n    return buf.getvalue()\n\ndef normalize(s):\n    lines = [l.rstrip() for l in s.splitlines()]\n    while lines and not lines[-1]: lines.pop()\n    while lines and not lines[0]: lines.pop(0)\n    return lines\n\ntest_cases = [1, 3, 5, -2]\npassed = 0\nfor tc in test_cases:\n    exp = normalize(ref_impl(tc))\n    got = normalize(capture(fn, tc))\n    assert exp == got, f\"Mismatch n={tc}\\nExpected:\\n\" + \"\\n\".join(exp) + \"\\nGot:\\n\" + \"\\n\".join(got)\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 47,
-    "title": "47. Right-Angled Star Triangle",
+    "id": 37,
+    "title": "37. Right-Angled Star Triangle",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-patterns",
+    "category": "python-loops",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, print a right-angled triangle pattern of asterisks (*). The triangle must have exactly n rows. The first row must contain exactly 1 asterisk, the second row must contain 2 asterisks, and each subsequent row must increase the count by 1 until the n-th row, which contains exactly n asterisks. Each asterisk within a row should be separated by a single space character.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">If n is less than or equal to 0, print nothing.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">*\r\n* *\r\n* * *\r\n* * * *\r\n* * * * *</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 3</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">*\r\n* *\r\n* * *</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = -1</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (Empty Output)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n = 1 (Single row boundary case printing a solitary asterisk)</code></li><li><code>n = 0 (Zero constraint exit validation)</code></li><li><code>n = 6 (Verifying that the sequence scales linearly row-by-row)</code></li>\n</ul>",
     "starter_code": "def right_triangle(n):\n    # Write your code here\n    pass",
     "verification_script": "def ref_impl(*args):\n    if args[0] <= 0: return \"\"\n    return \"\\n\".join([\" \".join([\"*\"] * i) for i in range(1, args[0] + 1)])\n\nassert \"right_triangle\" in exec_globals, \"Function right_triangle not found\"\nfn = exec_globals[\"right_triangle\"]\n\n# Show live output for 2 sample sizes\nprint(\"--- YOUR PATTERN FOR n=4 ---\")\ntry:\n    fn(4)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\nprint(\"--- YOUR PATTERN FOR n=5 ---\")\ntry:\n    fn(5)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\n\ndef capture(func, n):\n    import io, sys\n    buf = io.StringIO()\n    old = sys.stdout\n    sys.stdout = buf\n    try:\n        func(n)\n    finally:\n        sys.stdout = old\n    return buf.getvalue()\n\ndef normalize(s):\n    lines = [l.rstrip() for l in s.splitlines()]\n    while lines and not lines[-1]: lines.pop()\n    while lines and not lines[0]: lines.pop(0)\n    return lines\n\ntest_cases = [1, 3, 5, -2]\npassed = 0\nfor tc in test_cases:\n    exp = normalize(ref_impl(tc))\n    got = normalize(capture(fn, tc))\n    assert exp == got, f\"Mismatch n={tc}\\nExpected:\\n\" + \"\\n\".join(exp) + \"\\nGot:\\n\" + \"\\n\".join(got)\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 48,
-    "title": "48. Right-Angled Number Triangle",
+    "id": 38,
+    "title": "38. Right-Angled Number Triangle",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-patterns",
+    "category": "python-loops",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, print a right-angled triangle pattern using sequential integers. The pattern must contain exactly n rows.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">If n is less than or equal to 0, print nothing.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">1\r\n1 2\r\n1 2 3\r\n1 2 3 4\r\n1 2 3 4 5</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 2</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">1\r\n1 2</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (Empty Output)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n = 1 (Displays only the starting number 1)</code></li><li><code>n = 4 (Verifying that the loop resets the numerical sequence back to 1 at the start of every new row)</code></li><li><code>n = -5 (Negative boundary verification check)</code></li>\n</ul>",
     "starter_code": "def number_triangle(n):\n    # Write your code here\n    pass",
     "verification_script": "def ref_impl(*args):\n    if args[0] <= 0: return \"\"\n    return \"\\n\".join([\" \".join(str(j) for j in range(1, i + 1)) for i in range(1, args[0] + 1)])\n\nassert \"number_triangle\" in exec_globals, \"Function number_triangle not found\"\nfn = exec_globals[\"number_triangle\"]\n\n# Show live output for 2 sample sizes\nprint(\"--- YOUR PATTERN FOR n=4 ---\")\ntry:\n    fn(4)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\nprint(\"--- YOUR PATTERN FOR n=5 ---\")\ntry:\n    fn(5)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\n\ndef capture(func, n):\n    import io, sys\n    buf = io.StringIO()\n    old = sys.stdout\n    sys.stdout = buf\n    try:\n        func(n)\n    finally:\n        sys.stdout = old\n    return buf.getvalue()\n\ndef normalize(s):\n    lines = [l.rstrip() for l in s.splitlines()]\n    while lines and not lines[-1]: lines.pop()\n    while lines and not lines[0]: lines.pop(0)\n    return lines\n\ntest_cases = [1, 3, 5, -2]\npassed = 0\nfor tc in test_cases:\n    exp = normalize(ref_impl(tc))\n    got = normalize(capture(fn, tc))\n    assert exp == got, f\"Mismatch n={tc}\\nExpected:\\n\" + \"\\n\".join(exp) + \"\\nGot:\\n\" + \"\\n\".join(got)\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 49,
-    "title": "49. Repeating Number Triangle",
+    "id": 39,
+    "title": "39. Repeating Number Triangle",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-patterns",
+    "category": "python-loops",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, print a right-angled triangle pattern of repeating numbers. The pattern must contain exactly n rows.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">If n is less than or equal to 0, print nothing.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">1\r\n2 2\r\n3 3 3\r\n4 4 4 4\r\n5 5 5 5 5</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 3</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">1\r\n2 2\r\n3 3 3</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (Empty Output)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n = 1 (Minimal grid displaying only 1)</code></li><li><code>n = 6 (Ensuring the digit character updates across higher loop indices while matching the column length)</code></li><li><code>n = -2 (Graceful termination on negative boundaries)</code></li>\n</ul>",
     "starter_code": "def repeating_number_triangle(n):\n    # Write your code here\n    pass",
     "verification_script": "def ref_impl(*args):\n    if args[0] <= 0: return \"\"\n    return \"\\n\".join([\" \".join([str(i)] * i) for i in range(1, args[0] + 1)])\n\nassert \"repeating_number_triangle\" in exec_globals, \"Function repeating_number_triangle not found\"\nfn = exec_globals[\"repeating_number_triangle\"]\n\n# Show live output for 2 sample sizes\nprint(\"--- YOUR PATTERN FOR n=4 ---\")\ntry:\n    fn(4)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\nprint(\"--- YOUR PATTERN FOR n=5 ---\")\ntry:\n    fn(5)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\n\ndef capture(func, n):\n    import io, sys\n    buf = io.StringIO()\n    old = sys.stdout\n    sys.stdout = buf\n    try:\n        func(n)\n    finally:\n        sys.stdout = old\n    return buf.getvalue()\n\ndef normalize(s):\n    lines = [l.rstrip() for l in s.splitlines()]\n    while lines and not lines[-1]: lines.pop()\n    while lines and not lines[0]: lines.pop(0)\n    return lines\n\ntest_cases = [1, 3, 5, -2]\npassed = 0\nfor tc in test_cases:\n    exp = normalize(ref_impl(tc))\n    got = normalize(capture(fn, tc))\n    assert exp == got, f\"Mismatch n={tc}\\nExpected:\\n\" + \"\\n\".join(exp) + \"\\nGot:\\n\" + \"\\n\".join(got)\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 50,
-    "title": "50. Inverted Right-Angled Star Triangle",
+    "id": 40,
+    "title": "40. Inverted Right-Angled Star Triangle",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-patterns",
+    "category": "python-loops",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, print an inverted right-angled triangle pattern of asterisks (*). The pattern must contain exactly n rows. The characters in each row should be separated by a single space.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">If n is less than or equal to 0, print nothing.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">* * * * *\r\n* * * *\r\n* * *\r\n* *\r\n*</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 3</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">* * *\r\n* *\r\n*</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (Empty Output)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n = 1 (Solitary cell structural match)</code></li><li><code>n = 4 (Verifying that loop decrements systematically trim the trailing star positions)</code></li><li><code>n = -10 (Handling out-of-bounds lower limits safely)</code></li>\n</ul>",
     "starter_code": "def inverted_right_triangle(n):\n    # Write your code here\n    pass",
     "verification_script": "def ref_impl(*args):\n    if args[0] <= 0: return \"\"\n    return \"\\n\".join([\" \".join([\"*\"] * i) for i in range(args[0], 0, -1)])\n\nassert \"inverted_right_triangle\" in exec_globals, \"Function inverted_right_triangle not found\"\nfn = exec_globals[\"inverted_right_triangle\"]\n\n# Show live output for 2 sample sizes\nprint(\"--- YOUR PATTERN FOR n=4 ---\")\ntry:\n    fn(4)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\nprint(\"--- YOUR PATTERN FOR n=5 ---\")\ntry:\n    fn(5)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\n\ndef capture(func, n):\n    import io, sys\n    buf = io.StringIO()\n    old = sys.stdout\n    sys.stdout = buf\n    try:\n        func(n)\n    finally:\n        sys.stdout = old\n    return buf.getvalue()\n\ndef normalize(s):\n    lines = [l.rstrip() for l in s.splitlines()]\n    while lines and not lines[-1]: lines.pop()\n    while lines and not lines[0]: lines.pop(0)\n    return lines\n\ntest_cases = [1, 3, 5, -2]\npassed = 0\nfor tc in test_cases:\n    exp = normalize(ref_impl(tc))\n    got = normalize(capture(fn, tc))\n    assert exp == got, f\"Mismatch n={tc}\\nExpected:\\n\" + \"\\n\".join(exp) + \"\\nGot:\\n\" + \"\\n\".join(got)\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 51,
-    "title": "51. Inverted Right-Angled Number Triangle",
+    "id": 41,
+    "title": "41. Inverted Right-Angled Number Triangle",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-patterns",
+    "category": "python-loops",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, print an inverted right-angled triangle pattern of numbers. The grid must contain exactly n rows. Numbers within each row must be separated by a single space.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">If n is less than or equal to 0, print nothing.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">1 2 3 4 5\r\n1 2 3 4\r\n1 2 3\r\n1 2\r\n1</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 2</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">1 2\r\n1</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (Empty Output)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n = 1 (Outputs only the baseline scalar character 1)</code></li><li><code>n = 4 (Ensuring inner loop counts decrease its terminal boundaries while keeping the start value anchored to 1)</code></li><li><code>n = -4 (Invalid range configuration safety check)</code></li>\n</ul>",
     "starter_code": "def inverted_number_triangle(n):\n    # Write your code here\n    pass",
     "verification_script": "def ref_impl(*args):\n    if args[0] <= 0: return \"\"\n    return \"\\n\".join([\" \".join(str(j) for j in range(1, i + 1)) for i in range(args[0], 0, -1)])\n\nassert \"inverted_number_triangle\" in exec_globals, \"Function inverted_number_triangle not found\"\nfn = exec_globals[\"inverted_number_triangle\"]\n\n# Show live output for 2 sample sizes\nprint(\"--- YOUR PATTERN FOR n=4 ---\")\ntry:\n    fn(4)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\nprint(\"--- YOUR PATTERN FOR n=5 ---\")\ntry:\n    fn(5)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\n\ndef capture(func, n):\n    import io, sys\n    buf = io.StringIO()\n    old = sys.stdout\n    sys.stdout = buf\n    try:\n        func(n)\n    finally:\n        sys.stdout = old\n    return buf.getvalue()\n\ndef normalize(s):\n    lines = [l.rstrip() for l in s.splitlines()]\n    while lines and not lines[-1]: lines.pop()\n    while lines and not lines[0]: lines.pop(0)\n    return lines\n\ntest_cases = [1, 3, 5, -2]\npassed = 0\nfor tc in test_cases:\n    exp = normalize(ref_impl(tc))\n    got = normalize(capture(fn, tc))\n    assert exp == got, f\"Mismatch n={tc}\\nExpected:\\n\" + \"\\n\".join(exp) + \"\\nGot:\\n\" + \"\\n\".join(got)\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 52,
-    "title": "52. Star Pyramid Pattern",
+    "id": 42,
+    "title": "42. Star Pyramid Pattern",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-patterns",
+    "category": "python-loops",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, print a centered pyramid pattern composed of asterisks (*). The pyramid must contain exactly n rows. The first row contains exactly 1 asterisk centered relative to the bottom row, and each subsequent row increases the asterisk count by exactly 2 (forming an odd sequence: 1, 3, 5, 7, ...).</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">The output must be formatted with leading spaces to maintain a perfectly symmetrical, centered alignment. If n is less than or equal to 0, print nothing.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 4</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">   *\r\n  ***\r\n *****\r\n*******</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 2</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\"> *\r\n***</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (Empty Output)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n = 1 (The minimal single-row pyramid showing one asterisk)</code></li><li><code>n = 5 (Verifying perfect centered spacing across higher horizontal layers)</code></li><li><code>n = -2 (Zero operations for invalid input boundaries)</code></li>\n</ul>",
     "starter_code": "def star_pyramid(n):\n    # Write your code here\n    pass",
     "verification_script": "def ref_impl(*args):\n    n = args[0]\n    if n <= 0: return \"\"\n    lines = []\n    for i in range(1, n + 1):\n        spaces = \" \" * (n - i)\n        stars = \" \".join([\"*\"] * i)\n        lines.append(spaces + stars)\n    return \"\\n\".join(lines)\n\nassert \"star_pyramid\" in exec_globals, \"Function star_pyramid not found\"\nfn = exec_globals[\"star_pyramid\"]\n\n# Show live output for 2 sample sizes\nprint(\"--- YOUR PATTERN FOR n=4 ---\")\ntry:\n    fn(4)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\nprint(\"--- YOUR PATTERN FOR n=5 ---\")\ntry:\n    fn(5)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\n\ndef capture(func, n):\n    import io, sys\n    buf = io.StringIO()\n    old = sys.stdout\n    sys.stdout = buf\n    try:\n        func(n)\n    finally:\n        sys.stdout = old\n    return buf.getvalue()\n\ndef normalize(s):\n    lines = [l.rstrip() for l in s.splitlines()]\n    while lines and not lines[-1]: lines.pop()\n    while lines and not lines[0]: lines.pop(0)\n    return lines\n\ntest_cases = [1, 3, 5, -2]\npassed = 0\nfor tc in test_cases:\n    exp = normalize(ref_impl(tc))\n    got = normalize(capture(fn, tc))\n    assert exp == got, f\"Mismatch n={tc}\\nExpected:\\n\" + \"\\n\".join(exp) + \"\\nGot:\\n\" + \"\\n\".join(got)\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 53,
-    "title": "53. Inverted Star Pyramid Pattern",
+    "id": 43,
+    "title": "43. Inverted Star Pyramid Pattern",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-patterns",
+    "category": "python-loops",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, print an inverted centered pyramid pattern composed of asterisks (*). The pattern must contain exactly n rows. The first row must display the maximum width sequence of asterisks, and each subsequent row must decrease the asterisk count by exactly 2.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">The rows must include leading spaces to keep the entire shape centered and inverted symmetrically. If n is less than or equal to 0, print nothing.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">*********\r\n *******\r\n  *****\r\n   ***\r\n    *</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 2</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">***\r\n *</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = -1</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (Empty Output)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n = 1 (Prints just a single asterisk)</code></li><li><code>n = 4 (Ensures the top row correctly outputs exactly 7 asterisks and tapers down cleanly)</code></li><li><code>n = 0 (Graceful termination check)</code></li>\n</ul>",
     "starter_code": "def inverted_star_pyramid(n):\n    # Write your code here\n    pass",
     "verification_script": "def ref_impl(*args):\n    n = args[0]\n    if n <= 0: return \"\"\n    lines = []\n    for i in range(n, 0, -1):\n        spaces = \" \" * (n - i)\n        stars = \" \".join([\"*\"] * i)\n        lines.append(spaces + stars)\n    return \"\\n\".join(lines)\n\nassert \"inverted_star_pyramid\" in exec_globals, \"Function inverted_star_pyramid not found\"\nfn = exec_globals[\"inverted_star_pyramid\"]\n\n# Show live output for 2 sample sizes\nprint(\"--- YOUR PATTERN FOR n=4 ---\")\ntry:\n    fn(4)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\nprint(\"--- YOUR PATTERN FOR n=5 ---\")\ntry:\n    fn(5)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\n\ndef capture(func, n):\n    import io, sys\n    buf = io.StringIO()\n    old = sys.stdout\n    sys.stdout = buf\n    try:\n        func(n)\n    finally:\n        sys.stdout = old\n    return buf.getvalue()\n\ndef normalize(s):\n    lines = [l.rstrip() for l in s.splitlines()]\n    while lines and not lines[-1]: lines.pop()\n    while lines and not lines[0]: lines.pop(0)\n    return lines\n\ntest_cases = [1, 3, 5, -2]\npassed = 0\nfor tc in test_cases:\n    exp = normalize(ref_impl(tc))\n    got = normalize(capture(fn, tc))\n    assert exp == got, f\"Mismatch n={tc}\\nExpected:\\n\" + \"\\n\".join(exp) + \"\\nGot:\\n\" + \"\\n\".join(got)\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 54,
-    "title": "54. Star Diamond Pattern",
+    "id": 44,
+    "title": "44. Star Diamond Pattern",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-patterns",
+    "category": "python-loops",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, print a symmetrical diamond pattern composed of asterisks (*). The diamond consists of a top upright pyramid followed by an inverted pyramid, creating a shape with a maximum thickness row in the center. The total height of the shape scales relative to the input parameter n.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Leading spaces must be managed perfectly across all rows to center the entire diamond. If n is less than or equal to 0, print nothing.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">    *\r\n   ***\r\n  *****\r\n *******\r\n*********\r\n*********\r\n *******\r\n  *****\r\n   ***\r\n    *</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 1</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">*\r\n*</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (Empty Output)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n = 2 (Smallest complex multi-layer diamond layout)</code></li><li><code>n = 6 (Testing structural stability when splitting the growing and shrinking segments)</code></li><li><code>n = -5 (Negative boundary verification check)</code></li>\n</ul>",
     "starter_code": "def star_diamond(n):\n    # Write your code here\n    pass",
     "verification_script": "def ref_impl(*args):\n    n = args[0]\n    if n <= 0: return \"\"\n    lines = []\n    for i in range(1, n + 1):\n        spaces = \" \" * (n - i)\n        stars = \" \".join([\"*\"] * i)\n        lines.append(spaces + stars)\n    for i in range(n - 1, 0, -1):\n        spaces = \" \" * (n - i)\n        stars = \" \".join([\"*\"] * i)\n        lines.append(spaces + stars)\n    return \"\\n\".join(lines)\n\nassert \"star_diamond\" in exec_globals, \"Function star_diamond not found\"\nfn = exec_globals[\"star_diamond\"]\n\n# Show live output for 2 sample sizes\nprint(\"--- YOUR PATTERN FOR n=4 ---\")\ntry:\n    fn(4)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\nprint(\"--- YOUR PATTERN FOR n=5 ---\")\ntry:\n    fn(5)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\n\ndef capture(func, n):\n    import io, sys\n    buf = io.StringIO()\n    old = sys.stdout\n    sys.stdout = buf\n    try:\n        func(n)\n    finally:\n        sys.stdout = old\n    return buf.getvalue()\n\ndef normalize(s):\n    lines = [l.rstrip() for l in s.splitlines()]\n    while lines and not lines[-1]: lines.pop()\n    while lines and not lines[0]: lines.pop(0)\n    return lines\n\ntest_cases = [1, 3, 5, -2]\npassed = 0\nfor tc in test_cases:\n    exp = normalize(ref_impl(tc))\n    got = normalize(capture(fn, tc))\n    assert exp == got, f\"Mismatch n={tc}\\nExpected:\\n\" + \"\\n\".join(exp) + \"\\nGot:\\n\" + \"\\n\".join(got)\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 55,
-    "title": "55. Half Star Diamond Pattern",
+    "id": 45,
+    "title": "45. Half Star Diamond Pattern",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-patterns",
+    "category": "python-loops",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, print a sideways, right-pointing arrow pattern of asterisks (*). The pattern grows wider row-by-row until it reaches a maximum row width of n asterisks, after which it immediately begins narrowing down row-by-row until it terminates at 1 asterisk.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">No leading spaces are required for alignment; every row starts immediately at the left margin. Each asterisk within a row should be separated by a single space character. If n is less than or equal to 0, print nothing.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">*\r\n* *\r\n* * *\r\n* * * *\r\n* * * * *\r\n* * * *\r\n* * *\r\n* *\r\n*</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 2</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">*\r\n* *\r\n*</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (Empty Output)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n = 1 (A single row with a single asterisk)</code></li><li><code>n = 4 (Ensures that the peak width reaches exactly 4 stars and matches the image layout)</code></li><li><code>n = -1 (Negative parameter safety check)</code></li>\n</ul>",
     "starter_code": "def half_star_diamond(n):\n    # Write your code here\n    pass",
     "verification_script": "def ref_impl(*args):\n    n = args[0]\n    if n <= 0: return \"\"\n    lines = []\n    for i in range(1, n + 1):\n        lines.append(\" \".join([\"*\"] * i))\n    for i in range(n - 1, 0, -1):\n        lines.append(\" \".join([\"*\"] * i))\n    return \"\\n\".join(lines)\n\nassert \"half_star_diamond\" in exec_globals, \"Function half_star_diamond not found\"\nfn = exec_globals[\"half_star_diamond\"]\n\n# Show live output for 2 sample sizes\nprint(\"--- YOUR PATTERN FOR n=4 ---\")\ntry:\n    fn(4)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\nprint(\"--- YOUR PATTERN FOR n=5 ---\")\ntry:\n    fn(5)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\n\ndef capture(func, n):\n    import io, sys\n    buf = io.StringIO()\n    old = sys.stdout\n    sys.stdout = buf\n    try:\n        func(n)\n    finally:\n        sys.stdout = old\n    return buf.getvalue()\n\ndef normalize(s):\n    lines = [l.rstrip() for l in s.splitlines()]\n    while lines and not lines[-1]: lines.pop()\n    while lines and not lines[0]: lines.pop(0)\n    return lines\n\ntest_cases = [1, 3, 5, -2]\npassed = 0\nfor tc in test_cases:\n    exp = normalize(ref_impl(tc))\n    got = normalize(capture(fn, tc))\n    assert exp == got, f\"Mismatch n={tc}\\nExpected:\\n\" + \"\\n\".join(exp) + \"\\nGot:\\n\" + \"\\n\".join(got)\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 56,
-    "title": "56. Alternating Binary Triangle",
+    "id": 46,
+    "title": "46. Alternating Binary Triangle",
     "difficulty": "medium",
     "points": 200,
     "category": "python-patterns",
@@ -628,8 +518,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 57,
-    "title": "57. Mirror Number Canopy Pattern",
+    "id": 47,
+    "title": "47. Mirror Number Canopy Pattern",
     "difficulty": "medium",
     "points": 200,
     "category": "python-patterns",
@@ -639,8 +529,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 58,
-    "title": "58. Floyd's Number Triangle",
+    "id": 48,
+    "title": "48. Floyd's Number Triangle",
     "difficulty": "medium",
     "points": 200,
     "category": "python-patterns",
@@ -650,8 +540,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 59,
-    "title": "59. Incrementing Alphabet Triangle",
+    "id": 49,
+    "title": "49. Incrementing Alphabet Triangle",
     "difficulty": "medium",
     "points": 200,
     "category": "python-patterns",
@@ -661,8 +551,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 60,
-    "title": "60. Inverted Alphabet Triangle",
+    "id": 50,
+    "title": "50. Inverted Alphabet Triangle",
     "difficulty": "medium",
     "points": 200,
     "category": "python-patterns",
@@ -672,8 +562,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 61,
-    "title": "61. Repeating Alphabet Triangle",
+    "id": 51,
+    "title": "51. Repeating Alphabet Triangle",
     "difficulty": "medium",
     "points": 200,
     "category": "python-patterns",
@@ -683,8 +573,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 62,
-    "title": "62. Alphabet Palindrome Pyramid",
+    "id": 52,
+    "title": "52. Alphabet Palindrome Pyramid",
     "difficulty": "medium",
     "points": 200,
     "category": "python-patterns",
@@ -694,8 +584,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 63,
-    "title": "63. Shifting Alphabet Window",
+    "id": 53,
+    "title": "53. Shifting Alphabet Window",
     "difficulty": "medium",
     "points": 200,
     "category": "python-patterns",
@@ -705,8 +595,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 64,
-    "title": "64. Symmetrical Star Canopy (The Inverted Butterfly)",
+    "id": 54,
+    "title": "54. Symmetrical Star Canopy (The Inverted Butterfly)",
     "difficulty": "hard",
     "points": 300,
     "category": "python-patterns",
@@ -716,8 +606,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 65,
-    "title": "65. Symmetrical Star Bow (The Standard Butterfly)",
+    "id": 55,
+    "title": "55. Symmetrical Star Bow (The Standard Butterfly)",
     "difficulty": "hard",
     "points": 300,
     "category": "python-patterns",
@@ -727,8 +617,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 66,
-    "title": "66. Hollow Star Box Frame",
+    "id": 56,
+    "title": "56. Hollow Star Box Frame",
     "difficulty": "hard",
     "points": 300,
     "category": "python-patterns",
@@ -738,8 +628,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 67,
-    "title": "67. Concentric Number Grid",
+    "id": 57,
+    "title": "57. Concentric Number Grid",
     "difficulty": "hard",
     "points": 300,
     "category": "python-patterns",
@@ -749,118 +639,118 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 68,
-    "title": "68. String Upper, Lower, Strip",
+    "id": 58,
+    "title": "58. String Upper, Lower, Strip",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-strings",
+    "category": "python-patterns",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>clean_string(s)</code> that takes a string with possible leading/trailing whitespace and mixed case, and returns a tuple:\n<code>(stripped, upper, lower, title_case)</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use Python's built-in string methods: <code>.strip()</code>, <code>.upper()</code>, <code>.lower()</code>, <code>.title()</code></p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"  hello world  \"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(\"hello world\", \"HELLO WORLD\", \"hello world\", \"Hello World\")</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">strip() removes spaces, upper() converts to uppercase, lower() to lowercase</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"  PyTHON  \"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(\"PyTHON\", \"PYTHON\", \"python\", \"Python\")</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Same operations on '  PyTHON  '</span></div>\n</div>",
     "starter_code": "def clean_string(s):\n    # Return (stripped, upper, lower, title_case)\n    pass",
     "verification_script": "def ref_impl(*args):\n    r=args[0].strip()\n    return (r, r.upper(), r.lower(), r.title())\n\nassert \"clean_string\" in exec_globals, \"Function clean_string not found\"\nfn = exec_globals[\"clean_string\"]\ntest_cases = [\"  hello world  \", \"  PyTHON  \", \"TEST\", \"  a  b  \"]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 69,
-    "title": "69. Split and Join",
+    "id": 59,
+    "title": "59. Split and Join",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-strings",
+    "category": "python-patterns",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>split_and_join(sentence)</code> that takes a sentence string, splits it into words, and then returns a tuple:\n<code>(words_list, word_count, joined_with_dash)</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use <code>.split()</code> which splits on whitespace by default, and <code>\"-\".join(lst)</code> to join with a dash separator.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"the quick brown fox\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>([\"the\",\"quick\",\"brown\",\"fox\"], 4, \"the-quick-brown-fox\")</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">split() on spaces gives list, len() counts elements, join() puts them back with hyphens</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"hello world\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>([\"hello\",\"world\"], 2, \"hello-world\")</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">split() gives ['hello', 'world'], len=2, joined with hyphen → 'hello-world'</span></div>\n</div>",
     "starter_code": "def split_and_join(sentence):\n    # Return (words_list, word_count, joined_with_dash)\n    pass",
     "verification_script": "def ref_impl(*args):\n    words=args[0].split()\n    return (words, len(words), \"-\".join(words))\n\nassert \"split_and_join\" in exec_globals, \"Function split_and_join not found\"\nfn = exec_globals[\"split_and_join\"]\ntest_cases = [\"the quick brown fox\", \"hello world\", \"single\", \"a b c d e\"]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 70,
-    "title": "70. Replace and Find",
+    "id": 60,
+    "title": "60. Replace and Find",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-strings",
+    "category": "python-patterns",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>modify_string(s, old, new_val)</code> that returns a tuple:\n<code>(replaced, first_index, count)</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Where:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li><code>replaced</code> = the string with all occurrences of <code>old</code> replaced by <code>new_val</code></li>\n<li><code>first_index</code> = the index of first occurrence of <code>old</code> (-1 if not found)</li>\n<li><code>count</code> = how many times <code>old</code> appears</li>\n</ul><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use <code>.replace()</code>, <code>.find()</code>, and <code>.count()</code>.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s=\"hello world\", old=\"l\", new_val=\"L\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(\"heLLo worLd\", 2, 3)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">replace('l','L') replaces all 'l's; find('l') returns first index 2; count('l') returns 3</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s=\"python\", old=\"z\", new_val=\"Z\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(\"python\", -1, 0)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">No match for 'z' → returns original string, find=-1, count=0</span></div>\n</div>",
     "starter_code": "def modify_string(s, old, new_val):\n    # Return (replaced, first_index, count)\n    pass",
     "verification_script": "def ref_impl(*args):\n    s,old,new=args[0],args[1],args[2]\n    return (s.replace(old,new), s.find(old), s.count(old))\n\nassert \"modify_string\" in exec_globals, \"Function modify_string not found\"\nfn = exec_globals[\"modify_string\"]\ntest_cases = [(\"hello world\",\"l\",\"L\"), (\"python\",\"z\",\"Z\"), (\"abcabc\",\"a\",\"X\"), (\"aaa\",\"a\",\"b\")]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 71,
-    "title": "71. Starts With & Ends With",
+    "id": 61,
+    "title": "61. Starts With & Ends With",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-strings",
+    "category": "python-patterns",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>check_affixes(s, prefix, suffix)</code> that returns a tuple:\n<code>(starts_with_prefix, ends_with_suffix, both)</code> — all boolean values.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use Python's <code>.startswith()</code> and <code>.endswith()</code> string methods.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s=\"Python Programming\", prefix=\"Py\", suffix=\"ing\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(True, True, True)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">'PyCode' starts with 'Py' and ends with 'ode' → (True, True)</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s=\"Hello World\", prefix=\"Hi\", suffix=\"World\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(False, True, False)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">'hello' starts with 'he' and ends with 'lo' → (True, True)</span></div>\n</div>",
     "starter_code": "def check_affixes(s, prefix, suffix):\n    # Return (starts, ends, both) as booleans\n    pass",
     "verification_script": "def ref_impl(*args):\n    s,p,su=args[0],args[1],args[2]\n    st=s.startswith(p)\n    en=s.endswith(su)\n    return (st,en,st and en)\n\nassert \"check_affixes\" in exec_globals, \"Function check_affixes not found\"\nfn = exec_globals[\"check_affixes\"]\ntest_cases = [(\"Python Programming\",\"Py\",\"ing\"), (\"Hello World\",\"Hi\",\"World\"), (\"abc\",\"a\",\"c\"), (\"abc\",\"x\",\"y\")]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 72,
-    "title": "72. isalpha, isdigit, isalnum",
+    "id": 62,
+    "title": "62. isalpha, isdigit, isalnum",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-strings",
+    "category": "python-patterns",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>check_string_type(s)</code> that returns a tuple:\n<code>(is_alpha, is_digit, is_alnum, is_space)</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use the built-in string methods <code>.isalpha()</code>, <code>.isdigit()</code>, <code>.isalnum()</code>, <code>.isspace()</code>. Each returns True only if ALL characters in the string satisfy the condition.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"Hello\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(True, False, True, False)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">'hello' contains only alphabetic characters → alpha=True, digit=False, alnum=True</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"12345\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(False, True, True, False)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">'12345' contains only digit characters → alpha=False, digit=True, alnum=True</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"Hello123\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(False, False, True, False)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>s is a non-empty string</code></li>\n</ul>",
     "starter_code": "def check_string_type(s):\n    # Return (is_alpha, is_digit, is_alnum, is_space)\n    pass",
     "verification_script": "def ref_impl(*args):\n    s=args[0]\n    return (s.isalpha(), s.isdigit(), s.isalnum(), s.isspace())\n\nassert \"check_string_type\" in exec_globals, \"Function check_string_type not found\"\nfn = exec_globals[\"check_string_type\"]\ntest_cases = [\"Hello\", \"12345\", \"Hello123\", \"   \", \"abc!\"]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 73,
-    "title": "73. Count Specific Characters",
+    "id": 63,
+    "title": "63. Count Specific Characters",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-strings",
+    "category": "python-patterns",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>char_counts(s)</code> that takes a string and returns a tuple:\n<code>(vowels, consonants, digits, spaces, specials)</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Count each type of character in the string. Vowels are a,e,i,o,u (case-insensitive). Consonants are other letters. Specials are anything else that's not a digit or space.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"Hello World 2024!\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(3, 7, 4, 1, 1)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">'Hello World' has 2 words, longest is 'Hello' (5 chars)</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"abc\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(1, 2, 0, 0, 0)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Empty string has 0 words, longest is '' (0 chars)</span></div>\n</div>",
     "starter_code": "def char_counts(s):\n    # Return (vowels, consonants, digits, spaces, specials)\n    pass",
     "verification_script": "def ref_impl(*args):\n    s=args[0]\n    v=sum(1 for c in s if c.lower() in \"aeiou\")\n    co=sum(1 for c in s if c.isalpha() and c.lower() not in \"aeiou\")\n    d=sum(1 for c in s if c.isdigit())\n    sp=sum(1 for c in s if c==\" \")\n    spec=sum(1 for c in s if not c.isalnum() and c!=\" \")\n    return (v,co,d,sp,spec)\n\nassert \"char_counts\" in exec_globals, \"Function char_counts not found\"\nfn = exec_globals[\"char_counts\"]\ntest_cases = [\"Hello World 2024!\", \"abc\", \"12 + 34\", \"\"]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 74,
-    "title": "74. String Padding & Alignment",
+    "id": 64,
+    "title": "64. String Padding & Alignment",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-strings",
+    "category": "python-patterns",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>align_string(s, width)</code> that returns a tuple of the string aligned three ways within a field of the given <code>width</code>:\n<code>(left_aligned, right_aligned, center_aligned)</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use Python's string methods <code>.ljust(width)</code>, <code>.rjust(width)</code>, <code>.center(width)</code>.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s=\"hi\", width=6</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(\"hi    \", \"    hi\", \"  hi  \")</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">'racecar' reversed is 'racecar' → Palindrome → True</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s=\"abc\", width=5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(\"abc  \", \"  abc\", \" abc \")</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">'hello' reversed is 'olleh' != 'hello' → False</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>width is always >= len(s)</code></li>\n</ul>",
     "starter_code": "def align_string(s, width):\n    # Return (left, right, center) aligned strings\n    pass",
     "verification_script": "def ref_impl(*args):\n    s,w=args[0],args[1]\n    return (s.ljust(w),s.rjust(w),s.center(w))\n\nassert \"align_string\" in exec_globals, \"Function align_string not found\"\nfn = exec_globals[\"align_string\"]\ntest_cases = [(\"hi\",6), (\"abc\",5), (\"x\",4), (\"python\",10)]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 75,
-    "title": "75. Palindrome Using String Methods",
+    "id": 65,
+    "title": "65. Palindrome Using String Methods",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-strings",
+    "category": "python-patterns",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>is_palindrome_clean(s)</code> that checks if a string is a palindrome after cleaning it.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Cleaning steps (using string methods):</p>\n<ol class=\"list-decimal pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li>Convert to lowercase with <code>.lower()</code></li>\n<li>Keep only alphanumeric characters — iterate and use <code>.isalnum()</code></li>\n<li>Compare the cleaned string with its reverse (<code>[::-1]</code>)</li>\n</ol><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"A man, a plan, a canal: Panama\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>True</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Clean string to lowercase letters: 'madam' → same reversed → True</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"race a car\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>False</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Clean string: 'helloworld' → reversed is 'dlrowolleh' != original → False</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"Was it a car or a cat I saw?\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>True</code></div>\n  \n</div>",
     "starter_code": "def is_palindrome_clean(s):\n    # Clean s and check if palindrome\n    pass",
     "verification_script": "def ref_impl(*args):\n    s=args[0]\n    clean=\"\".join(c for c in s.lower() if c.isalnum())\n    return clean==clean[::-1]\n\nassert \"is_palindrome_clean\" in exec_globals, \"Function is_palindrome_clean not found\"\nfn = exec_globals[\"is_palindrome_clean\"]\ntest_cases = [\"A man, a plan, a canal: Panama\", \"race a car\", \"Was it a car or a cat I saw?\", \"\", \"a\"]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 76,
-    "title": "76. Word Frequency",
+    "id": 66,
+    "title": "66. Word Frequency",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-strings",
+    "category": "python-patterns",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>word_frequency(sentence)</code> that takes a sentence string, splits it into words (lowercased), and returns a dictionary mapping each unique word to its count.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">This combines <code>.lower()</code>, <code>.split()</code>, and dictionary operations.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"the cat sat on the mat\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>{\"the\": 2, \"cat\": 1, \"sat\": 1, \"on\": 1, \"mat\": 1}</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Rotate 'Python' by 2: move last 2 chars 'on' to front → 'onPyth'</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>s = \"hello hello world\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>{\"hello\": 2, \"world\": 1}</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Rotate 'abcde' by 1: move last 1 char 'e' to front → 'eabcd'</span></div>\n</div>",
     "starter_code": "def word_frequency(sentence):\n    # Return dict of word: count\n    pass",
     "verification_script": "def ref_impl(*args):\n    words=args[0].lower().split()\n    freq={}\n    for w in words:\n        freq[w]=freq.get(w,0)+1\n    return freq\n\nassert \"word_frequency\" in exec_globals, \"Function word_frequency not found\"\nfn = exec_globals[\"word_frequency\"]\ntest_cases = [\"the cat sat on the mat\", \"hello hello world\", \"a a a\", \"one\"]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 77,
-    "title": "77. Format a Report Line",
+    "id": 67,
+    "title": "67. Format a Report Line",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-strings",
+    "category": "python-patterns",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>format_report(name, score, rank)</code> that returns a neatly formatted report line using an f-string:</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\"><code>f\"Rank {rank:02d} | {name:<15} | Score: {score:06.2f}\"</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Format specifiers:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li><code>:02d</code> → integer with leading zeros (min width 2)</li>\n<li><code>:<15</code> → left-align with width 15</li>\n<li><code>:06.2f</code> → float with 2 decimal places, min width 6, leading zeros</li>\n</ul><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>name=\"Alice\", score=95.5, rank=1</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Rank 01 | Alice           | Score: 095.50\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">'abcabc': unique characters sorted → 'abc', count of each: a=2, b=2, c=2</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>name=\"Bob\", score=7.3, rank=10</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Rank 10 | Bob             | Score: 007.30\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">'aabbc': unique characters sorted → 'abc'</span></div>\n</div>",
     "starter_code": "def format_report(name, score, rank):\n    # Return the formatted report line\n    pass",
     "verification_script": "def ref_impl(*args):\n    n,sc,rk=args[0],args[1],args[2]\n    return f\"Rank {rk:02d} | {n:<15} | Score: {sc:06.2f}\"\n\nassert \"format_report\" in exec_globals, \"Function format_report not found\"\nfn = exec_globals[\"format_report\"]\ntest_cases = [(\"Alice\",95.5,1), (\"Bob\",7.3,10), (\"Charlie\",100.0,3)]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 78,
-    "title": "78. Check if a String is a Palindrome",
+    "id": 68,
+    "title": "68. Check if a String is a Palindrome",
     "difficulty": "easy",
     "points": 100,
     "category": "python-strings",
@@ -870,8 +760,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 79,
-    "title": "79. Count Vowels, Consonants, and Digits",
+    "id": 69,
+    "title": "69. Count Vowels, Consonants, and Digits",
     "difficulty": "easy",
     "points": 100,
     "category": "python-strings",
@@ -881,8 +771,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 80,
-    "title": "80. Find the First Non-Repeating Character",
+    "id": 70,
+    "title": "70. Find the First Non-Repeating Character",
     "difficulty": "easy",
     "points": 100,
     "category": "python-strings",
@@ -892,8 +782,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 81,
-    "title": "81. Check if Two Strings are Anagrams",
+    "id": 71,
+    "title": "71. Check if Two Strings are Anagrams",
     "difficulty": "easy",
     "points": 100,
     "category": "python-strings",
@@ -903,8 +793,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 82,
-    "title": "82. Valid Palindrome II",
+    "id": 72,
+    "title": "72. Valid Palindrome II",
     "difficulty": "easy",
     "points": 100,
     "category": "python-strings",
@@ -914,8 +804,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 83,
-    "title": "83. String Compression (Run-Length Encoding)",
+    "id": 73,
+    "title": "73. String Compression (Run-Length Encoding)",
     "difficulty": "medium",
     "points": 200,
     "category": "python-strings",
@@ -925,8 +815,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 84,
-    "title": "84. Reverse Words in a String",
+    "id": 74,
+    "title": "74. Reverse Words in a String",
     "difficulty": "easy",
     "points": 100,
     "category": "python-strings",
@@ -936,8 +826,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 85,
-    "title": "85. Longest Palindromic Substring",
+    "id": 75,
+    "title": "75. Longest Palindromic Substring",
     "difficulty": "medium",
     "points": 200,
     "category": "python-strings",
@@ -947,8 +837,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 86,
-    "title": "86. Is Subsequence",
+    "id": 76,
+    "title": "76. Is Subsequence",
     "difficulty": "easy",
     "points": 100,
     "category": "python-strings",
@@ -958,8 +848,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 87,
-    "title": "87. Longest Substring Without Repeating Characters",
+    "id": 77,
+    "title": "77. Longest Substring Without Repeating Characters",
     "difficulty": "medium",
     "points": 200,
     "category": "python-strings",
@@ -969,8 +859,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 88,
-    "title": "88. Find All Anagrams in a String",
+    "id": 78,
+    "title": "78. Find All Anagrams in a String",
     "difficulty": "medium",
     "points": 200,
     "category": "python-strings",
@@ -980,8 +870,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 89,
-    "title": "89. Longest Common Prefix",
+    "id": 79,
+    "title": "79. Longest Common Prefix",
     "difficulty": "easy",
     "points": 100,
     "category": "python-strings",
@@ -991,184 +881,184 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 90,
-    "title": "90. List Methods — Append, Pop, Insert",
+    "id": 80,
+    "title": "80. List Methods — Append, Pop, Insert",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>list_operations(nums)</code> that takes a list and performs these operations in sequence, returning the final list:</p>\n<ol class=\"list-decimal pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li>Append 100 to the end</li>\n<li>Insert 0 at position 0 (front)</li>\n<li>Pop the last element</li>\n<li>Return the modified list</li>\n</ol><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [1, 2, 3]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[0, 1, 2, 3]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Pair elements: (1,'a'), (2,'b'), (3,'c')</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [5]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[0, 5]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Pair elements (stops at shortest list): (1,'a'), (2,'b')</span></div>\n</div>",
     "starter_code": "def list_operations(nums):\n    # Modify the list in-place, return it\n    pass",
     "verification_script": "def ref_impl(*args):\n    lst=list(args[0])\n    lst.append(100)\n    lst.insert(0,0)\n    lst.pop()\n    return lst\n\nassert \"list_operations\" in exec_globals, \"Function list_operations not found\"\nfn = exec_globals[\"list_operations\"]\ntest_cases = [[1,2,3], [5], [], [10,20]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 91,
-    "title": "91. List Slicing",
+    "id": 81,
+    "title": "81. List Slicing",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>slice_list(lst)</code> that returns a tuple of 5 different slices:\n<code>(first_three, last_three, every_second, reversed_list, middle)</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Where middle = everything except the first and last element. If the list has fewer than 3 elements, return empty list for those slices.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>lst = [0,1,2,3,4,5,6,7,8,9]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>([0,1,2], [7,8,9], [0,2,4,6,8], [9,8,7,6,5,4,3,2,1,0], [1,2,3,4,5,6,7,8])</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Even indices (0, 2, 4): 10, 30, 50 → [10, 30, 50]</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>lst = [1,2,3]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>([1,2,3], [1,2,3], [1,3], [3,2,1], [2])</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Odd indices (1, 3): 2, 4 → [2, 4]</span></div>\n</div>",
     "starter_code": "def slice_list(lst):\n    # Return tuple of 5 slices\n    pass",
     "verification_script": "def ref_impl(*args):\n    l=args[0]\n    return (l[:3],l[-3:],l[::2],l[::-1],l[1:-1])\n\nassert \"slice_list\" in exec_globals, \"Function slice_list not found\"\nfn = exec_globals[\"slice_list\"]\ntest_cases = [[0,1,2,3,4,5,6,7,8,9], [1,2,3], [10,20,30,40,50]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 92,
-    "title": "92. Sorting Lists",
+    "id": 82,
+    "title": "82. Sorting Lists",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>sort_info(lst)</code> that returns a tuple:\n<code>(sorted_asc, sorted_desc, min_val, max_val, sum_val)</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use <code>sorted()</code> (which returns a new list), not <code>.sort()</code> (which modifies in-place). Use built-in <code>min()</code>, <code>max()</code>, <code>sum()</code>.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>lst = [3,1,4,1,5,9,2,6]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>([1,1,2,3,4,5,6,9], [9,6,5,4,3,2,1,1], 1, 9, 31)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">max=9, min=1, range = 9-1 = 8, sorted = [1, 1, 2, 3, 4, 5, 6, 9]</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>lst = [5]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>([5], [5], 5, 5, 5)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">max=5, min=5, range = 5-5 = 0, sorted = [5]</span></div>\n</div>",
     "starter_code": "def sort_info(lst):\n    # Return (sorted_asc, sorted_desc, min, max, sum)\n    pass",
     "verification_script": "def ref_impl(*args):\n    l=args[0]\n    return (sorted(l),sorted(l,reverse=True),min(l),max(l),sum(l))\n\nassert \"sort_info\" in exec_globals, \"Function sort_info not found\"\nfn = exec_globals[\"sort_info\"]\ntest_cases = [[3,1,4,1,5,9,2,6], [5], [-3,0,3], [100,-100,0]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 93,
-    "title": "93. List Comprehension Basics",
+    "id": 83,
+    "title": "83. List Comprehension Basics",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>comprehension_ops(nums)</code> that returns a tuple of four new lists created using list comprehensions:</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">1. Squares of all numbers: <code>[x**2 for x in nums]</code>\n2. Only even numbers: <code>[x for x in nums if x%2==0]</code>\n3. Absolute values: <code>[abs(x) for x in nums]</code>\n4. Strings of numbers: <code>[str(x) for x in nums]</code></p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [1,-2,3,-4,5]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>([1,4,9,16,25], [-2,-4], [1,2,3,4,5], [\"1\",\"-2\",\"3\",\"-4\",\"5\"])</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Split into chunks of size 2: [1, 2], [3, 4], [5]</span></div>\n</div>",
     "starter_code": "def comprehension_ops(nums):\n    # Return tuple of 4 lists using comprehensions\n    pass",
     "verification_script": "def ref_impl(*args):\n    n=args[0]\n    return ([x**2 for x in n],[x for x in n if x%2==0],[abs(x) for x in n],[str(x) for x in n])\n\nassert \"comprehension_ops\" in exec_globals, \"Function comprehension_ops not found\"\nfn = exec_globals[\"comprehension_ops\"]\ntest_cases = [[1,-2,3,-4,5], [0,2,4,6], [-1,-2,-3], []]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 94,
-    "title": "94. 2D Lists (Matrix Basics)",
+    "id": 84,
+    "title": "84. 2D Lists (Matrix Basics)",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>matrix_info(matrix)</code> that takes a 2D list (list of lists) and returns a tuple:\n<code>(rows, cols, flat, transposed)</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Where:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li><code>rows</code> = number of rows</li>\n<li><code>cols</code> = number of columns in row 0</li>\n<li><code>flat</code> = all elements in one list (flattened)</li>\n<li><code>transposed</code> = the matrix transposed (rows become columns)</li>\n</ul><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>matrix = [[1,2,3],[4,5,6]]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(2, 3, [1,2,3,4,5,6], [[1,4],[2,5],[3,6]])</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Numbers 1 to 5 missing from [1, 2, 4, 5] is {3} → [3]</span></div>\n</div>",
     "starter_code": "def matrix_info(matrix):\n    # Return (rows, cols, flat, transposed)\n    pass",
     "verification_script": "def ref_impl(*args):\n    m=args[0]\n    r=len(m)\n    c=len(m[0]) if m else 0\n    flat=[x for row in m for x in row]\n    trans=[[m[i][j] for i in range(r)] for j in range(c)]\n    return (r,c,flat,trans)\n\nassert \"matrix_info\" in exec_globals, \"Function matrix_info not found\"\nfn = exec_globals[\"matrix_info\"]\ntest_cases = [[[1,2,3],[4,5,6]], [[1,2],[3,4],[5,6]], [[1]]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 95,
-    "title": "95. zip and enumerate",
+    "id": 85,
+    "title": "85. zip and enumerate",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>zip_and_enumerate(names, scores)</code> that:</p>\n<ol class=\"list-decimal pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li>Creates a list of <code>(index, name, score)</code> tuples using <code>enumerate</code> and <code>zip</code></li>\n<li>Returns the tuple list sorted by score descending</li>\n</ol><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">This teaches two of Python's most useful built-in functions for iterating over sequences.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>names=[\"Alice\",\"Bob\",\"Carol\"], scores=[85,92,78]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[(1,\"Bob\",92),(0,\"Alice\",85),(2,\"Carol\",78)]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Transpose rows to columns: [[1,4], [2,5], [3,6]]</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>Both lists have the same length</code></li>\n</ul>",
     "starter_code": "def zip_and_enumerate(names, scores):\n    # Return list of (idx, name, score) sorted by score descending\n    pass",
     "verification_script": "def ref_impl(*args):\n    names,scores=args[0],args[1]\n    result=[(i,n,s) for i,(n,s) in enumerate(zip(names,scores))]\n    return sorted(result,key=lambda x:x[2],reverse=True)\n\nassert \"zip_and_enumerate\" in exec_globals, \"Function zip_and_enumerate not found\"\nfn = exec_globals[\"zip_and_enumerate\"]\ntest_cases = [([\"Alice\",\"Bob\",\"Carol\"],[85,92,78]), ([\"X\",\"Y\"],[1,2])]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 2",
     "dataset_name": null
   },
   {
-    "id": 96,
-    "title": "96. Remove Duplicates & Keep Order",
+    "id": 86,
+    "title": "86. Remove Duplicates & Keep Order",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>unique_ordered(lst)</code> that removes duplicate elements from a list while maintaining the original order of first occurrences.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">For example: <code>[3,1,2,1,3]</code> → <code>[3,1,2]</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Hint: Use a set to track seen elements and a list comprehension.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>lst = [3,1,2,1,3,4]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[3,1,2,4]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Even numbers: [2, 4], Odd numbers: [1, 3, 5]</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>lst = [1,1,1,2]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[1,2]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Even numbers: [0, 2], Odd numbers: [-1, -3]</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>lst = []</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[]</code></div>\n  \n</div>",
     "starter_code": "def unique_ordered(lst):\n    # Remove duplicates preserving order\n    pass",
     "verification_script": "def ref_impl(*args):\n    seen=set()\n    res=[]\n    for x in args[0]:\n        if x not in seen:\n            seen.add(x)\n            res.append(x)\n    return res\n\nassert \"unique_ordered\" in exec_globals, \"Function unique_ordered not found\"\nfn = exec_globals[\"unique_ordered\"]\ntest_cases = [[3,1,2,1,3,4], [1,1,1,2], [], [5,4,3,2,1], [1,2,1,2]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 97,
-    "title": "97. Flatten Nested List",
+    "id": 87,
+    "title": "87. Flatten Nested List",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>flatten(nested)</code> that takes a list that may contain integers or other lists (one level of nesting), and returns a single flat list with all integers.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">For example: <code>[[1,2],[3,[4]],5]</code> → <code>[1,2,3,4,5]</code> — only one level of nesting is guaranteed.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nested = [[1,2],[3,4],[5]]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[1,2,3,4,5]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Binary search: find 6 in sorted list → index 5</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nested = [1,[2,3],4]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[1,2,3,4]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Unsorted list: sort first then binary search</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nested = []</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[]</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>At most one level of nesting</code></li>\n</ul>",
     "starter_code": "def flatten(nested):\n    # Flatten one level of nesting\n    pass",
     "verification_script": "def ref_impl(*args):\n    result=[]\n    for item in args[0]:\n        if isinstance(item,list):\n            result.extend(item)\n        else:\n            result.append(item)\n    return result\n\nassert \"flatten\" in exec_globals, \"Function flatten not found\"\nfn = exec_globals[\"flatten\"]\ntest_cases = [[[1,2],[3,4],[5]], [1,[2,3],4], [], [[1],[2],[3]], [1,2,3]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 98,
-    "title": "98. Find Maximum and Minimum Element in a List",
+    "id": 88,
+    "title": "88. Find Maximum and Minimum Element in a List",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given a list of integers nums, find and return both the maximum element and the minimum element present in the list. Return the result as a tuple: (maximum, minimum).</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">If the input list is completely empty, there are no elements to evaluate; in this case, return (None, None).</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [3, 5, 1, 9, -2, 7]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (9, -2)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Scanning the list [3, 5, 1, 9, -2, 7]: the largest number is 9 and the smallest is -2, so we return the tuple (9, -2).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [42]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (42, 42)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The list contains only one number 42, which is both the maximum and minimum, so we return (42, 42).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = []</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (None, None)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The list is completely empty, so there are no elements to evaluate, returning (None, None).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>nums = [7] (Single-element list where maximum must equal minimum)</code></li><li><code>nums = [5, 5, 5, 5] (A list where all elements are identical values)</code></li><li><code>nums = [-10, -20, -3, -50] (A list containing exclusively negative integers)</code></li><li><code>nums = [] (An empty list)</code></li>\n</ul>",
     "starter_code": "def find_max_min(nums):\n    pass",
     "verification_script": "def ref_impl(*args):\n    return (max(args[0]),min(args[0])) if args[0] else (None,None)\n\nassert \"find_max_min\" in exec_globals, \"Function find_max_min not found\"\nfn = exec_globals[\"find_max_min\"]\ntest_cases = [[3,5,1,9,-2,7], [42], [], [5,5,5], [-10,-20,-3]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 99,
-    "title": "99. Find the Second Largest and Second Smallest Element",
+    "id": 89,
+    "title": "89. Find the Second Largest and Second Smallest Element",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an unsorted list of integers nums, find and return the second largest and the second smallest unique elements in the list. Return the result as a tuple: (second_largest, second_smallest).</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">If a unique second largest element does not exist (due to insufficient unique numbers), its value should be returned as None. Similarly, if a unique second smallest element does not exist, its value should be returned as None. If the input list is empty, return (None, None).</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [12, 35, 1, 10, 34, 1]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (34, 10)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">First we remove duplicates to get unique values. In [-2, 1, 3, 5, 7, 9], the second largest value is 7 and the second smallest is 1, so we return (7, 1).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [10, 10, 10]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (None, None)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">There is only one unique element 42, so a second unique largest or smallest does not exist, returning (None, None).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = []</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (None, None)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The list is empty, so we return (None, None).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>nums = [10, 20, 20, 5, 5] (Duplicate maximum and duplicate minimum values present)</code></li><li><code>nums = [8, 8] (A list containing fewer than two unique elements)</code></li><li><code>nums = [-5, -1, -10, 0] (A list containing a mix of negative values and zero)</code></li><li><code>nums = [] (An empty list)</code></li>\n</ul>",
     "starter_code": "def find_second_largest_smallest(nums):\n    pass",
     "verification_script": "def ref_impl(*args):\n    nums=list(set(args[0]))\n    if len(nums)<2: return (None,None)\n    nums.sort()\n    return (nums[-2],nums[1])\n\nassert \"find_second_largest_smallest\" in exec_globals, \"Function find_second_largest_smallest not found\"\nfn = exec_globals[\"find_second_largest_smallest\"]\ntest_cases = [[3,5,1,9,-2,7], [42], [], [5,5,5], [1,2]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 100,
-    "title": "100. Count Even and Odd Numbers in a List",
+    "id": 90,
+    "title": "90. Count Even and Odd Numbers in a List",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given a list of integers nums, determine the total count of even integers and the total count of odd integers present in the list. Return the result as a tuple format: (even_count, odd_count).</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">An integer is considered even if it is perfectly divisible by 2, and odd if it leaves a remainder. Negative numbers must be categorized accurately based on this rule. If the input list is completely empty, return (0, 0).</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [2, 7, 11, 44, 8, 9]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (3, 3)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">In the list [1, 2, 3, 4, 5]: 2 and 4 are even (count 2), and 1, 3, and 5 are odd (count 3), so we return the tuple (2, 3).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [0, -2, -4]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (3, 0)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = []</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (0, 0)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>nums = [0] (A list containing only the number zero, which is mathematically even)</code></li><li><code>nums = [-3, -5, -6, -8] (A list containing negative odd and negative even integers)</code></li><li><code>nums = [] (An empty list)</code></li>\n</ul>",
     "starter_code": "def count_even_odd(nums):\n    pass",
     "verification_script": "def ref_impl(*args):\n    evens=sum(1 for x in args[0] if x%2==0)\n    odds=len(args[0])-evens\n    return (evens,odds)\n\nassert \"count_even_odd\" in exec_globals, \"Function count_even_odd not found\"\nfn = exec_globals[\"count_even_odd\"]\ntest_cases = [[1,2,3,4,5], [], [2,4,6]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 101,
-    "title": "101. Check if a List is Sorted (Ascending or Descending)",
+    "id": 91,
+    "title": "91. Check if a List is Sorted (Ascending or Descending)",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given a list of numbers nums, check whether the list is completely sorted in non-decreasing (ascending) order OR completely sorted in non-increasing (descending) order.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Return True if the list satisfies either sorting condition from start to finish. Return False if the elements fluctuate up and down. By definition, an empty list or a list containing a single element has no out-of-order pairs and must return True.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [1, 2, 2, 5, 7]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> True</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Scanning [1, 2, 2, 5, 7]: every number is greater than or equal to the one before it, so it is sorted in ascending order (returns True).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [4, 7, 2, 9]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> False</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">In [4, 7, 2, 9]: 7 is followed by 2, which is smaller, so the list goes up then down. It is not sorted (returns False).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = []</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> True</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">An empty list has no out-of-order pairs, so it is considered sorted by default (returns True).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>nums = [] (An empty list)</code></li><li><code>nums = [9] (A single-element list)</code></li><li><code>nums = [3, 3, 3, 3] (A list containing all identical elements)</code></li><li><code>nums = [20, 15, 10, 5] (A strictly descending list)</code></li>\n</ul>",
     "starter_code": "def is_sorted(nums):\n    pass",
     "verification_script": "def ref_impl(*args):\n    nums=args[0]\n    if len(nums)<=1: return True\n    asc=all(nums[i]<=nums[i+1] for i in range(len(nums)-1))\n    desc=all(nums[i]>=nums[i+1] for i in range(len(nums)-1))\n    return asc or desc\n\nassert \"is_sorted\" in exec_globals, \"Function is_sorted not found\"\nfn = exec_globals[\"is_sorted\"]\ntest_cases = [[1,2,3,5], [5,4,3,1], [1,3,2], [], [5]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 102,
-    "title": "102. Reverse a List In-Place",
+    "id": 92,
+    "title": "92. Reverse a List In-Place",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given a list nums, reverse the order of its elements. You must perform this operation in-place by mutating the input list directly. Your function should modify the original object and not return a new copy. If the list is empty or contains only one element, it remains unchanged.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [1, 2, 3, 4, 5]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> nums becomes [5, 4, 3, 2, 1]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Reversing the elements of list [1, 2, 3] in-place yields [3, 2, 1].</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [\"A\", \"B\"]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> nums becomes [\"B\", \"A\"]</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = []</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> nums becomes []</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>nums = [1, 2, 3] (An odd-length list where the middle element stays in position)</code></li><li><code>nums = [10, 20, 30, 40] (An even-length list where all elements change positions)</code></li><li><code>nums = [] or [5] (Empty or single-element boundary conditions)</code></li>\n</ul>",
     "starter_code": "def reverse_list(nums):\n    pass",
     "verification_script": "assert \"reverse_list\" in exec_globals\nfn=exec_globals[\"reverse_list\"]\na1=[1,2,3]; fn(a1); assert a1==[3,2,1], f\"Got {a1}\"\na2=[]; fn(a2); assert a2==[], f\"Got {a2}\"\na3=[5]; fn(a3); assert a3==[5], f\"Got {a3}\"\nexec_globals[\"passed_cases\"]=3\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 103,
-    "title": "103. Sum and Average of Elements in a List",
+    "id": 93,
+    "title": "93. Sum and Average of Elements in a List",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given a list of numbers nums, calculate the total sum of all elements and their arithmetic average (mean). Return the result as a tuple: (total_sum, average).</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">If the input list is completely empty, it has no mathematical sum or length; in this scenario, return (0, 0.0) to safeguard against division errors.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [1, 2, 3, 4]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (10, 2.5)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">The sum of [1, 2, 3, 4] is 10. The average is 10 divided by 4 elements, which is 2.5, returning (10, 2.5).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [-5, 5]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (0, 0.0)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = []</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (0, 0.0)</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>nums = [] (An empty list)</code></li><li><code>nums = [-2, -4, -6] (A list containing exclusively negative integers)</code></li><li><code>nums = [0.1, 0.2, 0.3] (A list containing floating-point decimal numbers)</code></li>\n</ul>",
     "starter_code": "def sum_average(nums):\n    pass",
     "verification_script": "def ref_impl(*args):\n    nums=args[0]\n    if not nums: return (0,0.0)\n    s=sum(nums)\n    return (s,s/len(nums))\n\nassert \"sum_average\" in exec_globals, \"Function sum_average not found\"\nfn = exec_globals[\"sum_average\"]\ntest_cases = [[1,2,3,4], [], [5]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 104,
-    "title": "104. Move All Zeroes to the End of the List (In-Place)",
+    "id": 94,
+    "title": "94. Move All Zeroes to the End of the List (In-Place)",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given a list of integers nums, move all 0s to the end of it while maintaining the relative order of the non-zero elements.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">In-Place: You must modify the input list directly by shifting elements within its existing memory. You are not allowed to create a copy of the list or allocate an auxiliary list.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Relative Order: The non-zero numbers must remain in the exact same sequence relative to one another after the zeroes are moved. For example, if 1 appeared before 3 originally, 1 must still appear before 3 in the final modified list.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">If the list is empty or contains no zeroes, it remains unchanged.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [0, 1, 0, 3, 12]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> nums becomes [1, 3, 12, 0, 0]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Moving all zeroes to the end of [0, 1, 0, 3, 12] in-place while keeping the non-zero numbers in order yields [1, 3, 12, 0, 0].</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [0]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> nums becomes [0]</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [4, 5, 6]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> nums becomes [4, 5, 6]</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>nums = [] (An empty list)</code></li><li><code>nums = [0, 0, 0] (A list containing exclusively zeroes)</code></li><li><code>nums = [1, 2, 3, 0] (Zero is already at the correct terminal position)</code></li><li><code>nums = [0, 0, 9] (Multiple consecutive zeroes at the very front of the list)</code></li>\n</ul>",
     "starter_code": "def move_zeroes(nums):\n    pass",
     "verification_script": "assert \"move_zeroes\" in exec_globals\nfn=exec_globals[\"move_zeroes\"]\na1=[0,1,0,3,12]; fn(a1); assert a1==[1,3,12,0,0], f\"Got {a1}\"\na2=[0]; fn(a2); assert a2==[0], f\"Got {a2}\"\na3=[1,2,3]; fn(a3); assert a3==[1,2,3], f\"Got {a3}\"\nexec_globals[\"passed_cases\"]=3\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 105,
-    "title": "105. Remove Duplicates from a Sorted List (In-Place)",
+    "id": 95,
+    "title": "95. Remove Duplicates from a Sorted List (In-Place)",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-lists-arrays",
+    "category": "python-strings",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given a list nums sorted in non-decreasing (ascending) order, remove the duplicate elements in-place such that each unique element appears only once. The relative order of the unique elements must be kept identical.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Since the final length of the unique elements will be smaller than or equal to the original list size, your function must return an integer k, representing the number of unique elements. The first k slots of the modified nums list must hold these unique elements. The values stored beyond the first k elements do not matter.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">If the list is empty, return 0.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [1, 1, 2]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> Return value = 2, nums becomes [1, 2, _] (where _ represents any don't-care value)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Modifying [1, 1, 2] in-place to keep only unique elements leaves [1, 2] at the front, returning the count of unique elements, which is 2.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [0, 0, 1, 1, 1, 2, 2, 3, 3, 4]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> Return value = 5, nums becomes [0, 1, 2, 3, 4, _, _, _, _, _]</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = []</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> Return value = 0, nums becomes []</code></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>nums = [1, 2, 3, 4] (A sorted list that contains zero duplicates initially)</code></li><li><code>nums = [5, 5, 5, 5] (A list where every single element is a duplicate of the first)</code></li><li><code>nums = [-3, -3, -1, 0, 0, 2] (Handling negative integers and zero across duplicates)</code></li>\n</ul>",
     "starter_code": "def remove_duplicates(nums):\n    pass",
     "verification_script": "assert \"remove_duplicates\" in exec_globals\nfn=exec_globals[\"remove_duplicates\"]\na1=[1,1,2]; k1=fn(a1); assert k1==2 and a1[:2]==[1,2], f\"Got {k1},{a1}\"\na2=[]; k2=fn(a2); assert k2==0, f\"Got {k2}\"\na3=[1,2,3]; k3=fn(a3); assert k3==3 and a3[:3]==[1,2,3], f\"Got {k3},{a3}\"\nexec_globals[\"passed_cases\"]=3\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 106,
-    "title": "106. Rotate a List Left or Right by k Steps",
+    "id": 96,
+    "title": "96. Rotate a List Left or Right by k Steps",
     "difficulty": "easy",
     "points": 100,
     "category": "python-lists-arrays",
@@ -1178,8 +1068,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 107,
-    "title": "107. Separate Even and Odd Numbers",
+    "id": 97,
+    "title": "97. Separate Even and Odd Numbers",
     "difficulty": "easy",
     "points": 100,
     "category": "python-lists-arrays",
@@ -1189,8 +1079,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 108,
-    "title": "108. Two Sum in a Sorted List (Target Sum)",
+    "id": 98,
+    "title": "98. Two Sum in a Sorted List (Target Sum)",
     "difficulty": "easy",
     "points": 100,
     "category": "python-lists-arrays",
@@ -1200,8 +1090,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 109,
-    "title": "109. Container With Most Water",
+    "id": 99,
+    "title": "99. Container With Most Water",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1211,8 +1101,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 110,
-    "title": "110. Maximum Subarray Sum (Kadane's Algorithm)",
+    "id": 100,
+    "title": "100. Maximum Subarray Sum (Kadane's Algorithm)",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1222,8 +1112,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 111,
-    "title": "111. Find All Subarrays of a List (Subarray Generation)",
+    "id": 101,
+    "title": "101. Find All Subarrays of a List (Subarray Generation)",
     "difficulty": "easy",
     "points": 100,
     "category": "python-lists-arrays",
@@ -1233,8 +1123,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 112,
-    "title": "112. Maximum Sum Subarray of Fixed Size k",
+    "id": 102,
+    "title": "102. Maximum Sum Subarray of Fixed Size k",
     "difficulty": "easy",
     "points": 100,
     "category": "python-lists-arrays",
@@ -1244,8 +1134,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 113,
-    "title": "113. Minimum Size Subarray Sum (Variable Window Size)",
+    "id": 103,
+    "title": "103. Minimum Size Subarray Sum (Variable Window Size)",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1255,8 +1145,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 114,
-    "title": "114. Product of List Except Self",
+    "id": 104,
+    "title": "104. Product of List Except Self",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1266,8 +1156,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 115,
-    "title": "115. Majority Element",
+    "id": 105,
+    "title": "105. Majority Element",
     "difficulty": "easy",
     "points": 100,
     "category": "python-lists-arrays",
@@ -1277,8 +1167,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 116,
-    "title": "116. Sort an Array of 0s, 1s, and 2s (Dutch National Flag)",
+    "id": 106,
+    "title": "106. Sort an Array of 0s, 1s, and 2s (Dutch National Flag)",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1288,8 +1178,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 117,
-    "title": "117. Next Permutation of a List",
+    "id": 107,
+    "title": "107. Next Permutation of a List",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1299,8 +1189,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 118,
-    "title": "118. Trapping Rain Water",
+    "id": 108,
+    "title": "108. Trapping Rain Water",
     "difficulty": "hard",
     "points": 300,
     "category": "python-lists-arrays",
@@ -1310,8 +1200,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 119,
-    "title": "119. Merge Sorted Lists In-Place",
+    "id": 109,
+    "title": "109. Merge Sorted Lists In-Place",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1321,8 +1211,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 120,
-    "title": "120. Interval List Intersections",
+    "id": 110,
+    "title": "110. Interval List Intersections",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1332,8 +1222,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 121,
-    "title": "121. Rotate Matrix 90 Degrees Clockwise In-Place",
+    "id": 111,
+    "title": "111. Rotate Matrix 90 Degrees Clockwise In-Place",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1343,8 +1233,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 122,
-    "title": "122. Spiral Matrix Traversal",
+    "id": 112,
+    "title": "112. Spiral Matrix Traversal",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1354,8 +1244,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 123,
-    "title": "123. Set Matrix Zeroes",
+    "id": 113,
+    "title": "113. Set Matrix Zeroes",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1365,8 +1255,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 124,
-    "title": "124. Standard Binary Search Implementation",
+    "id": 114,
+    "title": "114. Standard Binary Search Implementation",
     "difficulty": "easy",
     "points": 100,
     "category": "python-lists-arrays",
@@ -1376,8 +1266,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 125,
-    "title": "125. Find Peak Element",
+    "id": 115,
+    "title": "115. Find Peak Element",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1387,8 +1277,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 126,
-    "title": "126. Search in Rotated Sorted List",
+    "id": 116,
+    "title": "116. Search in Rotated Sorted List",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1398,8 +1288,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 127,
-    "title": "127. Next Greater Element",
+    "id": 117,
+    "title": "117. Next Greater Element",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1409,8 +1299,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 128,
-    "title": "128. Daily Temperatures (Monotonic Decreasing Property)",
+    "id": 118,
+    "title": "118. Daily Temperatures (Monotonic Decreasing Property)",
     "difficulty": "medium",
     "points": 200,
     "category": "python-lists-arrays",
@@ -1420,8 +1310,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 129,
-    "title": "129. Largest Rectangle in Histogram",
+    "id": 119,
+    "title": "119. Largest Rectangle in Histogram",
     "difficulty": "hard",
     "points": 300,
     "category": "python-lists-arrays",
@@ -1431,261 +1321,261 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 130,
-    "title": "130. Create and Access a Dictionary",
+    "id": 120,
+    "title": "120. Create and Access a Dictionary",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-dicts",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>student_dict(name, age, grade)</code> that creates and returns a dictionary with keys <code>\"name\"</code>, <code>\"age\"</code>, <code>\"grade\"</code>.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Dictionaries (dicts) are Python's key-value store. You create them with <code>{key: value}</code> syntax and access values with <code>dict[key]</code> or <code>dict.get(key)</code>.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>name=\"Alice\", age=18, grade=\"A\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>{\"name\":\"Alice\",\"age\":18,\"grade\":\"A\"}</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Create dictionary with key-value pairs → {'name': 'Alice', 'age': 18, 'grade': 'A'}</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>name=\"Bob\", age=20, grade=\"B\"</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>{\"name\":\"Bob\",\"age\":20,\"grade\":\"B\"}</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Create dictionary → {'name': 'Bob', 'age': 20, 'grade': 'B'}</span></div>\n</div>",
     "starter_code": "def student_dict(name, age, grade):\n    # Return a dict with name, age, grade\n    pass",
     "verification_script": "def ref_impl(*args):\n    return {\"name\":args[0],\"age\":args[1],\"grade\":args[2]}\n\nassert \"student_dict\" in exec_globals, \"Function student_dict not found\"\nfn = exec_globals[\"student_dict\"]\ntest_cases = [(\"Alice\",18,\"A\"), (\"Bob\",20,\"B\"), (\"X\",0,\"F\")]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 131,
-    "title": "131. Dictionary Methods — keys, values, items",
+    "id": 121,
+    "title": "121. Dictionary Methods — keys, values, items",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-dicts",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>dict_info(d)</code> that takes a dictionary and returns a tuple:\n<code>(sorted_keys, sorted_values, items_list)</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use <code>dict.keys()</code>, <code>dict.values()</code>, <code>dict.items()</code>. Sort the keys and values for consistent comparison.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>d = {\"b\":2,\"a\":1,\"c\":3}</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>([\"a\",\"b\",\"c\"], [1,2,3], [(\"a\",1),(\"b\",2),(\"c\",3)])</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">keys() sorted → ['a','b','c'], values() sorted → [1,2,3], items() → key-value tuples</span></div>\n</div>",
     "starter_code": "def dict_info(d):\n    # Return (sorted_keys, sorted_values, sorted_items)\n    pass",
     "verification_script": "def ref_impl(*args):\n    d=args[0]\n    sk=sorted(d.keys())\n    sv=sorted(d.values())\n    si=sorted(d.items())\n    return (sk,sv,si)\n\nassert \"dict_info\" in exec_globals, \"Function dict_info not found\"\nfn = exec_globals[\"dict_info\"]\ntest_cases = [{\"b\":2,\"a\":1,\"c\":3}, {\"x\":10,\"y\":20}, {}]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 132,
-    "title": "132. Merge and Update Dictionaries",
+    "id": 122,
+    "title": "122. Merge and Update Dictionaries",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-dicts",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>merge_dicts(d1, d2)</code> that merges two dictionaries. If a key exists in both, sum the values. Return the merged dictionary.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use <code>.update()</code> or <code>dict.get()</code> to handle overlapping keys.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>d1={\"a\":1,\"b\":2}, d2={\"b\":3,\"c\":4}</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>{\"a\":1,\"b\":5,\"c\":4}</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Merge and sum duplicate key 'b' (2 + 3 = 5) → {'a': 1, 'b': 5, 'c': 4}</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>d1={\"x\":10}, d2={\"y\":20}</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>{\"x\":10,\"y\":20}</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Merge dictionaries → {'x': 10, 'y': 20}</span></div>\n</div>",
     "starter_code": "def merge_dicts(d1, d2):\n    # Merge d1 and d2, summing values for duplicate keys\n    pass",
     "verification_script": "def ref_impl(*args):\n    d1,d2=dict(args[0]),args[1]\n    for k,v in d2.items():\n        d1[k]=d1.get(k,0)+v\n    return d1\n\nassert \"merge_dicts\" in exec_globals, \"Function merge_dicts not found\"\nfn = exec_globals[\"merge_dicts\"]\ntest_cases = [({\"a\":1,\"b\":2},{\"b\":3,\"c\":4}), ({\"x\":10},{\"y\":20}), ({},{})]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 133,
-    "title": "133. Frequency Counter with Dict",
+    "id": 123,
+    "title": "123. Frequency Counter with Dict",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-dicts",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>count_elements(lst)</code> that takes a list and returns a dictionary mapping each unique element to its count.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">This is one of the most common dict patterns in real Python programs. You can use a plain dict with <code>.get()</code>, or use <code>collections.Counter</code>.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>lst = [1,2,2,3,3,3]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>{1:1, 2:2, 3:3}</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">1 appears 1 time, 2 appears 2 times, 3 appears 3 times → {1: 1, 2: 2, 3: 3}</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>lst = [\"a\",\"b\",\"a\",\"c\",\"b\",\"a\"]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>{\"a\":3,\"b\":2,\"c\":1}</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">'a' appears 3 times, 'b' twice, 'c' once → {'a': 3, 'b': 2, 'c': 1}</span></div>\n</div>",
     "starter_code": "def count_elements(lst):\n    # Return frequency dict\n    pass",
     "verification_script": "def ref_impl(*args):\n    freq={}\n    for x in args[0]:\n        freq[x]=freq.get(x,0)+1\n    return freq\n\nassert \"count_elements\" in exec_globals, \"Function count_elements not found\"\nfn = exec_globals[\"count_elements\"]\ntest_cases = [[1,2,2,3,3,3], [\"a\",\"b\",\"a\",\"c\",\"b\",\"a\"], [], [5]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 134,
-    "title": "134. Dict Comprehension",
+    "id": 124,
+    "title": "124. Dict Comprehension",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-dicts",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>squares_dict(n)</code> that uses a dict comprehension to create a dictionary mapping each integer from 1 to n to its square.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Dict comprehension syntax: <code>{key: value for var in iterable}</code></p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">For example, n=4 → <code>{1:1, 2:4, 3:9, 4:16}</code></p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 5</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>{1:1, 2:4, 3:9, 4:16, 5:25}</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Dictionary of squares for 1 to 5 → {1:1, 2:4, 3:9, 4:16, 5:25}</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 3</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>{1:1, 2:4, 3:9}</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Dictionary of squares for 1 to 3 → {1:1, 2:4, 3:9}</span></div>\n</div>",
     "starter_code": "def squares_dict(n):\n    # Return {i: i**2 for i in 1..n} using dict comprehension\n    pass",
     "verification_script": "def ref_impl(*args):\n    return {i:i**2 for i in range(1,args[0]+1)}\n\nassert \"squares_dict\" in exec_globals, \"Function squares_dict not found\"\nfn = exec_globals[\"squares_dict\"]\ntest_cases = [5, 3, 1, 10]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 135,
-    "title": "135. Two Sum with Dictionary",
+    "id": 125,
+    "title": "125. Two Sum with Dictionary",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-dicts",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>two_sum(nums, target)</code> that returns the indices of the two numbers in <code>nums</code> that add up to <code>target</code>.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use a dictionary to achieve O(n) time: for each number, check if <code>target - number</code> is already in the dict. Each input has exactly one valid solution.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums=[2,7,11,15], target=9</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[0,1]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Target 9: 2 + 7 = 9 at indices [0, 1]</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums=[3,2,4], target=6</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[1,2]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Target 6: 2 + 4 = 6 at indices [1, 2]</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>Each input has exactly one solution</code></li><li><code>You may not use the same element twice</code></li>\n</ul>",
     "starter_code": "def two_sum(nums, target):\n    # Return [i, j] where nums[i]+nums[j]==target\n    pass",
     "verification_script": "def ref_impl(*args):\n    nums,target=args[0],args[1]\n    seen={}\n    for i,n in enumerate(nums):\n        complement=target-n\n        if complement in seen:\n            return [seen[complement],i]\n        seen[n]=i\n\nassert \"two_sum\" in exec_globals, \"Function two_sum not found\"\nfn = exec_globals[\"two_sum\"]\ntest_cases = [([2,7,11,15],9), ([3,2,4],6), ([3,3],6), ([1,2,3,4],5)]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 136,
-    "title": "136. Group Anagrams",
+    "id": 126,
+    "title": "126. Group Anagrams",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-dicts",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>group_anagrams(strs)</code> that takes a list of strings and groups them into lists of anagrams. Return the groups in any order.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Key insight: anagrams have the same sorted characters. Use <code>tuple(sorted(word))</code> as the dict key to group them.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>strs = [\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[[\"eat\",\"tea\",\"ate\"],[\"tan\",\"nat\"],[\"bat\"]]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Group anagrams: 'eat', 'tea', 'ate' group together; 'tan', 'nat' group together</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>strs = [\"\"]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[[\"\"]]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Single empty string → [['']]</span></div>\n</div>",
     "starter_code": "def group_anagrams(strs):\n    # Group strings that are anagrams of each other\n    pass",
     "verification_script": "assert \"group_anagrams\" in exec_globals, \"Function group_anagrams not found\"\nfn = exec_globals[\"group_anagrams\"]\n\ndef normalize(result):\n    return sorted([sorted(g) for g in result])\n\ntc1 = fn([\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"])\nexp1 = sorted([sorted([\"eat\",\"tea\",\"ate\"]),sorted([\"tan\",\"nat\"]),sorted([\"bat\"])])\nassert normalize(tc1) == exp1, f\"Failed tc1: {tc1}\"\n\ntc2 = fn([\"\"])\nexp2 = [[\"\"]]\nassert normalize(tc2) == normalize(exp2), f\"Failed tc2: {tc2}\"\n\ntc3 = fn([\"a\"])\nassert normalize(tc3) == [[\"a\"]], f\"Failed tc3: {tc3}\"\n\nexec_globals[\"passed_cases\"] = 3\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 137,
-    "title": "137. Nested Dictionary — Student Records",
+    "id": 127,
+    "title": "127. Nested Dictionary — Student Records",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-dicts",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>top_student(records)</code> that takes a nested dictionary where each key is a student name and each value is a dict with <code>\"scores\"</code> (list) and <code>\"grade\"</code> (string). Return the name of the student with the highest average score.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">This tests navigating nested data structures — a common real-world skill.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>records = {\"Alice\":{\"scores\":[90,85,92],\"grade\":\"A\"}, \"Bob\":{\"scores\":[70,80,75],\"grade\":\"B\"}}</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Alice\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Alice has highest average score (89) → return 'Alice'</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>At least one student in records</code></li>\n</ul>",
     "starter_code": "def top_student(records):\n    # Return name of student with highest average score\n    pass",
     "verification_script": "def ref_impl(*args):\n    return max(args[0],key=lambda name:sum(args[0][name][\"scores\"])/len(args[0][name][\"scores\"]))\n\nassert \"top_student\" in exec_globals, \"Function top_student not found\"\nfn = exec_globals[\"top_student\"]\ntest_cases = [{\"Alice\":{\"scores\":[90,85,92],\"grade\":\"A\"},\"Bob\":{\"scores\":[70,80,75],\"grade\":\"B\"}}, {\"X\":{\"scores\":[100],\"grade\":\"A\"},\"Y\":{\"scores\":[50],\"grade\":\"C\"}}]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 2",
     "dataset_name": null
   },
   {
-    "id": 138,
-    "title": "138. Lambda Functions",
+    "id": 128,
+    "title": "128. Lambda Functions",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-oop",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>apply_operations(nums)</code> that uses lambda functions to perform 3 operations on a list:</p>\n<ol class=\"list-decimal pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li>Double each number: use <code>lambda x: x*2</code> with <code>map()</code></li>\n<li>Keep only positives: use <code>lambda x: x>0</code> with <code>filter()</code></li>\n<li>Sort by absolute value: use <code>lambda x: abs(x)</code> as key in <code>sorted()</code></li>\n</ol><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Return a tuple: <code>(doubled, positives_only, sorted_by_abs)</code></p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [-3,1,-2,4,0]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>([-6,2,-4,8,0], [1,4], [-3,-2,0,1,4])</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Filter even numbers [-2, 4, 0] and square them → [4, 16, 0]; positives=[1, 4]</span></div>\n</div>",
     "starter_code": "def apply_operations(nums):\n    # Return (doubled, positives_only, sorted_by_abs)\n    pass",
     "verification_script": "def ref_impl(*args):\n    n=args[0]\n    d=list(map(lambda x:x*2,n))\n    p=list(filter(lambda x:x>0,n))\n    s=sorted(n,key=lambda x:abs(x))\n    return (d,p,s)\n\nassert \"apply_operations\" in exec_globals, \"Function apply_operations not found\"\nfn = exec_globals[\"apply_operations\"]\ntest_cases = [[-3,1,-2,4,0], [5,-1,3,-2], [], [0,0,0]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 139,
-    "title": "139. Map and Filter",
+    "id": 129,
+    "title": "129. Map and Filter",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-oop",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>transform_list(words)</code> that takes a list of strings and applies these transformations:</p>\n<ol class=\"list-decimal pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li>Convert each word to uppercase using <code>map(str.upper, words)</code></li>\n<li>Keep only words longer than 3 characters using <code>filter()</code></li>\n<li>Get the lengths of all words using <code>map(len, words)</code></li>\n</ol><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Return as a tuple: <code>(upper_words, long_words, lengths)</code></p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>words = [\"hi\",\"hello\",\"cat\",\"python\",\"a\"]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>([\"HI\",\"HELLO\",\"CAT\",\"PYTHON\",\"A\"], [\"hello\",\"python\"], [2,5,3,6,1])</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Map to uppercase; filter words with length > 3 → ['HELLO', 'PYTHON']</span></div>\n</div>",
     "starter_code": "def transform_list(words):\n    # Return (upper_words, long_words, lengths)\n    pass",
     "verification_script": "def ref_impl(*args):\n    w=args[0]\n    u=list(map(str.upper,w))\n    l=[x for x in w if len(x)>3]\n    n=list(map(len,w))\n    return (u,l,n)\n\nassert \"transform_list\" in exec_globals, \"Function transform_list not found\"\nfn = exec_globals[\"transform_list\"]\ntest_cases = [[\"hi\",\"hello\",\"cat\",\"python\",\"a\"], [\"x\",\"abc\",\"abcd\"], []]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 140,
-    "title": "140. sorted() with Key Function",
+    "id": 130,
+    "title": "130. sorted() with Key Function",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-oop",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>custom_sort(people)</code> that takes a list of tuples <code>(name, age)</code> and returns them sorted by age ascending, then by name alphabetically for ties.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Use <code>sorted()</code> with a <code>key=lambda</code> that returns a tuple — Python compares tuples element by element.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>people = [(\"Alice\",30),(\"Bob\",25),(\"Carol\",30),(\"Dave\",25)]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[(\"Bob\",25),(\"Dave\",25),(\"Alice\",30),(\"Carol\",30)]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Sort by age ascending, then name alphabetically → Bob(25), Dave(25), Alice(30), Carol(30)</span></div>\n</div>",
     "starter_code": "def custom_sort(people):\n    # Sort by age, then by name for ties\n    pass",
     "verification_script": "def ref_impl(*args):\n    return sorted(args[0],key=lambda x:(x[1],x[0]))\n\nassert \"custom_sort\" in exec_globals, \"Function custom_sort not found\"\nfn = exec_globals[\"custom_sort\"]\ntest_cases = [[(\"Alice\",30),(\"Bob\",25),(\"Carol\",30),(\"Dave\",25)], [(\"Z\",1),(\"A\",1),(\"M\",2)], []]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 141,
-    "title": "141. Advanced List Comprehensions",
+    "id": 131,
+    "title": "131. Advanced List Comprehensions",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-oop",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>comprehension_advanced(matrix)</code> that takes a 2D list (matrix) and returns a tuple:</p>\n<ol class=\"list-decimal pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li><code>flat_evens</code> — all even numbers from the entire matrix flattened</li>\n<li><code>row_sums</code> — list of sums of each row</li>\n<li><code>positive_coords</code> — list of <code>(row, col)</code> tuples where value > 0</li>\n</ol><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>matrix = [[1,-2,3],[4,-5,6]]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>([4,6], [2,5], [(0,0),(0,2),(1,0),(1,2)])</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Filter positives, take absolute value of negatives, find positions of elements > 0</span></div>\n</div>",
     "starter_code": "def comprehension_advanced(matrix):\n    # Return (flat_evens, row_sums, positive_coords)\n    pass",
     "verification_script": "def ref_impl(*args):\n    m=args[0]\n    fe=[x for row in m for x in row if x%2==0]\n    rs=[sum(row) for row in m]\n    pc=[(r,c) for r,row in enumerate(m) for c,x in enumerate(row) if x>0]\n    return (fe,rs,pc)\n\nassert \"comprehension_advanced\" in exec_globals, \"Function comprehension_advanced not found\"\nfn = exec_globals[\"comprehension_advanced\"]\ntest_cases = [[[1,-2,3],[4,-5,6]], [[2,4],[6,8]], [[]]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 142,
-    "title": "142. Generator Function",
+    "id": 132,
+    "title": "132. Generator Function",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-oop",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>even_generator(n)</code> that returns a list of all even numbers from 0 to n (inclusive) using a generator expression inside <code>list()</code>.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Generator expressions look like list comprehensions but use <code>()</code> instead of <code>[]</code>. They are memory-efficient as they generate values on-demand.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 10</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[0,2,4,6,8,10]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Even numbers <= 10: 0, 2, 4, 6, 8, 10</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[0]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">0 is even → [0]</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 7</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>[0,2,4,6]</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Evens <= 7: 0, 2, 4, 6</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n >= 0</code></li>\n</ul>",
     "starter_code": "def even_generator(n):\n    # Use a generator expression to return list of evens 0..n\n    pass",
     "verification_script": "def ref_impl(*args):\n    return list(x for x in range(args[0]+1) if x%2==0)\n\nassert \"even_generator\" in exec_globals, \"Function even_generator not found\"\nfn = exec_globals[\"even_generator\"]\ntest_cases = [10, 0, 7, 1, 20]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 143,
-    "title": "143. Reduce for Cumulative Operations",
+    "id": 133,
+    "title": "133. Reduce for Cumulative Operations",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-oop",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>cumulative_ops(nums)</code> that uses <code>functools.reduce</code> to compute:</p>\n<ol class=\"list-decimal pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li><code>product</code> — the product of all numbers (using reduce with <code>lambda a,b: a*b</code>)</li>\n<li><code>max_val</code> — the maximum value (using reduce with <code>lambda a,b: a if a>b else b</code>)</li>\n</ol><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Return <code>(product, max_val)</code>. Return <code>(0, None)</code> for an empty list.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [1,2,3,4,5]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(120, 5)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Cumulative product: 1*2*3*4*5 = 120, max element = 5 → (120, 5)</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>nums = [3]</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>(3, 3)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Single element → cumulative product = 3, max = 3</span></div>\n</div>",
     "starter_code": "def cumulative_ops(nums):\n    # Use reduce to compute product and max\n    from functools import reduce\n    pass",
     "verification_script": "def ref_impl(*args):\n    from functools import reduce\n    n=args[0]\n    if not n: return (0,None)\n    prod=reduce(lambda a,b:a*b,n)\n    mx=reduce(lambda a,b:a if a>b else b,n)\n    return (prod,mx)\n\nassert \"cumulative_ops\" in exec_globals, \"Function cumulative_ops not found\"\nfn = exec_globals[\"cumulative_ops\"]\ntest_cases = [[1,2,3,4,5], [3], [-1,-2,-3], [10,1,5,3]]\npassed = 0\nfor tc in test_cases:\n    if isinstance(tc, tuple):\n        res = fn(*tc)\n        expected = ref_impl(*tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    else:\n        res = fn(tc)\n        expected = ref_impl(tc)\n        assert res == expected, f\"Failed for {tc}:\\n  got:      {res}\\n  expected: {expected}\"\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 144,
-    "title": "144. Create a Class",
+    "id": 134,
+    "title": "134. Create a Class",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-oop",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Define a class <code>Animal</code> with:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li><code>__init__(self, name, sound)</code> that stores <code>name</code> and <code>sound</code> as instance attributes</li>\n<li>A method <code>speak()</code> that returns <code>f\"{self.name} says {self.sound}!\"</code></li>\n</ul><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Classes are the foundation of Object-Oriented Programming. The <code>__init__</code> method is the constructor, called automatically when creating an instance.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>Animal(\"Dog\", \"Woof\").speak()</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Dog says Woof!\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Animal('Dog', 'Woof').speak() → 'Dog says Woof!'</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>Animal(\"Cat\", \"Meow\").speak()</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Cat says Meow!\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Animal('Cat', 'Meow').speak() → 'Cat says Meow!'</span></div>\n</div>",
     "starter_code": "class Animal:\n    def __init__(self, name, sound):\n        # Store name and sound\n        pass\n    \n    def speak(self):\n        # Return the speech string\n        pass",
     "verification_script": "assert \"Animal\" in exec_globals, \"Class Animal not found\"\nAnimal = exec_globals[\"Animal\"]\na1 = Animal(\"Dog\", \"Woof\")\nassert a1.name == \"Dog\" and a1.sound == \"Woof\", f\"Attributes wrong: {a1.name}, {a1.sound}\"\nassert a1.speak() == \"Dog says Woof!\", f\"speak() wrong: {a1.speak()}\"\na2 = Animal(\"Cat\", \"Meow\")\nassert a2.speak() == \"Cat says Meow!\", f\"speak() wrong: {a2.speak()}\"\na3 = Animal(\"Duck\", \"Quack\")\nassert a3.speak() == \"Duck says Quack!\", f\"speak() wrong: {a3.speak()}\"\nexec_globals[\"passed_cases\"] = 3\nexec_globals[\"total_cases\"] = 3",
     "dataset_name": null
   },
   {
-    "id": 145,
-    "title": "145. Class with Methods & Attributes",
+    "id": 135,
+    "title": "135. Class with Methods & Attributes",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-oop",
+    "category": "python-lists-arrays",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Define a class <code>BankAccount</code> with:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li><code>__init__(self, owner, balance=0)</code></li>\n<li><code>deposit(self, amount)</code> — adds to balance, returns new balance</li>\n<li><code>withdraw(self, amount)</code> — subtracts from balance if sufficient funds, else returns <code>\"Insufficient funds\"</code></li>\n<li><code>get_balance(self)</code> — returns current balance</li>\n</ul><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>acc = BankAccount(\"Alice\", 100)</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>acc.deposit(50) → 150, acc.withdraw(30) → 120, acc.withdraw(200) → \"Insufficient funds\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">deposit(50) updates balance to 150; withdraw(30) updates balance to 120</span></div>\n</div>",
     "starter_code": "class BankAccount:\n    def __init__(self, owner, balance=0):\n        pass\n    \n    def deposit(self, amount):\n        pass\n    \n    def withdraw(self, amount):\n        pass\n    \n    def get_balance(self):\n        pass",
     "verification_script": "assert \"BankAccount\" in exec_globals, \"Class BankAccount not found\"\nBA = exec_globals[\"BankAccount\"]\nacc = BA(\"Alice\", 100)\nassert acc.get_balance() == 100, f\"Initial balance wrong: {acc.get_balance()}\"\nassert acc.deposit(50) == 150, f\"deposit wrong: {acc.deposit(50)}\"\nacc2 = BA(\"Bob\", 200)\nassert acc2.withdraw(80) == 120, f\"withdraw wrong\"\nassert acc2.withdraw(1000) == \"Insufficient funds\", f\"insufficient funds wrong\"\nacc3 = BA(\"Carol\")\nassert acc3.get_balance() == 0, f\"default balance wrong\"\nexec_globals[\"passed_cases\"] = 5\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 146,
-    "title": "146. __str__ and __repr__",
+    "id": 136,
+    "title": "136. __str__ and __repr__",
     "difficulty": "easy",
     "points": 100,
-    "category": "python-oop",
+    "category": "python-dicts",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Define a class <code>Point</code> that represents a 2D coordinate with:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li><code>__init__(self, x, y)</code></li>\n<li><code>__str__(self)</code> — returns <code>f\"Point({self.x}, {self.y})\"</code></li>\n<li><code>__repr__(self)</code> — returns <code>f\"Point(x={self.x}, y={self.y})\"</code></li>\n<li><code>distance_from_origin(self)</code> — returns <code>√(x² + y²)</code> rounded to 2 decimal places</li>\n</ul><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\"><code>__str__</code> is used by <code>print()</code>, <code>__repr__</code> for debugging/REPL.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>p = Point(3, 4)</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>str(p) → \"Point(3, 4)\", repr(p) → \"Point(x=3, y=4)\", p.distance_from_origin() → 5.0</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">str(p) gives Point(3, 4), repr(p) gives developer-friendly representation</span></div>\n</div>",
     "starter_code": "class Point:\n    def __init__(self, x, y):\n        pass\n    \n    def __str__(self):\n        pass\n    \n    def __repr__(self):\n        pass\n    \n    def distance_from_origin(self):\n        pass",
     "verification_script": "assert \"Point\" in exec_globals, \"Class Point not found\"\nPoint = exec_globals[\"Point\"]\np = Point(3, 4)\nassert str(p) == \"Point(3, 4)\", f\"__str__ wrong: {str(p)}\"\nassert repr(p) == \"Point(x=3, y=4)\", f\"__repr__ wrong: {repr(p)}\"\nassert p.distance_from_origin() == 5.0, f\"distance wrong: {p.distance_from_origin()}\"\np2 = Point(0, 0)\nassert p2.distance_from_origin() == 0.0, f\"origin distance wrong\"\nexec_globals[\"passed_cases\"] = 4\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 147,
-    "title": "147. Inheritance",
+    "id": 137,
+    "title": "137. Inheritance",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-oop",
+    "category": "python-dicts",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Define a base class <code>Shape</code> with a method <code>area()</code> that returns <code>0</code>.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Then define two subclasses that inherit from <code>Shape</code>:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li><code>Circle(radius)</code> — <code>area()</code> returns <code>π × radius²</code> (use <code>3.14159</code>)</li>\n<li><code>Rectangle(width, height)</code> — <code>area()</code> returns <code>width × height</code></li>\n</ul><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Inheritance lets subclasses override methods from the parent class (method overriding).</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>Circle(5).area()</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>78.53975</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Circle area = pi * 5^2 ≈ 78.54</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>Rectangle(4, 6).area()</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>24</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Rectangle area = 4 * 6 = 24</span></div>\n</div>",
     "starter_code": "class Shape:\n    def area(self):\n        return 0\n\nclass Circle(Shape):\n    def __init__(self, radius):\n        pass\n    \n    def area(self):\n        pass\n\nclass Rectangle(Shape):\n    def __init__(self, width, height):\n        pass\n    \n    def area(self):\n        pass",
     "verification_script": "assert \"Circle\" in exec_globals, \"Class Circle not found\"\nassert \"Rectangle\" in exec_globals, \"Class Rectangle not found\"\nCircle = exec_globals[\"Circle\"]\nRectangle = exec_globals[\"Rectangle\"]\nc = Circle(5)\nassert abs(c.area() - 78.53975) < 0.01, f\"Circle area wrong: {c.area()}\"\nr = Rectangle(4, 6)\nassert r.area() == 24, f\"Rectangle area wrong: {r.area()}\"\nc2 = Circle(1)\nassert abs(c2.area() - 3.14159) < 0.01, f\"Unit circle area wrong: {c2.area()}\"\nr2 = Rectangle(3, 3)\nassert r2.area() == 9, f\"Square area wrong\"\nexec_globals[\"passed_cases\"] = 4\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 148,
-    "title": "148. Class vs Instance Variables",
+    "id": 138,
+    "title": "138. Class vs Instance Variables",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-oop",
+    "category": "python-dicts",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Define a class <code>Student</code> with:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li>A <strong>class variable</strong> <code>school = \"PyCode Academy\"</code> — shared by all instances</li>\n<li>Instance variables <code>name</code> and <code>grade</code> set in <code>__init__</code></li>\n<li>A <strong>class method</strong> <code>get_school(cls)</code> decorated with <code>@classmethod</code></li>\n<li>A method <code>info(self)</code> that returns <code>f\"{self.name} (Grade {self.grade}) at {Student.school}\"</code></li>\n</ul><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>Student(\"Alice\", \"A\").info()</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Alice (Grade A) at PyCode Academy\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Instance variable name='Alice', class variable school='PyCode Academy'</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>Student.get_school()</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"PyCode Academy\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Class method access: get_school() → 'PyCode Academy'</span></div>\n</div>",
     "starter_code": "class Student:\n    school = \"PyCode Academy\"\n    \n    def __init__(self, name, grade):\n        pass\n    \n    @classmethod\n    def get_school(cls):\n        pass\n    \n    def info(self):\n        pass",
     "verification_script": "assert \"Student\" in exec_globals, \"Class Student not found\"\nStudent = exec_globals[\"Student\"]\ns = Student(\"Alice\", \"A\")\nassert s.info() == \"Alice (Grade A) at PyCode Academy\", f\"info() wrong: {s.info()}\"\nassert Student.get_school() == \"PyCode Academy\", f\"get_school() wrong\"\ns2 = Student(\"Bob\", \"B\")\nassert s2.info() == \"Bob (Grade B) at PyCode Academy\", f\"info() wrong: {s2.info()}\"\nassert s.school == \"PyCode Academy\", f\"class variable wrong\"\nexec_globals[\"passed_cases\"] = 4\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 149,
-    "title": "149. Property Decorator",
+    "id": 139,
+    "title": "139. Property Decorator",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-oop",
+    "category": "python-dicts",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Define a class <code>Temperature</code> with:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li><code>__init__(self, celsius)</code> that stores the temperature</li>\n<li>A <code>@property</code> <code>celsius</code> that returns the value</li>\n<li>A <code>@celsius.setter</code> that raises <code>ValueError</code> if value < -273.15</li>\n<li>A <code>@property</code> <code>fahrenheit</code> that returns <code>celsius × 9/5 + 32</code></li>\n</ul><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Properties let you add validation logic to attribute access.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>t = Temperature(100)</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>t.celsius → 100, t.fahrenheit → 212.0</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Property getter/setter: 100°C conversion → 100*9/5 + 32 = 212°F</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>Temperature(-300) raises ValueError</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>ValueError raised</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Negative temperature below absolute zero (-300°C) is invalid</span></div>\n</div>",
     "starter_code": "class Temperature:\n    def __init__(self, celsius):\n        self.celsius = celsius  # uses the setter\n    \n    @property\n    def celsius(self):\n        pass\n    \n    @celsius.setter\n    def celsius(self, value):\n        pass\n    \n    @property\n    def fahrenheit(self):\n        pass",
     "verification_script": "assert \"Temperature\" in exec_globals, \"Class Temperature not found\"\nTemperature = exec_globals[\"Temperature\"]\nt = Temperature(100)\nassert t.celsius == 100, f\"celsius wrong: {t.celsius}\"\nassert t.fahrenheit == 212.0, f\"fahrenheit wrong: {t.fahrenheit}\"\nt2 = Temperature(0)\nassert t2.fahrenheit == 32.0, f\"0°C fahrenheit wrong: {t2.fahrenheit}\"\ntry:\n    Temperature(-300)\n    assert False, \"Should have raised ValueError\"\nexcept ValueError:\n    pass\nexec_globals[\"passed_cases\"] = 4\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 150,
-    "title": "150. Dunder Methods — Making Objects Comparable",
+    "id": 140,
+    "title": "140. Dunder Methods — Making Objects Comparable",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-oop",
+    "category": "python-dicts",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Define a class <code>Box</code> with:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li><code>__init__(self, length, width, height)</code></li>\n<li><code>volume(self)</code> that returns <code>l × w × h</code></li>\n<li><code>__eq__(self, other)</code> — returns True if volumes are equal</li>\n<li><code>__lt__(self, other)</code> — returns True if self volume < other volume</li>\n<li><code>__repr__(self)</code> — returns <code>f\"Box({self.l}×{self.w}×{self.h})\"</code></li>\n</ul><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Dunder (double underscore) methods let you control how Python operators work on your objects.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>Box(1,2,3) == Box(6,1,1)</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>True</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Box volumes: 1*2*3 = 6 vs 6*1*1 = 6 → equal → == True</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>Box(1,1,1) < Box(2,2,2)</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>True</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Box volumes: 1 < 8 → Box(1,1,1) < Box(2,2,2) → True</span></div>\n</div>",
     "starter_code": "class Box:\n    def __init__(self, length, width, height):\n        pass\n    \n    def volume(self):\n        pass\n    \n    def __eq__(self, other):\n        pass\n    \n    def __lt__(self, other):\n        pass\n    \n    def __repr__(self):\n        pass",
     "verification_script": "assert \"Box\" in exec_globals, \"Class Box not found\"\nBox = exec_globals[\"Box\"]\nb1 = Box(1,2,3)\nassert b1.volume() == 6, f\"volume wrong: {b1.volume()}\"\nb2 = Box(6,1,1)\nassert b1 == b2, f\"__eq__ wrong: {b1} == {b2} should be True\"\nb3 = Box(1,1,1)\nassert b3 < b1, f\"__lt__ wrong: {b3} < {b1} should be True\"\nassert not (b1 < b3), f\"__lt__ wrong: {b1} < {b3} should be False\"\nassert isinstance(repr(b1), str), f\"__repr__ should return str\"\nexec_globals[\"passed_cases\"] = 5\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 151,
-    "title": "151. Exception Handling",
+    "id": 141,
+    "title": "141. Exception Handling",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-oop",
+    "category": "python-dicts",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Write a function <code>safe_divide(a, b)</code> that uses <code>try/except/finally</code> to:</p>\n<ul class=\"list-disc pl-5 mb-4 text-xs text-ink space-y-1.5 font-normal font-sans\">\n<li>Return <code>a / b</code> if b is non-zero</li>\n<li>Catch <code>ZeroDivisionError</code> and return <code>\"Error: Cannot divide by zero\"</code></li>\n<li>Catch <code>TypeError</code> and return <code>\"Error: Invalid types\"</code></li>\n</ul><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Also write a function <code>safe_index(lst, idx)</code> that returns <code>lst[idx]</code> or <code>\"Error: Index out of range\"</code> for <code>IndexError</code>.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>safe_divide(10, 2)</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>5.0</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">10 / 2 = 5.0</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>safe_divide(10, 0)</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Error: Cannot divide by zero\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Division by zero is caught → 'Error: Cannot divide by zero'</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>safe_index([1,2,3], 10)</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>\"Error: Index out of range\"</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Index 10 of list size 3 is caught → 'Error: Index out of range'</span></div>\n</div>",
     "starter_code": "def safe_divide(a, b):\n    # Handle ZeroDivisionError and TypeError\n    pass\n\ndef safe_index(lst, idx):\n    # Handle IndexError\n    pass",
     "verification_script": "assert \"safe_divide\" in exec_globals, \"Function safe_divide not found\"\nassert \"safe_index\" in exec_globals, \"Function safe_index not found\"\nsd = exec_globals[\"safe_divide\"]\nsi = exec_globals[\"safe_index\"]\nassert sd(10, 2) == 5.0, f\"sd(10,2) wrong: {sd(10,2)}\"\nassert sd(10, 0) == \"Error: Cannot divide by zero\", f\"ZeroDivisionError not caught\"\nassert sd(\"a\", 2) == \"Error: Invalid types\", f\"TypeError not caught\"\nassert si([1,2,3], 1) == 2, f\"si wrong: {si([1,2,3],1)}\"\nassert si([1,2,3], 10) == \"Error: Index out of range\", f\"IndexError not caught\"\nexec_globals[\"passed_cases\"] = 5\nexec_globals[\"total_cases\"] = 5",
     "dataset_name": null
   },
   {
-    "id": 152,
-    "title": "152. Pascal's Triangle",
+    "id": 142,
+    "title": "142. Pascal's Triangle",
     "difficulty": "medium",
     "points": 200,
-    "category": "python-patterns",
+    "category": "python-dicts",
     "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, print Pascal's Triangle up to n rows. Pascal's Triangle is a numerical triangle where each number is the sum of the two numbers directly above it.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">To keep the shape centered and symmetric, format each row with appropriate leading spaces, and separate adjacent numbers in a row by a single space. If n is less than or equal to 0, print nothing.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 4</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">   1\r\n  1 1\r\n 1 2 1\r\n1 3 3 1</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 1</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>1</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Each subsequent row is calculated by adding adjacent elements of the previous row (e.g. Row 2 [1,2,1] is derived from Row 1 [1,1]).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (Empty Output)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">For n=4, we format the rows with leading spaces to keep the triangle centered symmetrically: row 0 has 3 leading spaces, row 1 has 2, row 2 has 1, and row 3 has 0.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n = 1 (Solitary cell showing only the top number 1)</code></li><li><code>n = 5 (Checks proper alignment and values for higher rows)</code></li><li><code>n = -3 (Negative boundary safety check)</code></li>\n</ul>",
     "starter_code": "def pascal_triangle(n):\n    # Write your code here\n    pass",
     "verification_script": "def ref_impl(*args):\n    n = args[0]\n    if n <= 0: return \"\"\n    lines = []\n    row = [1]\n    for i in range(n):\n        row_str = \" \".join(str(x) for x in row)\n        spaces = \" \" * (n - 1 - i)\n        lines.append(spaces + row_str)\n        next_row = [1]\n        for j in range(len(row) - 1):\n            next_row.append(row[j] + row[j+1])\n        next_row.append(1)\n        row = next_row\n    return \"\\n\".join(lines)\n\nassert \"pascal_triangle\" in exec_globals, \"Function pascal_triangle not found\"\nfn = exec_globals[\"pascal_triangle\"]\n\n# Show live output for 2 sample sizes\nprint(\"--- YOUR PATTERN FOR n=4 ---\")\ntry:\n    fn(4)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\nprint(\"--- YOUR PATTERN FOR n=5 ---\")\ntry:\n    fn(5)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\n\ndef capture(func, n):\n    import io, sys\n    buf = io.StringIO()\n    old = sys.stdout\n    sys.stdout = buf\n    try:\n        func(n)\n    finally:\n        sys.stdout = old\n    return buf.getvalue()\n\ndef normalize(s):\n    lines = [l.rstrip() for l in s.splitlines()]\n    while lines and not lines[-1]: lines.pop()\n    while lines and not lines[0]: lines.pop(0)\n    return lines\n\ntest_cases = [1, 3, 5, -2]\npassed = 0\nfor tc in test_cases:\n    exp = normalize(ref_impl(tc))\n    got = normalize(capture(fn, tc))\n    assert exp == got, f\"Mismatch n={tc}\\nExpected:\\n\" + \"\\n\".join(exp) + \"\\nGot:\\n\" + \"\\n\".join(got)\n    passed += 1\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = 4",
     "dataset_name": null
   },
   {
-    "id": 153,
-    "title": "153. NumPy Zero Array",
+    "id": 143,
+    "title": "143. NumPy Zero Array",
     "difficulty": "easy",
     "points": 100,
     "category": "numpy",
@@ -1694,8 +1584,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 154,
-    "title": "154. Reshape 1D to 2D Matrix",
+    "id": 144,
+    "title": "144. Reshape 1D to 2D Matrix",
     "difficulty": "easy",
     "points": 100,
     "category": "numpy",
@@ -1704,8 +1594,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 155,
-    "title": "155. Line Chart Trend",
+    "id": 145,
+    "title": "145. Line Chart Trend",
     "difficulty": "medium",
     "points": 200,
     "category": "matplotlib-seaborn",
@@ -1714,8 +1604,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "stock_market.csv"
   },
   {
-    "id": 156,
-    "title": "156. Bar Chart Categories",
+    "id": 146,
+    "title": "146. Bar Chart Categories",
     "difficulty": "medium",
     "points": 200,
     "category": "matplotlib-seaborn",
@@ -1724,8 +1614,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "superstore.csv"
   },
   {
-    "id": 157,
-    "title": "157. Simple Student Marks Bar Plot",
+    "id": 147,
+    "title": "147. Simple Student Marks Bar Plot",
     "difficulty": "easy",
     "points": 100,
     "category": "matplotlib-seaborn",
@@ -1734,8 +1624,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 158,
-    "title": "158. Age vs Marks Scatter Plot",
+    "id": 148,
+    "title": "148. Age vs Marks Scatter Plot",
     "difficulty": "easy",
     "points": 100,
     "category": "matplotlib-seaborn",
@@ -1744,8 +1634,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 159,
-    "title": "159. Average Marks by Age Group Bar Plot",
+    "id": 149,
+    "title": "149. Average Marks by Age Group Bar Plot",
     "difficulty": "easy",
     "points": 100,
     "category": "matplotlib-seaborn",
@@ -1754,8 +1644,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 160,
-    "title": "160. Isolate Student Identity Columns",
+    "id": 150,
+    "title": "150. Isolate Student Identity Columns",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1764,8 +1654,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 161,
-    "title": "161. Fill Missing Grade Entries",
+    "id": 151,
+    "title": "151. Fill Missing Grade Entries",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1774,8 +1664,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 162,
-    "title": "162. Count Missing Grade Entries",
+    "id": 152,
+    "title": "152. Count Missing Grade Entries",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1784,8 +1674,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 163,
-    "title": "163. Purge Duplicate Student Records",
+    "id": 153,
+    "title": "153. Purge Duplicate Student Records",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1794,8 +1684,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 164,
-    "title": "164. Count Duplicate Student Records",
+    "id": 154,
+    "title": "154. Count Duplicate Student Records",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1804,8 +1694,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 165,
-    "title": "165. Drop Empty Student Names",
+    "id": 155,
+    "title": "155. Drop Empty Student Names",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1814,8 +1704,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 166,
-    "title": "166. Filter Mature Student Cohorts",
+    "id": 156,
+    "title": "156. Filter Mature Student Cohorts",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1824,8 +1714,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 167,
-    "title": "167. Count Unique Student Cohorts",
+    "id": 157,
+    "title": "157. Count Unique Student Cohorts",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1834,8 +1724,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 168,
-    "title": "168. Purge Completely Corrupted Student Records",
+    "id": 158,
+    "title": "158. Purge Completely Corrupted Student Records",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1844,8 +1734,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 169,
-    "title": "169. Reset Structural Data Alignment Indices",
+    "id": 159,
+    "title": "159. Reset Structural Data Alignment Indices",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1854,8 +1744,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 170,
-    "title": "170. Fix Product Registry",
+    "id": 160,
+    "title": "160. Fix Product Registry",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1864,8 +1754,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 171,
-    "title": "171. Standardize Employee Directory",
+    "id": 161,
+    "title": "161. Standardize Employee Directory",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1874,8 +1764,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 172,
-    "title": "172. Correct Invalid Transaction Types",
+    "id": 162,
+    "title": "162. Correct Invalid Transaction Types",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1884,8 +1774,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 173,
-    "title": "173. Parse Raw Sensor Streams",
+    "id": 163,
+    "title": "163. Parse Raw Sensor Streams",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1894,8 +1784,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 174,
-    "title": "174. Filter and Threshold Missing Demographics",
+    "id": 164,
+    "title": "164. Filter and Threshold Missing Demographics",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1904,8 +1794,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 175,
-    "title": "175. Standardize Mixed Discount Percentages",
+    "id": 165,
+    "title": "165. Standardize Mixed Discount Percentages",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -1914,8 +1804,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 176,
-    "title": "176. Purge Exact Duplicate Transaction Logs",
+    "id": 166,
+    "title": "166. Purge Exact Duplicate Transaction Logs",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1924,8 +1814,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 177,
-    "title": "177. Isolate Frozen and Out-of-Bound Sensor Metrics",
+    "id": 167,
+    "title": "167. Isolate Frozen and Out-of-Bound Sensor Metrics",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -1934,8 +1824,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 178,
-    "title": "178. Clamp Impossible Outliers",
+    "id": 168,
+    "title": "168. Clamp Impossible Outliers",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -1944,8 +1834,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 179,
-    "title": "179. Standardize Messy Categorical Alignments",
+    "id": 169,
+    "title": "169. Standardize Messy Categorical Alignments",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -1954,8 +1844,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 180,
-    "title": "180. High-Performing VIP Segment Breakdown",
+    "id": 170,
+    "title": "170. High-Performing VIP Segment Breakdown",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1964,8 +1854,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 181,
-    "title": "181. Identify Outlier Academic Variances",
+    "id": 171,
+    "title": "171. Identify Outlier Academic Variances",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -1974,8 +1864,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 182,
-    "title": "182. Detect Suspicious Telemetry Patterns",
+    "id": 172,
+    "title": "172. Detect Suspicious Telemetry Patterns",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -1984,8 +1874,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 183,
-    "title": "183. Dynamic Column Dropping and Projection",
+    "id": 173,
+    "title": "173. Dynamic Column Dropping and Projection",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1994,8 +1884,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 184,
-    "title": "184. Select Even-Indexed Analytical Runs",
+    "id": 174,
+    "title": "174. Select Even-Indexed Analytical Runs",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2004,8 +1894,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 185,
-    "title": "185. Temporal Business Hours Snapshot",
+    "id": 175,
+    "title": "175. Temporal Business Hours Snapshot",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2014,8 +1904,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 186,
-    "title": "186. Identify Underperforming Products",
+    "id": 176,
+    "title": "176. Identify Underperforming Products",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2024,8 +1914,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 187,
-    "title": "187. Locate Multi-Country Supply Nodes",
+    "id": 177,
+    "title": "177. Locate Multi-Country Supply Nodes",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2034,8 +1924,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 188,
-    "title": "188. Filter Outliers by Absolute Variance",
+    "id": 178,
+    "title": "178. Filter Outliers by Absolute Variance",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2044,8 +1934,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 189,
-    "title": "189. Select Records by Dynamic Value Arrays",
+    "id": 179,
+    "title": "179. Select Records by Dynamic Value Arrays",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2054,8 +1944,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 190,
-    "title": "190. Compute Store Department Averages",
+    "id": 180,
+    "title": "180. Compute Store Department Averages",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2064,8 +1954,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 191,
-    "title": "191. Calculate Fleet Fuel Efficiency Metrics",
+    "id": 181,
+    "title": "181. Calculate Fleet Fuel Efficiency Metrics",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2074,8 +1964,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 192,
-    "title": "192. Find Maximum Monthly Sales Representatives",
+    "id": 182,
+    "title": "182. Find Maximum Monthly Sales Representatives",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2084,8 +1974,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 193,
-    "title": "193. Count Distinct Class Categories Per School",
+    "id": 183,
+    "title": "183. Count Distinct Class Categories Per School",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2094,8 +1984,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 194,
-    "title": "194. Calculate Multi-Column Inventory Aggregates",
+    "id": 184,
+    "title": "184. Calculate Multi-Column Inventory Aggregates",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2104,8 +1994,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 195,
-    "title": "195. Extract First and Last Transaction Dates",
+    "id": 185,
+    "title": "185. Extract First and Last Transaction Dates",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2114,8 +2004,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "store_dim_customers.csv"
   },
   {
-    "id": 196,
-    "title": "196. Quantify Total Active Users Per Region",
+    "id": 186,
+    "title": "186. Quantify Total Active Users Per Region",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2124,8 +2014,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "store_dim_customers.csv"
   },
   {
-    "id": 197,
-    "title": "197. Find the Most Common Log Error Codes",
+    "id": 187,
+    "title": "187. Find the Most Common Log Error Codes",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2134,8 +2024,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 198,
-    "title": "198. Compute Weighted Passenger Fare Averages",
+    "id": 188,
+    "title": "188. Compute Weighted Passenger Fare Averages",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2144,8 +2034,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 199,
-    "title": "199. Determine Warehouse Capacity Utilization",
+    "id": 189,
+    "title": "189. Determine Warehouse Capacity Utilization",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2154,8 +2044,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 200,
-    "title": "200. Broadcast Departmental Variance to Employees",
+    "id": 190,
+    "title": "190. Broadcast Departmental Variance to Employees",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2164,8 +2054,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 201,
-    "title": "201. Filter Teams by Average Performance Thresholds",
+    "id": 191,
+    "title": "191. Filter Teams by Average Performance Thresholds",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2174,8 +2064,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 202,
-    "title": "202. Calculate Running Regional Revenue Subtotals",
+    "id": 192,
+    "title": "192. Calculate Running Regional Revenue Subtotals",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2184,8 +2074,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 203,
-    "title": "203. Find the N-th Highest Earning Freelancer Per Category",
+    "id": 193,
+    "title": "193. Find the N-th Highest Earning Freelancer Per Category",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2194,8 +2084,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 204,
-    "title": "204. Calculate Customer Segment Z-Scores",
+    "id": 194,
+    "title": "194. Calculate Customer Segment Z-Scores",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2204,8 +2094,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 205,
-    "title": "205. Identify Bounded Inter-Group Running Maximums",
+    "id": 195,
+    "title": "195. Identify Bounded Inter-Group Running Maximums",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2214,8 +2104,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 206,
-    "title": "206. Custom User-Defined Group Aggregations",
+    "id": 196,
+    "title": "196. Custom User-Defined Group Aggregations",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2224,8 +2114,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 207,
-    "title": "207. Impute Missing Values with Group Medians",
+    "id": 197,
+    "title": "197. Impute Missing Values with Group Medians",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2234,8 +2124,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 208,
-    "title": "208. Isolate Top N Dynamic Records Per Group",
+    "id": 198,
+    "title": "198. Isolate Top N Dynamic Records Per Group",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2244,8 +2134,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 209,
-    "title": "209. Calculate Group-Level Retention Rates",
+    "id": 199,
+    "title": "199. Calculate Group-Level Retention Rates",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2254,8 +2144,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 210,
-    "title": "210. Relational Database Inner Reconciliation",
+    "id": 200,
+    "title": "200. Relational Database Inner Reconciliation",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2264,8 +2154,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 211,
-    "title": "211. Complete Outer Inventory Alignment",
+    "id": 201,
+    "title": "201. Complete Outer Inventory Alignment",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2274,8 +2164,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 212,
-    "title": "212. Left Join Audits with Origin Flags",
+    "id": 202,
+    "title": "202. Left Join Audits with Origin Flags",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2284,8 +2174,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "store_dim_customers.csv"
   },
   {
-    "id": 213,
-    "title": "213. Timestamp Match Using Asynchronous Tolerances",
+    "id": 203,
+    "title": "203. Timestamp Match Using Asynchronous Tolerances",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2294,8 +2184,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 214,
-    "title": "214. Cartesian Product Resource Assignment",
+    "id": 204,
+    "title": "204. Cartesian Product Resource Assignment",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2304,8 +2194,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 215,
-    "title": "215. Multi-Key Index Merging",
+    "id": 205,
+    "title": "205. Multi-Key Index Merging",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2314,8 +2204,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 216,
-    "title": "216. Conditional Overlap Fill and Merge",
+    "id": 206,
+    "title": "206. Conditional Overlap Fill and Merge",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2324,8 +2214,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 217,
-    "title": "217. Evaluate Delta Deviations Across Tables",
+    "id": 207,
+    "title": "207. Evaluate Delta Deviations Across Tables",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2334,8 +2224,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "corporate_financials_wide.csv"
   },
   {
-    "id": 218,
-    "title": "218. Track Historical Schema Changes",
+    "id": 208,
+    "title": "208. Track Historical Schema Changes",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2344,8 +2234,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 219,
-    "title": "219. Merge Mismatched Categorical Columns",
+    "id": 209,
+    "title": "209. Merge Mismatched Categorical Columns",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2354,8 +2244,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 220,
-    "title": "220. Unpivot Quarterly Financial Summary Tables",
+    "id": 210,
+    "title": "210. Unpivot Quarterly Financial Summary Tables",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2364,8 +2254,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "corporate_financials_wide.csv"
   },
   {
-    "id": 221,
-    "title": "221. Generate Variable-Width Analytical Bins",
+    "id": 211,
+    "title": "211. Generate Variable-Width Analytical Bins",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2374,8 +2264,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 222,
-    "title": "222. One-Hot Encode Categorical Model Pipelines",
+    "id": 212,
+    "title": "212. One-Hot Encode Categorical Model Pipelines",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2384,8 +2274,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 223,
-    "title": "223. Resample Daily Financial Data to Monthly Averages",
+    "id": 213,
+    "title": "213. Resample Daily Financial Data to Monthly Averages",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2394,8 +2284,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 224,
-    "title": "224. Calculate Rolling 7-Day Asset Volatility",
+    "id": 214,
+    "title": "214. Calculate Rolling 7-Day Asset Volatility",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2404,8 +2294,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 225,
-    "title": "225. Compute Multi-Column Percentage Change Deltas (Intermediate)",
+    "id": 215,
+    "title": "215. Compute Multi-Column Percentage Change Deltas (Intermediate)",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2414,8 +2304,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 226,
-    "title": "226. Multi-Level Index Cross-Section Extractions",
+    "id": 216,
+    "title": "216. Multi-Level Index Cross-Section Extractions",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2424,8 +2314,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "corporate_financials_wide.csv"
   },
   {
-    "id": 227,
-    "title": "227. Calculate Cumulative Moving Limits",
+    "id": 217,
+    "title": "217. Calculate Cumulative Moving Limits",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2434,8 +2324,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 228,
-    "title": "228. Cross-Tabulate Multi-Factor Frequency Tables",
+    "id": 218,
+    "title": "218. Cross-Tabulate Multi-Factor Frequency Tables",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2444,8 +2334,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 229,
-    "title": "229. Explode Nested JSON Array Columns into Rows",
+    "id": 219,
+    "title": "219. Explode Nested JSON Array Columns into Rows",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2454,8 +2344,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 230,
-    "title": "230. Extract Valid Nested Email Domains",
+    "id": 220,
+    "title": "220. Extract Valid Nested Email Domains",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2464,8 +2354,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 231,
-    "title": "231. Parse Raw Unstructured Log Strings via Regex Captures",
+    "id": 221,
+    "title": "221. Parse Raw Unstructured Log Strings via Regex Captures",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2474,8 +2364,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 232,
-    "title": "232. Sanitize and Standardize Variable Phone Formats",
+    "id": 222,
+    "title": "222. Sanitize and Standardize Variable Phone Formats",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2484,8 +2374,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 233,
-    "title": "233. Vectorized Substring Tokenization and Counting",
+    "id": 223,
+    "title": "223. Vectorized Substring Tokenization and Counting",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2494,8 +2384,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 234,
-    "title": "234. Identify Partial Match Anomalies in Product Descriptions",
+    "id": 224,
+    "title": "224. Identify Partial Match Anomalies in Product Descriptions",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2504,8 +2394,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 235,
-    "title": "235. Mask Sensitive Personally Identifiable Information",
+    "id": 225,
+    "title": "225. Mask Sensitive Personally Identifiable Information",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2514,8 +2404,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 236,
-    "title": "236. Title-Case Multi-Word Exceptions in Names",
+    "id": 226,
+    "title": "226. Title-Case Multi-Word Exceptions in Names",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2524,8 +2414,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 237,
-    "title": "237. Split Variable-Length Delimited Fields into Matrix Columns",
+    "id": 227,
+    "title": "227. Split Variable-Length Delimited Fields into Matrix Columns",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2534,8 +2424,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 238,
-    "title": "238. Flatten Deeply Nested Multi-Indexed Columns Post-Aggregation",
+    "id": 228,
+    "title": "228. Flatten Deeply Nested Multi-Indexed Columns Post-Aggregation",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2544,8 +2434,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 239,
-    "title": "239. Construct Hierarchical Indexes from Dynamic String Cuts",
+    "id": 229,
+    "title": "229. Construct Hierarchical Indexes from Dynamic String Cuts",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2554,8 +2444,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 240,
-    "title": "240. Cross-Sectional Analysis Across Asymmetric Index Levels",
+    "id": 230,
+    "title": "230. Cross-Sectional Analysis Across Asymmetric Index Levels",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2564,8 +2454,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "store_dim_customers.csv"
   },
   {
-    "id": 241,
-    "title": "241. Pivot Complex Aggregations with Variable Margins and Totals",
+    "id": 231,
+    "title": "231. Pivot Complex Aggregations with Variable Margins and Totals",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2574,8 +2464,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 242,
-    "title": "242. Unstacking Selective Tiers of Multi-Dimensional Arrays",
+    "id": 232,
+    "title": "232. Unstacking Selective Tiers of Multi-Dimensional Arrays",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2584,8 +2474,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 243,
-    "title": "243. Multi-Index Swapping and Reordering for Matrix Math",
+    "id": 233,
+    "title": "233. Multi-Index Swapping and Reordering for Matrix Math",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2594,8 +2484,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 244,
-    "title": "244. Reshape Sparse Matrices into Dense DataFrames",
+    "id": 234,
+    "title": "234. Reshape Sparse Matrices into Dense DataFrames",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2604,8 +2494,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 245,
-    "title": "245. Conditional Melting of Multi-Column Data Blocks",
+    "id": 235,
+    "title": "235. Conditional Melting of Multi-Column Data Blocks",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2614,8 +2504,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 246,
-    "title": "246. Asynchronous Time-Zone Alignment and Localization",
+    "id": 236,
+    "title": "236. Asynchronous Time-Zone Alignment and Localization",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2624,8 +2514,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 247,
-    "title": "247. Calculate Custom Business-Day Deltas Excluding Arbitrary Holidays",
+    "id": 237,
+    "title": "237. Calculate Custom Business-Day Deltas Excluding Arbitrary Holidays",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2634,8 +2524,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 248,
-    "title": "248. Forward-Fill Intermittent Time Series with Upper Bounds",
+    "id": 238,
+    "title": "238. Forward-Fill Intermittent Time Series with Upper Bounds",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2644,8 +2534,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 249,
-    "title": "249. Detect Consecutive Day Streaks (The Gaps-and-Islands Problem)",
+    "id": 239,
+    "title": "239. Detect Consecutive Day Streaks (The Gaps-and-Islands Problem)",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2654,8 +2544,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 250,
-    "title": "250. Resample Irregular High-Frequency Ticks to Open-High-Low-Close (OHLC)",
+    "id": 240,
+    "title": "240. Resample Irregular High-Frequency Ticks to Open-High-Low-Close (OHLC)",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2664,8 +2554,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 251,
-    "title": "251. Calculate Rolling Window Metrics with Variable Time-Offsets",
+    "id": 241,
+    "title": "241. Calculate Rolling Window Metrics with Variable Time-Offsets",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2674,8 +2564,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 252,
-    "title": "252. Align Asynchronous Events Using Forward-Looking merge_asof",
+    "id": 242,
+    "title": "242. Align Asynchronous Events Using Forward-Looking merge_asof",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2684,8 +2574,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 253,
-    "title": "253. Compute Expanding Metric Maximums and Exponentially Weighted Decays",
+    "id": 243,
+    "title": "243. Compute Expanding Metric Maximums and Exponentially Weighted Decays",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2694,8 +2584,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 254,
-    "title": "254. Downcast Massive Dataframes via Numeric and Categorical Type Traversal",
+    "id": 244,
+    "title": "244. Downcast Massive Dataframes via Numeric and Categorical Type Traversal",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2704,8 +2594,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 255,
-    "title": "255. Vectorized Numeric Evaluation Using pd.eval() for Compound Logic",
+    "id": 245,
+    "title": "245. Vectorized Numeric Evaluation Using pd.eval() for Compound Logic",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2714,8 +2604,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 256,
-    "title": "256. High-Speed Conditional String Filtering via Vectorized .query()",
+    "id": 246,
+    "title": "246. High-Speed Conditional String Filtering via Vectorized .query()",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2724,8 +2614,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 257,
-    "title": "257. Chunked Processing Architecture for Multi-Gigabyte Ingestion",
+    "id": 247,
+    "title": "247. Chunked Processing Architecture for Multi-Gigabyte Ingestion",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2734,8 +2624,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 258,
-    "title": "258. Eliminate SettingWithCopyWarning in Deeply Nested Views",
+    "id": 248,
+    "title": "248. Eliminate SettingWithCopyWarning in Deeply Nested Views",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2744,8 +2634,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 259,
-    "title": "259. Optimize Row-Wise Traversal (Replacing iterrows with itertuples)",
+    "id": 249,
+    "title": "249. Optimize Row-Wise Traversal (Replacing iterrows with itertuples)",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2754,8 +2644,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 260,
-    "title": "260. Fast Element-Wise Matrix Mutations Using NumPy Vectorization Backends",
+    "id": 250,
+    "title": "250. Fast Element-Wise Matrix Mutations Using NumPy Vectorization Backends",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2764,8 +2654,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 261,
-    "title": "261. Parallelizing Custom User-Defined Functions Across Groups",
+    "id": 251,
+    "title": "251. Parallelizing Custom User-Defined Functions Across Groups",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2774,8 +2664,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 262,
-    "title": "262. Compute Rolling Correlation Matrices Across Sliding Timelines",
+    "id": 252,
+    "title": "252. Compute Rolling Correlation Matrices Across Sliding Timelines",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2784,8 +2674,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 263,
-    "title": "263. Multi-Condition Deduplication Keeping Custom Dynamic Extremes",
+    "id": 253,
+    "title": "253. Multi-Condition Deduplication Keeping Custom Dynamic Extremes",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2794,8 +2684,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 264,
-    "title": "264. Dynamic Quantile-Based Binning Across Variable Group Sizes",
+    "id": 254,
+    "title": "254. Dynamic Quantile-Based Binning Across Variable Group Sizes",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2804,8 +2694,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 265,
-    "title": "265. Reconstruct Lineage Tables from Self-Referential Parent-Child Rows",
+    "id": 255,
+    "title": "255. Reconstruct Lineage Tables from Self-Referential Parent-Child Rows",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2814,8 +2704,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 266,
-    "title": "266. Identify Complex Cycle Patterns in Graph Metadata",
+    "id": 256,
+    "title": "256. Identify Complex Cycle Patterns in Graph Metadata",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2824,8 +2714,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 267,
-    "title": "267. Vectorized Matrix Multiplications for Multi-Dimensional Coordinate Tiers",
+    "id": 257,
+    "title": "257. Vectorized Matrix Multiplications for Multi-Dimensional Coordinate Tiers",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2834,8 +2724,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 268,
-    "title": "268. Track Dynamic Multi-Layer State Machine Transitions",
+    "id": 258,
+    "title": "258. Track Dynamic Multi-Layer State Machine Transitions",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2844,13 +2734,123 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 269,
-    "title": "269. End-to-End Multiprocess Pipeline Orchestration",
+    "id": 259,
+    "title": "259. End-to-End Multiprocess Pipeline Orchestration",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
     "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">This final challenge brings together all the key areas of the curriculum—data cleaning, joining, aggregation, and structural reshaping—into a single, unified production pipeline. You must design an end-to-end data transformation engine that ingests raw, messy transaction files and processes them into clean analytical features. Write a Python function orchestrate_data_pipeline(df_transactions: pd. DataFrame, df_customers: pd. DataFrame) -> pd. DataFrame that coordinates a complete multi-step transformation pipeline:</p><ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\"><strong>Data Sanitization Step:</strong> Clean the df_transactions table by stripping all leading/trailing whitespaces from the ProductCategory column and forcing all characters to lowercase. Remove any rows where Profit or CustomerID is missing (NaN).</li><li class=\"py-0.5\"><strong>Relational Ingestion Step:</strong> Merge the cleaned transactions DataFrame with the df_customers master dimension table using an Inner Join on the shared CustomerID column.</li><li class=\"py-0.5\"><strong>Advanced Group Aggregation Step:</strong> Group the combined dataset by Region and the cleaned ProductCategory columns simultaneously. For each group, calculate two statistics:The total cumulative sum of the Quantity column (name this output column TotalQuantity). The volume-weighted average profit using the formula:$$\\text{WeightedProfit} = \\frac{\\sum (\\text{Quantity} \\times \\text{Profit})}{\\sum \\text{Quantity}}$$Structural</li><li class=\"py-0.5\"><strong>Pivot Reshaping Step:</strong> Pivot the aggregated results so that Region becomes the explicit row index, and unique values within the ProductCategory column swing horizontally into the primary column layout. The cells at each intersection must display the calculated WeightedProfit metric.</li><li class=\"py-0.5\"><strong>Final Output Formatting:</strong> Fill any missing or empty grid cells (NaN) inside the final pivot grid with a flat default value of 0.00. Round all float metrics to exactly 2 decimal places. Return the finalized pivoted DataFrame.</li></ul>\n  </div>\n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Input Schema</h4>\n    <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal whitespace-pre-wrap select-all\">df_transactions: A DataFrame structured like dirty_store_transactions.csv.\ndf_customers: A DataFrame structured like store_dim_customers.csv.</pre>\n  </div>\n  \n  \n  \n  <div class=\"mt-4\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Constraints</h4>\n    <ul class=\"list-disc pl-5 mt-2 space-y-1.5 text-sm text-ink font-sans font-normal leading-relaxed\"><li class=\"py-0.5\">$10 \\le \\text{df\\_transactions.shape}[0] \\le 1500$$</li><li class=\"py-0.5\">5 \\le \\text{df\\_customers.shape}[0] \\le 500</li></ul>\n  </div>\n  \n  \n  \n  <div class=\"mt-6 border-t border-hairline pt-6\">\n    <h4 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 font-mono\">Example 1</h4>\n    \n    <div class=\"space-y-4 mt-3\">\n      <div>\n        <div class=\"text-[10px] font-extrabold text-ink uppercase tracking-widest font-mono mb-1\">Input Data:</div>\n        <pre class=\"p-4 bg-surface-soft border border-hairline rounded-2xl font-mono text-xs text-ink font-medium overflow-x-auto leading-normal select-all whitespace-pre\">----------------|------------|---------------|----------|\r</pre>\n        <p class=\"mt-2 text-xs text-ink font-sans font-normal leading-relaxed pl-1\">Input Summary Walkthrough:Transactions are cleaned and joined with customers.Quantities and weighted profits are computed across Region + Category intersections.The table shapes into a clean, flat wide matrix showing regions as rows and category profiles as columns.Output Matrix Structure:ProductCategory | \"clothing\" | \"electronics\" | \"office\" |\r Region          |            |               |          |\r \"EAST\"          | 45.50      | 120.25        | 0.00     |\r \"WEST\"          | 30.00      | 85.10         | 15.40    |</p>\n      </div>\n      \n    </div>\n        \n  </div>\n  \n</div>\n",
     "starter_code": "import pandas as pd\nimport numpy as np\n\ndef orchestrate_data_pipeline(df_transactions, df_customers):\n    # Write your code here\n    pass",
     "dataset_name": "dirty_store_transactions.csv"
+  },
+  {
+    "id": 260,
+    "title": "260. High-Volume Financial Transaction Pipeline",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">You are processing a multi-gigabyte financial transaction dataset stored across multiple CSV fragments. The data contains duplicate transaction IDs due to network retries, structural formatting errors in string fields, and missing values in numeric transaction amounts and categorical merchant types. Write a Python function <code>process_financial_pipeline(file1: str, file2: str)</code> using Pandas to cleanse the dataset:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Sequential Read:</strong> Read both CSV fragments sequentially and merge/concatenate them into a single DataFrame.</li>\n      <li class=\"py-0.5\"><strong>Drop Duplicates:</strong> Drop exact duplicate rows based on the <code>TransactionID</code> column.</li>\n      <li class=\"py-0.5\"><strong>Clean Strings:</strong> Standardize the <code>MerchantType</code> values by removing leading/trailing spaces and forcing Title case.</li>\n      <li class=\"py-0.5\"><strong>Impute Amount:</strong> Impute missing values in the <code>TransactionAmount</code> column using the group-wise median grouped by <code>MerchantType</code>.</li>\n      <li class=\"py-0.5\"><strong>Impute Merchant:</strong> Fill any remaining missing <code>MerchantType</code> values using the mode.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef process_financial_pipeline(file1, file2):\n    # Write your pipeline code here\n    pass",
+    "dataset_name": "financial_transactions_part1.csv"
+  },
+  {
+    "id": 261,
+    "title": "261. E-Commerce Customer Churn Cleaning & Mapping",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">An e-commerce platform provides a customer behavior CSV file filled with dirty data, including trailing whitespace in categorical labels, hidden nulls represented as string question marks (?), duplicate customer profiles from multi-device logins, and missing tenure values. Write a Python function <code>clean_customer_churn(df: pd.DataFrame)</code> to sanitize the data:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Hidden Nulls:</strong> Replace non-standard missing values (specifically string question marks <code>?</code> and spacing blanks) with <code>NaN</code>.</li>\n      <li class=\"py-0.5\"><strong>Clean Profile Duplicates:</strong> Remove duplicate user profiles based on <code>CustomerID</code>.</li>\n      <li class=\"py-0.5\"><strong>Numeric Imputation:</strong> Fill missing numeric <code>Tenure</code> values with the mean of the column.</li>\n      <li class=\"py-0.5\"><strong>Categorical Imputation:</strong> Fill missing <code>Segment</code> values using the mode.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef clean_customer_churn(df):\n    # Write your cleaning code here\n    return df",
+    "dataset_name": "customer_churn_dirty.csv"
+  },
+  {
+    "id": 262,
+    "title": "262. IoT Sensor Stream Anomaly Preprocessing",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">An industrial IoT sensor log CSV file suffers from overlapping timestamps, corrupted missing fields, and duplicate entries generated during system reboots. Write a Python function <code>preprocess_iot_stream(df: pd.DataFrame)</code> to sanitize the telemetry logs:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>DateTime Parsing:</strong> Parse the <code>Timestamp</code> column to DateTime format and sort the DataFrame chronologically.</li>\n      <li class=\"py-0.5\"><strong>Deduplicate Timestamps:</strong> Drop duplicate rows sharing identical <code>Timestamp</code> values, keeping only the latest record.</li>\n      <li class=\"py-0.5\"><strong>Hybrid Temperature Imputation:</strong> Handle missing <code>Temperature</code> values using a hybrid strategy: fill short gaps via forward-fill (limit=1), and fill any remaining structural blanks with the median sensor reading of that specific <code>DeviceID</code>.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef preprocess_iot_stream(df):\n    # Write your preprocessing code here\n    return df",
+    "dataset_name": "iot_telemetry_corrupt.csv"
+  },
+  {
+    "id": 263,
+    "title": "263. Healthcare Demographic Record Imputation",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">A public health CSV database contains missing data in critical columns like age, blood pressure, and hospital stay duration, along with duplicate patient identification entries. Write a Python function <code>impute_healthcare_records(df: pd.DataFrame)</code> to cleanse the records:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Deduplicate Patients:</strong> Drop duplicate patient identification rows based on patient hashes (<code>PatientHash</code>).</li>\n      <li class=\"py-0.5\"><strong>Group Imputation:</strong> Calculate and apply group-wise mean imputation for missing <code>Age</code> values stratified by <code>DiseaseCategory</code>.</li>\n      <li class=\"py-0.5\"><strong>Severity Mode:</strong> Impute missing categorical <code>SeverityGrade</code> entries with the mode.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef impute_healthcare_records(df):\n    # Write your imputation code here\n    return df",
+    "dataset_name": "healthcare_demographics_raw.csv"
+  },
+  {
+    "id": 264,
+    "title": "264. Supply Chain Logistics Data Cleansing",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">A logistics tracking CSV contains shipping delays with structural inconsistencies, duplicate tracking numbers, and missing transit days. Write a Python function <code>cleanse_logistics_data(df: pd.DataFrame)</code> to cleanse the data:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Deduplicate Logs:</strong> Drop duplicate tracking records based on <code>TrackingNumber</code>.</li>\n      <li class=\"py-0.5\"><strong>Transit Median:</strong> Fill missing <code>TransitDays</code> using the median grouped by <code>ShippingTier</code>.</li>\n      <li class=\"py-0.5\"><strong>Carrier Imputation:</strong> Impute missing <code>CarrierName</code> with the mode.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef cleanse_logistics_data(df):\n    # Write your cleansing code here\n    return df",
+    "dataset_name": "logistics_tracking_dirty.csv"
+  },
+  {
+    "id": 265,
+    "title": "265. Multi-Sheet Corporate Budget Consolidation",
+    "difficulty": "hard",
+    "points": 300,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">You are given a corporate financial Excel workbook (<code>budget_2026.xlsx</code>) containing multiple sheets representing different regional offices, each with slightly varying column headers, duplicate project IDs, and missing budget allocations. Write a Python function <code>consolidate_regional_budgets(file_path: str)</code> to align and merge them:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Iterate Sheets:</strong> Iterate through all sheets in the Excel workbook.</li>\n      <li class=\"py-0.5\"><strong>Standardize Headers:</strong> Standardize varying project ID columns (<code>ProjID</code>, <code>Project_ID</code>, <code>Proj_Code</code>) to <code>ProjectID</code>, department columns (<code>Dept</code>, <code>Department</code>) to <code>Department</code>, and regional budget columns to <code>Budget</code>.</li>\n      <li class=\"py-0.5\"><strong>Deduplicate:</strong> Remove duplicate project listings based on <code>ProjectID</code>.</li>\n      <li class=\"py-0.5\"><strong>Department Imputation:</strong> Fill missing <code>Budget</code> allocations using the group-wise median per <code>Department</code>.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef consolidate_regional_budgets(file_path):\n    # Write your consolidation code here\n    pass",
+    "dataset_name": "budget_2026.xlsx"
+  },
+  {
+    "id": 266,
+    "title": "266. Retail Inventory Unmerging and Cleaning",
+    "difficulty": "hard",
+    "points": 300,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">A retail inventory Excel file (<code>retail_inventory_merged.xlsx</code>) contains merged cells for category names, formatting errors, duplicate SKU listings, and blank stock count entries. Write a Python function <code>clean_retail_inventory(file_path: str)</code> to preprocess the sheets:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Unmerge Fill:</strong> Load the Excel workbook and properly forward-fill category names (which are merged cells).</li>\n      <li class=\"py-0.5\"><strong>Deduplicate SKUs:</strong> Remove duplicate SKU entries.</li>\n      <li class=\"py-0.5\"><strong>Inventory Imputation:</strong> Impute missing stock values: use the mode for categorical stock status flags, and the mean for numeric stock quantities.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef clean_retail_inventory(file_path):\n    # Write your inventory cleaning code here\n    pass",
+    "dataset_name": "retail_inventory_merged.xlsx"
+  },
+  {
+    "id": 267,
+    "title": "267. HR Performance Multi-Table Extraction",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">An employee performance Excel workbook has irregular tabular layouts with metadata rows at the top, duplicate employee IDs from transitions, and missing evaluation scores. Write a Python function <code>extract_hr_performance(file_path: str)</code> to parse and clean the ledger:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Skip Metadata:</strong> Programmatically skip metadata rows at the top to locate actual headers.</li>\n      <li class=\"py-0.5\"><strong>Clean ID Duplicates:</strong> Drop duplicate rows based on <code>EmployeeID</code>.</li>\n      <li class=\"py-0.5\"><strong>Score Imputation:</strong> Impute missing performance scores using the department-wise median.</li>\n      <li class=\"py-0.5\"><strong>Employment Mode:</strong> Fill missing <code>EmploymentType</code> values with the mode.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef extract_hr_performance(file_path):\n    # Write your HR parsing code here\n    pass",
+    "dataset_name": "employee_performance_irregular.xlsx"
+  },
+  {
+    "id": 268,
+    "title": "268. Real Estate Property Appraisal Pipeline",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">A real estate Excel file contains property appraisals with missing valuations, duplicate property listings from multi-agent entries, and corrupt currency string formats. Write a Python function <code>clean_property_appraisals(file_path: str)</code> to clean and parse the properties:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Parse Currency:</strong> Clean currency strings (e.g. <code>$1,200,000</code>) by removing symbols and commas, converting them to numeric types.</li>\n      <li class=\"py-0.5\"><strong>Deduplicate Properties:</strong> Drop duplicate listings based on <code>PropertyID</code>.</li>\n      <li class=\"py-0.5\"><strong>Price Imputation:</strong> Impute missing property valuations using the median price per zip code.</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef clean_property_appraisals(file_path):\n    # Write your appraisal parsing code here\n    pass",
+    "dataset_name": "property_appraisals_corrupt.xlsx"
+  },
+  {
+    "id": 269,
+    "title": "269. Smart-Meter Energy Consumption Cleaning",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "pandas",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">An energy utility Excel workbook tracks smart-meter power loads, featuring missing hourly readings and duplicate timestamps due to synchronization glitches. Write a Python function <code>clean_energy_consumption(file_path: str)</code> to cleanse the smart meter log:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Clean Multi-Index:</strong> Handle the multi-index spreadsheet layout correctly.</li>\n      <li class=\"py-0.5\"><strong>Deduplicate Timestamps:</strong> Remove duplicate timestamps, keeping only the first record.</li>\n      <li class=\"py-0.5\"><strong>Rolling Imputation:</strong> Impute missing power load readings using a rolling mean (window size 3).</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport numpy as np\n\ndef clean_energy_consumption(file_path):\n    # Write your energy consumption cleaning code here\n    pass",
+    "dataset_name": "smart_meter_consumption.xlsx"
+  },
+  {
+    "id": 270,
+    "title": "270. Global Branch Quarterly Revenue Analysis",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "matplotlib-seaborn",
+    "description": "\n<div class=\"space-y-5 text-ink font-sans\">\n  <div class=\"text-body text-sm font-light leading-relaxed\">\n    <p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">You have preprocessed quarterly revenue data for 50 global branches. Write a Python function <code>plot_branch_revenue(file_path: str)</code> using Matplotlib or Seaborn to visualize the branch performance:</p>\n    <ul class=\"list-disc pl-5 mb-4 space-y-2 text-sm text-ink font-sans font-normal leading-relaxed\">\n      <li class=\"py-0.5\"><strong>Grouped/Stacked Plot:</strong> Plot quarterly revenues (Q1 to Q4) for each branch as a grouped or stacked bar chart.</li>\n      <li class=\"py-0.5\"><strong>Labels Customization:</strong> Rotate branch category labels by 90 degrees.</li>\n      <li class=\"py-0.5\"><strong>Error Bars:</strong> Include explicit standard deviation error bars (from the <code>StdDev</code> column) representing variance.</li>\n      <li class=\"py-0.5\"><strong>Return Object:</strong> Return the Matplotlib <code>Axes</code> object (<code>ax</code>).</li>\n    </ul>\n  </div>\n</div>\n",
+    "starter_code": "import pandas as pd\nimport matplotlib.pyplot as plt\n\ndef plot_branch_revenue(file_path):\n    fig, ax = plt.subplots()\n    # Write your plotting code here\n    return ax",
+    "dataset_name": "branch_quarterly_revenue.csv"
   }
 ];

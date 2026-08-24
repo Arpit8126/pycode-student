@@ -575,6 +575,241 @@ function generateHighFrequencyStockTicks(): string {
   return rows.join('\n')
 }
 
+// 7. Generate financial_transactions_part1.csv & financial_transactions_part2.csv (1000 rows split)
+function generateFinancialTransactionsData(part: 1 | 2): string {
+  const rand = createRandom(42)
+  const headers = ['TransactionID', 'Date', 'CustomerID', 'MerchantType', 'TransactionAmount']
+  const rows = [headers.join(',')]
+  
+  const merchants = ['Retail', 'Food', 'Travel', 'Entertainment', 'Services', '']
+  
+  const startIdx = part === 1 ? 1 : 501
+  const endIdx = part === 1 ? 500 : 1000
+  
+  const ids: string[] = []
+  for (let i = 1; i <= 1000; i++) {
+    ids.push(`T${10000 + i}`)
+  }
+  
+  const randDup = createRandom(99)
+  for (let i = 0; i < 50; i++) {
+    const src = Math.floor(randDup() * 1000)
+    const dst = Math.floor(randDup() * 1000)
+    ids[dst] = ids[src]
+  }
+
+  for (let i = startIdx; i <= endIdx; i++) {
+    const id = ids[i - 1]
+    const month = Math.floor(1 + rand() * 4)
+    const day = Math.floor(1 + rand() * 28)
+    const mStr = month < 10 ? `0${month}` : `${month}`
+    const dStr = day < 10 ? `0${day}` : `${day}`
+    const dateStr = `2026-${mStr}-${dStr} 12:00:00`
+    
+    let merchant = merchants[Math.floor(rand() * merchants.length)]
+    if (merchant && rand() < 0.15) {
+      if (rand() < 0.5) merchant = '  ' + merchant.toLowerCase() + ' '
+      else merchant = merchant.toUpperCase()
+    }
+    
+    let amount = ''
+    if (rand() > 0.1) {
+      amount = (5.0 + rand() * 495.0).toFixed(2)
+    }
+    
+    rows.push([id, dateStr, `C${1000 + Math.floor(rand() * 500)}`, merchant, amount].join(','))
+  }
+  return rows.join('\n')
+}
+
+// 8. Generate customer_churn_dirty.csv
+function generateCustomerChurnDirty(): string {
+  const rand = createRandom(101)
+  const headers = ['CustomerID', 'Age', 'Tenure', 'Segment', 'Churn']
+  const rows = [headers.join(',')]
+  
+  const segments = ['Premium', 'Standard', 'Basic', '  ', '?', 'Premium ', 'Basic  ', '']
+  
+  const ids: string[] = []
+  for (let i = 1; i <= 400; i++) {
+    ids.push(`C${20000 + i}`)
+  }
+  
+  const randDup = createRandom(202)
+  for (let i = 0; i < 20; i++) {
+    const src = Math.floor(randDup() * 400)
+    const dst = Math.floor(randDup() * 400)
+    ids[dst] = ids[src]
+  }
+  
+  for (let i = 1; i <= 400; i++) {
+    const id = ids[i - 1]
+    let age = ''
+    if (rand() > 0.05) {
+      age = Math.floor(18 + rand() * 63).toString()
+    } else {
+      age = '?'
+    }
+    
+    let tenure = ''
+    if (rand() > 0.15) {
+      tenure = Math.floor(1 + rand() * 72).toString()
+    }
+    
+    const segment = segments[Math.floor(rand() * segments.length)]
+    const churn = rand() > 0.7 ? '1' : '0'
+    
+    rows.push([id, age, tenure, segment, churn].join(','))
+  }
+  return rows.join('\n')
+}
+
+// 9. Generate iot_telemetry_corrupt.csv
+function generateIotTelemetryCorrupt(): string {
+  const rand = createRandom(303)
+  const headers = ['Timestamp', 'DeviceID', 'Temperature', 'Humidity']
+  const rows = [headers.join(',')]
+  
+  const devices = ['D-01', 'D-02', 'D-03']
+  const timestamps: string[] = []
+  let currentSec = 1792711200
+  for (let i = 0; i < 300; i++) {
+    const date = new Date((currentSec + i) * 1000)
+    timestamps.push(date.toISOString().replace('T', ' ').substring(0, 19))
+  }
+  
+  const randDup = createRandom(404)
+  for (let i = 0; i < 15; i++) {
+    const src = Math.floor(randDup() * 300)
+    const dst = Math.floor(randDup() * 300)
+    timestamps[dst] = timestamps[src]
+  }
+  
+  for (let i = 0; i < 300; i++) {
+    const timestamp = timestamps[i]
+    const device = devices[Math.floor(rand() * devices.length)]
+    
+    let temp = ''
+    if (rand() > 0.12) {
+      temp = (20.0 + rand() * 15.0).toFixed(1)
+    }
+    
+    let hum = ''
+    if (rand() > 0.08) {
+      hum = (40.0 + rand() * 30.0).toFixed(1)
+    } else {
+      hum = 'Error'
+    }
+    
+    rows.push([timestamp, device, temp, hum].join(','))
+  }
+  return rows.join('\n')
+}
+
+// 10. Generate healthcare_demographics_raw.csv
+function generateHealthcareDemographicsRaw(): string {
+  const rand = createRandom(505)
+  const headers = ['PatientHash', 'Age', 'BloodPressure', 'StayDuration', 'DiseaseCategory', 'SeverityGrade']
+  const rows = [headers.join(',')]
+  
+  const diseases = ['Cardiology', 'Oncology', 'Pediatrics', 'Neurology']
+  const severities = ['Mild', 'Moderate', 'Severe', '']
+  
+  const hashes: string[] = []
+  for (let i = 0; i < 250; i++) {
+    hashes.push(`HASH_${1000 + Math.floor(rand() * 1000)}`)
+  }
+  
+  const randDup = createRandom(606)
+  for (let i = 0; i < 15; i++) {
+    const src = Math.floor(randDup() * 250)
+    const dst = Math.floor(randDup() * 250)
+    hashes[dst] = hashes[src]
+  }
+  
+  for (let i = 0; i < 250; i++) {
+    const hash = hashes[i]
+    let age = ''
+    if (rand() > 0.10) {
+      age = Math.floor(1 + rand() * 95).toString()
+    }
+    
+    let bp = ''
+    if (rand() > 0.15) {
+      bp = Math.floor(90 + rand() * 70).toString()
+    }
+    
+    let stay = ''
+    if (rand() > 0.08) {
+      stay = Math.floor(1 + rand() * 30).toString()
+    }
+    
+    const disease = diseases[Math.floor(rand() * diseases.length)]
+    const severity = severities[Math.floor(rand() * severities.length)]
+    
+    rows.push([hash, age, bp, stay, disease, severity].join(','))
+  }
+  return rows.join('\n')
+}
+
+// 11. Generate logistics_tracking_dirty.csv
+function generateLogisticsTrackingDirty(): string {
+  const rand = createRandom(707)
+  const headers = ['TrackingNumber', 'ShipDate', 'TransitDays', 'ShippingTier', 'CarrierName']
+  const rows = [headers.join(',')]
+  
+  const tiers = ['Express', 'Standard', 'Economy']
+  const carriers = ['FedEx', 'UPS', 'DHL', '']
+  
+  const trackNums: string[] = []
+  for (let i = 0; i < 200; i++) {
+    trackNums.push(`TRK${Math.floor(500000 + rand() * 100000)}`)
+  }
+  
+  const randDup = createRandom(808)
+  for (let i = 0; i < 10; i++) {
+    const src = Math.floor(randDup() * 200)
+    const dst = Math.floor(randDup() * 200)
+    trackNums[dst] = trackNums[src]
+  }
+  
+  for (let i = 0; i < 200; i++) {
+    const track = trackNums[i]
+    const date = new Date(1772366400000 + i * 86400000)
+    const dateStr = date.toISOString().substring(0, 10)
+    
+    let transit = ''
+    if (rand() > 0.15) {
+      transit = Math.floor(1 + rand() * 14).toString()
+    }
+    
+    const tier = tiers[Math.floor(rand() * tiers.length)]
+    const carrier = carriers[Math.floor(rand() * carriers.length)]
+    
+    rows.push([track, dateStr, transit, tier, carrier].join(','))
+  }
+  return rows.join('\n')
+}
+
+// 12. Generate branch_quarterly_revenue.csv
+function generateBranchQuarterlyRevenue(): string {
+  const rand = createRandom(909)
+  const headers = ['BranchName', 'Q1', 'Q2', 'Q3', 'Q4', 'StdDev']
+  const rows = [headers.join(',')]
+  
+  for (let i = 1; i <= 50; i++) {
+    const branch = `Branch_${i}`
+    const q1 = Math.round(50000 + rand() * 450000)
+    const q2 = Math.round(60000 + rand() * 490000)
+    const q3 = Math.round(55000 + rand() * 465000)
+    const q4 = Math.round(70000 + rand() * 530000)
+    const stdDev = Math.round(5000 + rand() * 25000)
+    
+    rows.push([branch, q1, q2, q3, q4, stdDev].join(','))
+  }
+  return rows.join('\n')
+}
+
 export const DEFAULT_DATASETS: Record<string, DatasetItem> = {
   'dirty_store_transactions.csv': {
     name: 'dirty_store_transactions.csv',
@@ -617,5 +852,77 @@ export const DEFAULT_DATASETS: Record<string, DatasetItem> = {
     description: 'Dense millisecond/microsecond high-frequency tick log for stock symbols AAPL, TSLA, and MSFT. Contains quick price shifts, volume ticks, missing updates, and extreme trading volatility ticks. Perfect for resampling to OHLC candlesticks, rolling volatility windows, and sub-second datetime indexing.',
     headers: ['Timestamp', 'Ticker', 'Price', 'Volume'],
     csv: generateHighFrequencyStockTicks()
+  },
+  'financial_transactions_part1.csv': {
+    name: 'financial_transactions_part1.csv',
+    description: 'First fragment of high-volume financial transactions ledger with network retry ID duplicates, whitespace issues, and missing fields. Used to test sequential chunk parsing and preprocessing.',
+    headers: ['TransactionID', 'Date', 'CustomerID', 'MerchantType', 'TransactionAmount'],
+    csv: generateFinancialTransactionsData(1)
+  },
+  'financial_transactions_part2.csv': {
+    name: 'financial_transactions_part2.csv',
+    description: 'Second fragment of high-volume financial transactions ledger with network retry ID duplicates, whitespace issues, and missing fields.',
+    headers: ['TransactionID', 'Date', 'CustomerID', 'MerchantType', 'TransactionAmount'],
+    csv: generateFinancialTransactionsData(2)
+  },
+  'customer_churn_dirty.csv': {
+    name: 'customer_churn_dirty.csv',
+    description: 'Dirty customer loyalty and churn tracking ledger with trailing whitespace labels, non-standard missing cells (?), and multi-device login duplicates. Ideal for multivariate analysis.',
+    headers: ['CustomerID', 'Age', 'Tenure', 'Segment', 'Churn'],
+    csv: generateCustomerChurnDirty()
+  },
+  'iot_telemetry_corrupt.csv': {
+    name: 'iot_telemetry_corrupt.csv',
+    description: 'Industrial IoT telemetry data with overlapping timestamp anomalies, system reboot duplicates, and corrupted sensor logs. Excellent for hybrid forward-fill/median imputation pipelines.',
+    headers: ['Timestamp', 'DeviceID', 'Temperature', 'Humidity'],
+    csv: generateIotTelemetryCorrupt()
+  },
+  'healthcare_demographics_raw.csv': {
+    name: 'healthcare_demographics_raw.csv',
+    description: 'Messy demographic tracking data of hospitalized patients containing duplicate PatientHash signatures, and missing critical health indexes stratified by disease categories.',
+    headers: ['PatientHash', 'Age', 'BloodPressure', 'StayDuration', 'DiseaseCategory', 'SeverityGrade'],
+    csv: generateHealthcareDemographicsRaw()
+  },
+  'logistics_tracking_dirty.csv': {
+    name: 'logistics_tracking_dirty.csv',
+    description: 'Supply chain shipment delay database with irregular date formats, tracking ID duplicates, and missing carriers or transit days. Perfect for group-wise delays visualization.',
+    headers: ['TrackingNumber', 'ShipDate', 'TransitDays', 'ShippingTier', 'CarrierName'],
+    csv: generateLogisticsTrackingDirty()
+  },
+  'branch_quarterly_revenue.csv': {
+    name: 'branch_quarterly_revenue.csv',
+    description: 'Quarterly branch revenue summary database tracking Q1-Q4 metrics for 50 global offices. Contains branch-specific variance statistics (StdDev) for advanced bar charts.',
+    headers: ['BranchName', 'Q1', 'Q2', 'Q3', 'Q4', 'StdDev'],
+    csv: generateBranchQuarterlyRevenue()
+  },
+  'budget_2026.xlsx': {
+    name: 'budget_2026.xlsx',
+    description: 'Regional corporate spreadsheet compiling multiple regional financial budget sheets (North, South, East) with differing headers and project ID duplicates. (Binary spreadsheet, preview loads live from Pyodide).',
+    headers: ['ProjID', 'Dept', 'Budget'],
+    csv: ''
+  },
+  'retail_inventory_merged.xlsx': {
+    name: 'retail_inventory_merged.xlsx',
+    description: 'Inventory levels Excel ledger featuring merged cells for category names, formatting errors, blank count records, and duplicate SKUs. (Binary spreadsheet, preview loads live from Pyodide).',
+    headers: ['Category', 'SKU', 'StockQuantity', 'StockStatus'],
+    csv: ''
+  },
+  'employee_performance_irregular.xlsx': {
+    name: 'employee_performance_irregular.xlsx',
+    description: 'HR appraisals ledger structured with irregular metadata rows at the top, duplicate employee codes, and missing scoring slots. (Binary spreadsheet, preview loads live from Pyodide).',
+    headers: ['EmployeeID', 'Dept', 'AppraisalScore', 'EmploymentType'],
+    csv: ''
+  },
+  'property_appraisals_corrupt.xlsx': {
+    name: 'property_appraisals_corrupt.xlsx',
+    description: 'Real estate appraisals sheet with missing valuations, duplicate properties, and text string currency columns (e.g. $1,200,000). (Binary spreadsheet, preview loads live from Pyodide).',
+    headers: ['PropertyID', 'ZipCode', 'Price', 'SquareFootage'],
+    csv: ''
+  },
+  'smart_meter_consumption.xlsx': {
+    name: 'smart_meter_consumption.xlsx',
+    description: 'Multi-index power load logs of smart utility meters containing missing hourly reading blocks and timestamp synchronization duplicates. (Binary spreadsheet, preview loads live from Pyodide).',
+    headers: ['MeterID', 'Timestamp', 'PowerLoad_kW'],
+    csv: ''
   }
 }
