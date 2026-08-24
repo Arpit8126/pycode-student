@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { LOCAL_QUESTIONS, LocalQuestion } from '@/lib/localQuestions'
-import { CheckCircle2, Circle, AlertCircle, Award, BarChart2, BookOpen, ChevronDown, ChevronRight, Search, Shuffle, WifiOff } from 'lucide-react'
+import { CheckCircle2, Circle, AlertCircle, Award, BarChart2, BookOpen, ChevronDown, ChevronRight, Search, Shuffle, WifiOff, ShieldAlert } from 'lucide-react'
 
 export default function PracticeListPage() {
   const supabase = createClient() as any
@@ -372,7 +372,7 @@ export default function PracticeListPage() {
           {/* Left Column: Title & Description */}
           <div className="space-y-2">
             <h1 className="text-4xl font-extrabold tracking-tight text-ink font-sans">
-              Arpit's Coding Sheet
+              PyCode Practice Roadmap
             </h1>
             <p className="text-xs text-gray-500 font-light leading-relaxed max-w-2xl">
               This workspace provides a structured roadmap to learn Python coding, NumPy structures, Pandas cleaning routines, and Matplotlib visualizations.
@@ -399,6 +399,28 @@ export default function PracticeListPage() {
               Visit LinkedIn
             </a>
           </div>
+        </div>
+
+        {/* Premium Google feedback form banner callout */}
+        <div className="bg-amber-500/10 dark:bg-amber-500/5 border border-amber-500/30 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_4px_20px_rgba(245,158,11,0.05)] transition-all hover:border-amber-500/40">
+          <div className="space-y-2 text-left">
+            <h3 className="text-sm font-extrabold text-amber-600 dark:text-amber-400 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 animate-pulse text-amber-500" /> Found an issue or bug?
+            </h3>
+            <p className="text-xs text-ink/80 leading-relaxed max-w-3xl font-normal">
+              Please fill this form if you encountered any issue in the website—any kind of issue, either small or large. 
+              It will just take 2 minutes! Don't forget to enter your <strong>Email ID</strong> and <strong>PyCode Username</strong>. 
+              You will be notified via email regarding the fix, and your username will receive <strong>special appreciation</strong> across the entire website in front of all our users!
+            </p>
+          </div>
+          <a
+            href="https://forms.gle/s7xZ2huRorb1G4KB9"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-6 py-3 rounded-full bg-amber-500 hover:bg-amber-600 text-xs font-black text-white shadow-[0_4px_12px_rgba(245,158,11,0.3)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.4)] transition-all cursor-pointer hover:scale-[1.02] shrink-0 text-center uppercase tracking-wider"
+          >
+            Report Issue
+          </a>
         </div>
 
         {/* Overall progress visualizer panel - LeetCode Style Solved Problems + Quick Actions side-by-side */}
