@@ -264,24 +264,20 @@ try:
         # with an if/else that continues running all test cases
         _lines = verification_code.split(chr(10))
         _out = []
-        _i = 0
-        while _i < len(_lines):
-            _ln = _lines[_i]
+        for _ln in _lines:
             _stripped = _ln.lstrip()
             if _stripped.startswith('assert res == expected,'):
                 _indent = _ln[:len(_ln) - len(_stripped)]
-                _next_ln = _lines[_i + 1] if _i + 1 < len(_lines) else ''
-                _ns = _next_ln.lstrip()
-                _inner = _next_ln[:len(_next_ln) - len(_ns)] if _ns else _indent + '    '
-                _out.append(_indent + 'if res == expected:')
-                _out.append(_inner + 'passed += 1')
-                _out.append(_indent + 'else:')
-                _out.append(_inner + 'print(f"FAILED: got {res!r}, expected {expected!r}", file=sys.stderr)')
-                _i += 2  # skip next "passed += 1" line
+                _out.append(_indent + '_current_ok = (res == expected)')
+                _out.append(_indent + 'exec_globals["_current_ok"] = _current_ok')
+                _out.append(_indent + 'if not _current_ok: print(f"❌ Test FAILED: got {res!r}, expected {expected!r}", file=sys.stderr)')
+            elif _stripped == 'passed += 1':
+                _indent = _ln[:len(_ln) - len(_stripped)]
+                _out.append(_indent + 'if exec_globals.get("_current_ok", True): passed += 1')
             else:
                 _out.append(_ln)
-                _i += 1
         _patched_verification = chr(10).join(_out)
+        exec_globals["_current_ok"] = True
         exec(_patched_verification, exec_globals)
         passed = exec_globals.get("passed_cases", exec_globals.get("passed", 0))
         total = exec_globals.get("total_cases", exec_globals.get("_total", 1))
