@@ -30,31 +30,11 @@ let merged = [...pythonQs, ...scientificQs];
 // 4. Categorize and Renumber
 let newId = 1;
 const restructured = merged.map(q => {
-  const oldId = q.id;
   q.id = newId;
   q.dataset_name = q.dataset_name !== undefined ? q.dataset_name : null;
 
-  // Re-map Python category names
-  if (['numpy', 'pandas', 'matplotlib-seaborn'].includes(q.category)) {
-    // Keep scientific categories as is
-  } else {
-    // Map Python questions into topic-based categories based on their former ID range
-    if (oldId >= 11 && oldId <= 25) {
-      q.category = 'python-ifelse';
-    } else if (oldId >= 26 && oldId <= 55) {
-      q.category = 'python-loops';
-    } else if ((oldId >= 56 && oldId <= 77) || oldId === 168) {
-      q.category = 'python-patterns';
-    } else if (oldId >= 78 && oldId <= 105) {
-      q.category = 'python-strings';
-    } else if (oldId >= 106 && oldId <= 145) {
-      q.category = 'python-lists-arrays';
-    } else if (oldId >= 146 && oldId <= 153) {
-      q.category = 'python-dicts';
-    } else if (oldId >= 154 && oldId <= 167) {
-      q.category = 'python-oop';
-    }
-  }
+  // DO NOT remap categories — use whatever category is already set on the question.
+  // The old ID-range mapping was wrong because IDs change every restructure run.
 
   // Renumber the title prefix (e.g. "11. Positive..." becomes "1. Positive...")
   q.title = q.title.replace(/^\d+\.\s*/, `${newId}. `);
