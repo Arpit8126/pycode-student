@@ -179,7 +179,7 @@ export default function CodeEditorPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const importedDatasetsRef = useRef<CustomDataset[]>([])
   const [activeDropdownDataset, setActiveDropdownDataset] = useState<string | null>(null)
-  const [datasetDropdownPos, setDatasetDropdownPos] = useState<{ top: number; right: number } | null>(null)
+  const [datasetDropdownPos, setDatasetDropdownPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null)
   const [isWaitingForInput, setIsWaitingForInput] = useState(false)
   const [isRestored, setIsRestored] = useState(false)
 
@@ -2137,7 +2137,12 @@ export default function CodeEditorPage() {
                                           setDatasetDropdownPos(null)
                                         } else {
                                           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-                                          setDatasetDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                                          const showAbove = rect.bottom + 150 > window.innerHeight
+                                          if (showAbove) {
+                                            setDatasetDropdownPos({ bottom: window.innerHeight - rect.top + 4, right: window.innerWidth - rect.right })
+                                          } else {
+                                            setDatasetDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                                          }
                                           setActiveDropdownDataset(filename)
                                         }
                                       }}
@@ -2187,7 +2192,12 @@ export default function CodeEditorPage() {
                                           setDatasetDropdownPos(null)
                                         } else {
                                           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-                                          setDatasetDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                                          const showAbove = rect.bottom + 150 > window.innerHeight
+                                          if (showAbove) {
+                                            setDatasetDropdownPos({ bottom: window.innerHeight - rect.top + 4, right: window.innerWidth - rect.right })
+                                          } else {
+                                            setDatasetDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                                          }
                                           setActiveDropdownDataset(dataset.name)
                                         }
                                       }}
@@ -3275,7 +3285,7 @@ export default function CodeEditorPage() {
           <div
             className="fixed w-36 bg-canvas border border-hairline rounded-2xl p-1.5 shadow-2xl backdrop-blur-xl animate-scale-in z-50 space-y-0.5"
             style={{
-              top: `${datasetDropdownPos.top}px`,
+              ...(datasetDropdownPos.top !== undefined ? { top: `${datasetDropdownPos.top}px` } : { bottom: `${datasetDropdownPos.bottom}px` }),
               right: `${datasetDropdownPos.right}px`,
             }}
           >
