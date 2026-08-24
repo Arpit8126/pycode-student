@@ -257,6 +257,83 @@ export default function ExamAttemptPage() {
 
   const editorRef = useRef<any>(null)
 
+  // Keep track of debounce timers per question
+  const backgroundRunTimeoutRef = useRef<Record<number, NodeJS.Timeout>>({})
+
+  // Debounced background compiler and database syncer
+  const triggerBackgroundRun = (questionId: number, code: string) => {
+    if (backgroundRunTimeoutRef.current[questionId]) {
+      clearTimeout(backgroundRunTimeoutRef.current[questionId])
+    }
+
+    const q = questions.find(item => item.id === questionId)
+    if (!q || !attemptId) return
+
+    backgroundRunTimeoutRef.current[questionId] = setTimeout(async () => {
+      try {
+        const outcome = await runCode(code, q.verification_script || '')
+        const passed = outcome.passed_cases || 0
+        const total = outcome.total_cases || 0
+        const newCheck = { passed, total }
+
+        // Update local state without outputting to student's console terminal
+        setTestChecks(prev => {
+          const next = { ...prev, [q.id]: newCheck }
+          
+          let newState: 'success' | 'wrong' | 'error' = 'error'
+          if (outcome.status === 'accepted') {
+            newState = 'success'
+          } else if (outcome.status === 'wrong_answer') {
+            newState = 'wrong'
+          }
+          setEvalStates(prevStates => ({ ...prevStates, [q.id]: newState }))
+
+          // Sync immediately to DB
+          const updatedSummary: Record<number, { passed: number; total: number }> = {}
+          questions.forEach((item: any) => {
+            const c = item.id === q.id ? newCheck : prev[item.id]
+            if (c && c.total > 0) {
+              updatedSummary[item.id] = { passed: c.passed, total: c.total }
+            } else {
+              const est = item.id === q.id ? newState : evalStates[item.id]
+              const qTotal = getQuestionTotalCases(item.verification_script)
+              updatedSummary[item.id] = { passed: est === 'success' ? qTotal : 0, total: qTotal }
+            }
+          })
+
+          const nextAnswers = { ...answers, [q.id]: code }
+          supabase
+            .from('quiz_attempts')
+            .update({
+              answers: nextAnswers,
+              student_details: {
+                fullName,
+                rollNumber,
+                courseClass,
+                section,
+                submittedQuestions: submittedQuestions,
+                testCasesSummary: updatedSummary
+              }
+            })
+            .eq('id', attemptId)
+            .then((res: any) => {
+              if (res.error) console.error('Failed to auto-sync background checks to DB:', res.error)
+            })
+
+          return next
+        })
+      } catch (err) {
+        console.error("Background auto-run checks failed:", err)
+      }
+    }, 2500)
+  }
+
+  useEffect(() => {
+    return () => {
+      Object.values(backgroundRunTimeoutRef.current).forEach(t => clearTimeout(t))
+    }
+  }, [])
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     
@@ -1646,7 +1723,9 @@ export default function ExamAttemptPage() {
               value={activeCode}
               onChange={(val) => {
                 if (activeQ) {
-                  setAnswers(prev => ({ ...prev, [activeQ.id]: val || '' }))
+                  const newCode = val || ''
+                  setAnswers(prev => ({ ...prev, [activeQ.id]: newCode }))
+                  triggerBackgroundRun(activeQ.id, newCode)
                 }
               }}
               onMount={handleEditorDidMount}
