@@ -569,8 +569,21 @@ export default function ExamAttemptPage() {
             .in('id', qIds)
 
           if (!qDataErr && qData) {
+            // Merge clean local metadata (title, category, description, starter_code) with DB record
+            const localMap = new Map(LOCAL_QUESTIONS.map(q => [q.id, q]))
+            const mappedData = qData.map((q: any) => {
+              const localQ = localMap.get(q.id)
+              return {
+                ...q,
+                title: localQ?.title || q.title,
+                category: localQ?.category || q.category,
+                description: localQ?.description || q.description,
+                starter_code: localQ?.starter_code || q.starter_code
+              }
+            })
+
             // Reorder questions to match the quiz schedule question_ids order
-            const sortedQ = qIds.map((id: number) => qData.find((q: any) => q.id === id)).filter(Boolean)
+            const sortedQ = qIds.map((id: number) => mappedData.find((q: any) => q.id === id)).filter(Boolean)
             setQuestions(sortedQ as any)
             
             // Initialize answer inputs

@@ -17,15 +17,16 @@ const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPA
 async function run() {
   const { data, error } = await supabase
     .from('coding_questions')
-    .select('verification_script')
-    .eq('id', 56)
+    .select('id, title, description')
+    .eq('id', 50)
     .single();
     
   if (error) {
     console.error(error);
   } else {
-    console.log("Raw verification_script in DB for Q56:");
-    console.log(JSON.stringify(data.verification_script));
+    console.log("Title:", data.title);
+    console.log("Description from DB:");
+    console.log(data.description);
   }
 }
 run();
