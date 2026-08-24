@@ -481,34 +481,52 @@ export default function PracticeListPage() {
               </button>
 
               {isSectionDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#111216] border border-hairline dark:border-[#232630] rounded-xl shadow-2xl py-1 z-50 animate-fade-in overflow-hidden max-h-80 overflow-y-auto">
+                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#111216] border border-hairline dark:border-[#232630] rounded-2xl shadow-2xl p-1.5 z-50 animate-fade-in overflow-hidden max-h-80 overflow-y-auto">
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedSection('all')
                       setIsSectionDropdownOpen(false)
                     }}
-                    className={`w-full px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest font-mono hover:bg-surface-soft dark:hover:bg-[#1e1e24] transition-colors border-b border-hairline dark:border-[#232630] ${
-                      selectedSection === 'all' ? 'text-primary' : 'text-gray-500'
+                    className={`w-full px-3.5 py-2.5 text-left text-xs font-bold rounded-xl transition-all duration-200 flex items-center justify-between ${
+                      selectedSection === 'all'
+                        ? 'bg-primary/10 text-primary dark:bg-primary/15'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-surface-soft dark:hover:bg-[#1e1e24] hover:text-ink'
                     }`}
                   >
-                    All Topics
+                    <span className="font-sans">All Topics</span>
+                    {selectedSection === 'all' && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    )}
                   </button>
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedSection(cat.id)
-                        setIsSectionDropdownOpen(false)
-                      }}
-                      className={`w-full px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest font-mono hover:bg-surface-soft dark:hover:bg-[#1e1e24] transition-colors ${
-                        selectedSection === cat.id ? 'text-primary' : 'text-gray-500'
-                      }`}
-                    >
-                      {cat.name.replace(/^\d+\.\s*/, '')}
-                    </button>
-                  ))}
+
+                  <div className="my-1 border-t border-hairline dark:border-[#232630]" />
+
+                  {categories.map((cat) => {
+                    const isSelected = selectedSection === cat.id
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedSection(cat.id)
+                          setIsSectionDropdownOpen(false)
+                        }}
+                        className={`w-full px-3.5 py-2.5 text-left text-xs font-semibold rounded-xl transition-all duration-200 flex items-center justify-between ${
+                          isSelected
+                            ? 'bg-primary/10 text-primary dark:bg-primary/15'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-surface-soft dark:hover:bg-[#1e1e24] hover:text-ink'
+                        }`}
+                      >
+                        <span className="font-sans truncate mr-2">
+                          {cat.name.replace(/^\d+\.\s*/, '')}
+                        </span>
+                        {isSelected && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>
