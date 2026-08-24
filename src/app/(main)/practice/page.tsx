@@ -45,8 +45,13 @@ export default function PracticeListPage() {
 
   // Collapsed sections map
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({
-    'python-basics': true,
-    'python-advanced': true,
+    'python-ifelse': true,
+    'python-loops': true,
+    'python-patterns': true,
+    'python-strings': true,
+    'python-lists-arrays': true,
+    'python-dicts': true,
+    'python-oop': true,
     'numpy': true,
     'pandas': true,
     'matplotlib-seaborn': true
@@ -59,21 +64,19 @@ export default function PracticeListPage() {
     }))
   }
 
+  const cleanTitle = (title: string): string => {
+    return title || ''
+  }
+
   useEffect(() => {
     const loadProgress = async () => {
       setLoading(true)
       try {
-        // 1. Fetch live questions from Supabase if available
-        const { data: dbQuestions, error: qErr } = await supabase
-          .from('coding_questions')
-          .select('id, title, difficulty, points, category, description, starter_code, dataset_name')
-          .order('id', { ascending: true })
+        // Use LOCAL_QUESTIONS as the question source (correct titles, proper HTML)
+        // Supabase is used only for user progress tracking (solved/attempted IDs)
+        setQuestions(LOCAL_QUESTIONS)
 
-        if (!qErr && dbQuestions && dbQuestions.length > 0) {
-          setQuestions(dbQuestions as any)
-        }
-
-        // 2. Fetch logged user submission history
+        // Fetch logged user submission history
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
           const { data: submissions } = await supabase
@@ -114,11 +117,16 @@ export default function PracticeListPage() {
 
   // Categories definition
   const categories = [
-    { id: 'python-basics', name: '1. Python Basics', desc: 'Variables, loops, lists, dictionaries, functions' },
-    { id: 'python-advanced', name: '2. Python Advanced Techniques', desc: 'Comprehensions, lambda expressions, matrices' },
-    { id: 'numpy', name: '3. NumPy Scientific Computing', desc: 'N-dimensional arrays, reshaping, mathematical operations' },
-    { id: 'pandas', name: '4. Pandas Data Science & Analysis', desc: 'CSV loading, null checks, median operations' },
-    { id: 'matplotlib-seaborn', name: '5. Matplotlib & Seaborn Visualizations', desc: 'Canvas rendering, line charts, bar plots' }
+    { id: 'python-ifelse', name: '1. Control Flow (If/Else)', desc: 'Boolean expressions, relational operators, conditional branching' },
+    { id: 'python-loops', name: '2. Loops & Math Logic', desc: 'For/while iterations, primes, Fibonacci, and number properties' },
+    { id: 'python-patterns', name: '3. Pattern Printing', desc: 'Nested loops generating stars, numbers, and character grids' },
+    { id: 'python-strings', name: '4. String Methods & Algorithms', desc: 'Slicing, splits, joins, substring indexing, and string algorithms' },
+    { id: 'python-lists-arrays', name: '5. Lists & Array Algorithms', desc: 'List comprehensions, rotation, chunking, binary search, sorting, two-pointer techniques' },
+    { id: 'python-dicts', name: '6. Dictionaries & Sets', desc: 'Frequency count, hash maps, key-value lookup operations' },
+    { id: 'python-oop', name: '7. OOP, Lambdas & Exceptions', desc: 'Classes, encapsulation, inheritance, property decorators, dunders, custom errors' },
+    { id: 'numpy', name: '8. NumPy Scientific Computing', desc: 'N-dimensional arrays, mathematical vectorization, matrix transformations' },
+    { id: 'pandas', name: '9. Pandas Data Science & Analysis', desc: 'DataFrames, null handling, indexing, group-by, merging, filtering datasets' },
+    { id: 'matplotlib-seaborn', name: '10. Matplotlib & Seaborn Visuals', desc: 'Bar plots, line charts, scatter plots, canvas styling, and distributions' }
   ]
 
   // Filtered lists helper
@@ -500,7 +508,7 @@ export default function PracticeListPage() {
                                     href={`/practice/${q.id}`}
                                     className="text-ink hover:underline group-hover:text-primary transition-colors"
                                   >
-                                    {q.title}
+                                    {cleanTitle(q.title)}
                                   </Link>
                                 </td>
                                 <td className="px-6 py-3.5">

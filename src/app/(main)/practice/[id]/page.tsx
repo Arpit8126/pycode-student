@@ -47,6 +47,7 @@ export default function PracticeWorkspacePage() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   
   const editorRef = useRef<any>(null)
+  const terminalScrollRef = useRef<HTMLDivElement>(null)
   
   // Submit preconditions modal state
   const [showGuestModal, setShowGuestModal] = useState(false)
@@ -74,6 +75,13 @@ export default function PracticeWorkspacePage() {
     return () => observer.disconnect()
   }, [])
 
+  // Auto-scroll terminal to bottom when output updates, rightTab shifts, or panel toggles size
+  useEffect(() => {
+    if (terminalScrollRef.current) {
+      terminalScrollRef.current.scrollTop = terminalScrollRef.current.scrollHeight
+    }
+  }, [output, rightTab, terminalSize])
+
   const toggleTheme = () => {
     const isLightNow = !document.documentElement.classList.contains('dark')
     if (isLightNow) {
@@ -99,51 +107,39 @@ export default function PracticeWorkspacePage() {
     }
   }, [code, questionId])
 
+  // Clean title helper: strips accidentally embedded description text from title
+  const cleanTitle = (title: string): string => {
+    return title || ''
+  }
+
   useEffect(() => {
     const fetchQuestion = async () => {
       setLoading(true)
       try {
-        // Try DB first
-        const { data, error } = await supabase
-          .from('coding_questions')
-          .select('*')
-          .eq('id', questionId)
-          .maybeSingle()
+        // PRIMARY: Use LOCAL_QUESTIONS for correct titles and descriptions.
+        // Supabase is only used for past submission code.
+        const localQ = LOCAL_QUESTIONS.find(q => q.id === questionId)
+        if (localQ) {
+          setQuestion(localQ)
 
-        if (!error && data) {
-          setQuestion(data)
+          // Helper: extract first function name from Python code
+          const extractFnName = (src: string) => {
+            const m = src.match(/def\s+(\w+)\s*\(/)
+            return m ? m[1] : ''
+          }
+
           const savedCode = localStorage.getItem(`pycode_draft_${questionId}`)
-          if (savedCode) {
+          const expectedFn = extractFnName(localQ.starter_code || '')
+
+          if (savedCode && extractFnName(savedCode) === expectedFn) {
+            // Draft matches this question's function — safe to use
             setCode(savedCode)
           } else {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (user) {
-              const { data: lastSub } = await supabase
-                .from('coding_submissions')
-                .select('submitted_code')
-                .eq('user_id', user.id)
-                .eq('question_id', questionId)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle()
-              if (lastSub && lastSub.submitted_code) {
-                setCode(lastSub.submitted_code)
-              } else {
-                setCode(data.starter_code || '')
-              }
-            } else {
-              setCode(data.starter_code || '')
-            }
-          }
-        } else {
-          // Local fallback
-          const localQ = LOCAL_QUESTIONS.find(q => q.id === questionId)
-          if (localQ) {
-            setQuestion(localQ)
-            const savedCode = localStorage.getItem(`pycode_draft_${questionId}`)
-            if (savedCode) {
-              setCode(savedCode)
-            } else {
+            // Stale draft (from an old question at same ID) — discard it
+            if (savedCode) localStorage.removeItem(`pycode_draft_${questionId}`)
+
+            // Try to load their last correct submission from Supabase
+            try {
               const { data: { user } } = await supabase.auth.getUser()
               if (user) {
                 const { data: lastSub } = await supabase
@@ -154,7 +150,8 @@ export default function PracticeWorkspacePage() {
                   .order('created_at', { ascending: false })
                   .limit(1)
                   .maybeSingle()
-                if (lastSub && lastSub.submitted_code) {
+                // Only restore submission if its function name matches too
+                if (lastSub?.submitted_code && extractFnName(lastSub.submitted_code) === expectedFn) {
                   setCode(lastSub.submitted_code)
                 } else {
                   setCode(localQ.starter_code || '')
@@ -162,10 +159,12 @@ export default function PracticeWorkspacePage() {
               } else {
                 setCode(localQ.starter_code || '')
               }
+            } catch {
+              setCode(localQ.starter_code || '')
             }
-          } else {
-            router.push('/practice')
           }
+        } else {
+          router.push('/practice')
         }
       } catch (err) {
         console.error(err)
@@ -388,7 +387,7 @@ export default function PracticeWorkspacePage() {
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-extrabold tracking-tight truncate max-w-[280px]">{question?.title}</span>
+            <span className="text-sm font-extrabold tracking-tight truncate max-w-[280px]">{cleanTitle(question?.title || '')}</span>
             <span className="text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-block-cream text-amber-800 border border-amber-200 font-mono">
               {question?.points} pts
             </span>
@@ -469,10 +468,14 @@ export default function PracticeWorkspacePage() {
                   </span>
                 </div>
 
-                <h1 className="text-2xl font-extrabold text-ink mb-4 tracking-tight">{question?.title}</h1>
+                <div className="mb-5 pb-4 border-b border-hairline">
+                  <h1 className="text-base font-extrabold text-ink tracking-tight leading-snug">
+                    {cleanTitle(question?.title || '')}
+                  </h1>
+                </div>
 
                 <div 
-                  className="text-ink leading-relaxed font-normal text-sm markdown-body space-y-4 font-sans"
+                  className="text-ink leading-relaxed font-normal text-sm space-y-2 font-sans [&_pre]:!whitespace-pre [&_pre]:!overflow-x-auto [&_code]:!text-[11px]"
                   dangerouslySetInnerHTML={{ __html: enrichQuestionDetails(question) }}
                 />
               </article>
@@ -515,7 +518,7 @@ export default function PracticeWorkspacePage() {
         )}
 
         {/* Right Side: Coding Space + Logs - Styled inside a gorgeous panel that reacts to theme */}
-        <section className="flex-1 flex flex-col bg-canvas border-l border-hairline min-w-0">
+        <section className="flex-1 flex flex-col bg-canvas border-l border-hairline min-w-0 overflow-hidden">
           {/* Monaco Editor Header Bar */}
           <div className="h-11 border-b border-hairline bg-surface-soft px-4 flex items-center justify-between animate-fade-in">
             <div className="flex items-center gap-2">
@@ -583,7 +586,9 @@ export default function PracticeWorkspacePage() {
 
           {/* Monaco Editor Container */}
           <div 
-            className="flex-1 min-h-[50%] relative bg-[#1e1e1e]" 
+            className={`flex-1 relative bg-[#1e1e1e] transition-all duration-300 ${
+              terminalSize === 'maximized' ? 'min-h-[20%]' : 'min-h-[50%]'
+            }`} 
             onContextMenu={(e) => e.preventDefault()}
             onCopy={(e) => e.preventDefault()}
             onCut={(e) => e.preventDefault()}
@@ -687,7 +692,7 @@ export default function PracticeWorkspacePage() {
             </div>
 
             {/* Tab content panel */}
-            <div className="flex-1 overflow-y-auto p-4 font-mono text-xs leading-relaxed text-body bg-canvas">
+            <div ref={terminalScrollRef} className="flex-1 overflow-y-auto p-4 font-mono text-xs leading-relaxed text-body bg-canvas">
               {rightTab === 'terminal' && (
                 <div className="space-y-1">
                   {output ? (

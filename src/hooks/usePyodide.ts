@@ -12,22 +12,31 @@ declare global {
 function getQuestionTotalCases(verificationScript?: string): number {
   if (!verificationScript) return 1
   
-  // 1. Check for literal assignment to total_cases in exec_globals, e.g. exec_globals['total_cases'] = 3
+  // 1. Check for literal assignment: exec_globals['total_cases'] = 5
   const literalMatch = verificationScript.match(/exec_globals\[["']total_cases["']\]\s*=\s*(\d+)/)
   if (literalMatch) {
     return parseInt(literalMatch[1], 10)
   }
   
-  // 2. Check for literal assignment to total variable: e.g. total = 3 (avoiding total = 0)
+  // 2. Check for _total = N (our patched format)
+  const privateTotalMatch = verificationScript.match(/^\s*_total\s*=\s*([1-9]\d*)/m)
+  if (privateTotalMatch) {
+    return parseInt(privateTotalMatch[1], 10)
+  }
+  
+  // 3. Check for total = N (not 0)
   const totalMatches = verificationScript.match(/^\s*total\s*=\s*([1-9]\d*)/m)
   if (totalMatches) {
     return parseInt(totalMatches[1], 10)
   }
   
-  // 3. Count increments to total: total += 1
-  const totalIncMatches = verificationScript.match(/total\s*\+=\s*1/g)
-  if (totalIncMatches && totalIncMatches.length > 0) {
-    return totalIncMatches.length
+  // 4. Count test_cases list length if possible
+  const listMatch = verificationScript.match(/test_cases\s*=\s*(\[[\s\S]*?\])/)
+  if (listMatch) {
+    try {
+      const arr = JSON.parse(listMatch[1].replace(/'/g, '"'))
+      if (Array.isArray(arr) && arr.length > 0) return arr.length
+    } catch {}
   }
   
   if (!verificationScript.includes('fn = exec_globals') && !verificationScript.includes('assert fn(')) {
@@ -264,9 +273,9 @@ try:
 
 except AssertionError as ae:
     result["status"] = "wrong_answer"
-    result["passed_cases"] = exec_globals.get("passed", 0)
-    result["total_cases"] = exec_globals.get("total_cases", exec_globals.get("total", 1))
-    print(f"Test Failed: {ae}", file=sys.stderr)
+    result["passed_cases"] = exec_globals.get("passed_cases", exec_globals.get("passed", 0))
+    result["total_cases"] = exec_globals.get("total_cases", exec_globals.get("_total", 1))
+    # Don't print raw exception — verification script already printed clean output
 except Exception as e:
     import traceback
     result["status"] = "runtime_error"
@@ -313,7 +322,11 @@ json.dumps(result)
       const jsonRes = await py.runPythonAsync(wrapperCode)
       const res = JSON.parse(jsonRes)
       if (verificationScript) {
-        res.total_cases = getQuestionTotalCases(verificationScript)
+        // Only override with JS-computed total if Python didn't set it correctly (> 1 means Python set it)
+        const jsFallback = getQuestionTotalCases(verificationScript)
+        if (!res.total_cases || res.total_cases <= 1) {
+          res.total_cases = jsFallback
+        }
       }
       return res
     } catch (e: any) {
