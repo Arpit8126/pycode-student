@@ -16,8 +16,35 @@ export default function PracticeListPage() {
   const [search, setSearch] = useState('')
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
+  const [selectedSection, setSelectedSection] = useState<string>('all')
   const [isOnline, setIsOnline] = useState<boolean>(true)
   const [disqualifiedMessage, setDisqualifiedMessage] = useState<string | null>(null)
+
+  // Save scroll position
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleScroll = () => {
+        if (window.scrollY > 0) {
+          sessionStorage.setItem('practice_scroll_pos', String(window.scrollY))
+        }
+      }
+      window.addEventListener('scroll', handleScroll)
+      return () => window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
+  // Restore scroll position
+  useEffect(() => {
+    if (!loading && typeof window !== 'undefined') {
+      const savedPos = sessionStorage.getItem('practice_scroll_pos')
+      if (savedPos) {
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedPos))
+          sessionStorage.removeItem('practice_scroll_pos')
+        }, 150)
+      }
+    }
+  }, [loading])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -426,6 +453,23 @@ export default function PracticeListPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4 w-full md:w-auto overflow-x-auto justify-end">
+            {/* Section/Topic Filter */}
+            <div className="relative">
+              <select
+                value={selectedSection}
+                onChange={(e) => setSelectedSection(e.target.value)}
+                className="appearance-none pl-4 pr-10 py-2 bg-hairline-soft/40 border border-hairline rounded-xl text-[10px] font-bold uppercase tracking-widest font-mono text-gray-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-ink transition-all cursor-pointer"
+              >
+                <option value="all">All Topics</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name.replace(/^\d+\.\s*/, '')}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-3.5 top-3 pointer-events-none" />
+            </div>
+
             {/* Difficulty Filter */}
             <div className="flex items-center gap-1.5 bg-hairline-soft/40 p-1 rounded-full border border-hairline">
               {['all', 'easy', 'medium', 'hard'].map((diff) => (
@@ -466,7 +510,9 @@ export default function PracticeListPage() {
 
         {/* Categories Drawers */}
         <div className="space-y-4">
-          {categories.map((cat) => {
+          {categories
+            .filter(cat => selectedSection === 'all' || cat.id === selectedSection)
+            .map((cat) => {
             const list = getFilteredQuestions(cat.id)
             const catTotal = list.length
             const catSolved = list.filter(q => solvedIds.has(q.id)).length
@@ -518,10 +564,10 @@ export default function PracticeListPage() {
                       <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-surface-soft text-gray-500 border-b border-hairline font-mono text-[9px] uppercase tracking-wider font-semibold">
-                            <th className="px-6 py-3.5 w-16">Status</th>
+                            <th className="px-6 py-3.5 w-20 min-w-[5rem]">Status</th>
                             <th className="px-6 py-3.5">Problem Name</th>
-                            <th className="px-6 py-3.5">Difficulty</th>
-                            <th className="px-6 py-3.5 text-right">Points</th>
+                            <th className="px-6 py-3.5 w-36 min-w-[9rem]">Difficulty</th>
+                            <th className="px-6 py-3.5 w-24 min-w-[6rem] text-right">Points</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-hairline">
@@ -531,7 +577,7 @@ export default function PracticeListPage() {
 
                             return (
                               <tr key={q.id} className="hover:bg-surface-soft transition-colors group">
-                                <td className="px-6 py-3.5">
+                                <td className="px-6 py-3.5 w-20 min-w-[5rem]">
                                   {isSolved ? (
                                     <CheckCircle2 className="w-4.5 h-4.5 text-semantic-success" />
                                   ) : isAttempted ? (
@@ -544,11 +590,16 @@ export default function PracticeListPage() {
                                   <Link
                                     href={`/practice/${q.id}`}
                                     className="text-ink hover:underline group-hover:text-primary transition-colors"
+                                    onClick={() => {
+                                      if (typeof window !== 'undefined') {
+                                        sessionStorage.setItem('practice_scroll_pos', String(window.scrollY));
+                                      }
+                                    }}
                                   >
                                     {cleanTitle(q.title)}
                                   </Link>
                                 </td>
-                                <td className="px-6 py-3.5">
+                                <td className="px-6 py-3.5 w-36 min-w-[9rem]">
                                   <span className={`text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full border font-mono ${
                                     q.difficulty === 'easy' ? 'bg-success/10 text-success border-success/20' :
                                     q.difficulty === 'medium' ? 'bg-warning/10 text-warning border-warning/20' :
@@ -557,7 +608,7 @@ export default function PracticeListPage() {
                                     {q.difficulty}
                                   </span>
                                 </td>
-                                <td className="px-6 py-3.5 text-right font-bold text-gray-500 font-mono">
+                                <td className="px-6 py-3.5 w-24 min-w-[6rem] text-right font-bold text-gray-500 font-mono">
                                   {q.points}
                                 </td>
                               </tr>
