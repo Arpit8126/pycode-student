@@ -85,3 +85,33 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = ${JSON.stringify(restructured, n
 
 fs.writeFileSync('src/lib/localQuestions.ts', newContent);
 console.log('Done — src/lib/localQuestions.ts saved.');
+
+// ─── WRITE questions_seed.sql ────────────────────────────────
+const path = require('path');
+console.log('Generating pycode-supabase/questions_seed.sql & supabase/questions_seed.sql...');
+let sql = `-- PyCode Student — Full Question Seed
+-- Generated automatically. Run in Supabase SQL Editor.
+
+BEGIN;
+TRUNCATE public.coding_questions RESTART IDENTITY CASCADE;
+
+`;
+restructured.forEach(q => {
+  const esc = s => (s || '').replace(/'/g, "''");
+  const dv = q.dataset_name ? `'${esc(q.dataset_name)}'` : 'NULL';
+  sql += `INSERT INTO public.coding_questions (id,title,description,difficulty,points,category,starter_code,verification_script,dataset_name)
+VALUES (${q.id},'${esc(q.title)}','${esc(q.description)}','${q.difficulty}',${q.points},'${q.category}','${esc(q.starter_code)}','${esc(q.verification_script||'')}',${dv});\n\n`;
+});
+sql += 'COMMIT;\n';
+
+// Destination 1: pycode-supabase
+const sqlDir1 = path.join(__dirname, '..', 'pycode-supabase');
+if (!fs.existsSync(sqlDir1)) fs.mkdirSync(sqlDir1, { recursive: true });
+fs.writeFileSync(path.join(sqlDir1, 'questions_seed.sql'), sql);
+
+// Destination 2: supabase (root folder)
+const sqlDir2 = path.join(__dirname, '..', 'supabase');
+if (!fs.existsSync(sqlDir2)) fs.mkdirSync(sqlDir2, { recursive: true });
+fs.writeFileSync(path.join(sqlDir2, 'questions_seed.sql'), sql);
+
+console.log('✓ Saved questions_seed.sql to both destinations');

@@ -56,6 +56,24 @@ function generateExplanation(code: string): string[] {
   })
 }
 
+function cleanQuestionTitle(title: string) {
+  if (!title) return ''
+  let clean = title.trim()
+  
+  const descTriggers = ['Problem Statement', 'Given ', 'Write a ', 'Implement ', 'Create a ']
+  for (const trigger of descTriggers) {
+    const idx = clean.indexOf(trigger)
+    if (idx !== -1) {
+      clean = clean.substring(0, idx).trim()
+    }
+  }
+  
+  if (clean.length > 70) {
+    clean = clean.substring(0, 67) + '...'
+  }
+  return clean
+}
+
 export default function ProfilePage() {
   const supabase = createClient() as any
   
@@ -678,11 +696,15 @@ export default function ProfilePage() {
                         day.type === 'empty' ? (
                           <div key={day.key} className="w-4 h-4 rounded-[3px] bg-transparent border border-transparent" />
                         ) : (
-                          <div
-                            key={day.key}
-                            className={`w-4 h-4 rounded-[3px] border transition-all ${day.color}`}
-                            title={day.title}
-                          />
+                          <div key={day.key} className="group relative">
+                            <div
+                              className={`w-4 h-4 rounded-[3px] border transition-all cursor-pointer ${day.color}`}
+                            />
+                            {/* Custom CSS Hover Tooltip */}
+                            <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 text-[10px] font-semibold font-sans px-2 py-1 rounded shadow-xl whitespace-nowrap z-50 animate-fade-in border border-white/10 dark:border-zinc-800">
+                              {day.title}
+                            </div>
+                          </div>
                         )
                       ))}
                     </div>
@@ -1021,7 +1043,7 @@ export default function ProfilePage() {
                     className="p-4 rounded-xl bg-canvas border border-hairline flex items-center justify-between"
                   >
                     <div className="space-y-1">
-                      <h3 className="text-sm font-semibold text-ink">{sub.coding_questions?.title || `Question #${sub.question_id}`}</h3>
+                      <h3 className="text-sm font-semibold text-ink">{cleanQuestionTitle(sub.coding_questions?.title || `Question #${sub.question_id}`)}</h3>
                       <p className="text-[10px] text-gray-500 font-light">Submitted {dateStr}</p>
                     </div>
 
