@@ -259,9 +259,23 @@ try:
                     pass
 
     if verification_code:
-        exec(verification_code, exec_globals)
-        passed = exec_globals.get("passed_cases", 1)
-        total = exec_globals.get("total_cases", 1)
+        # ── Transform assert-based tests into non-fatal per-test checks ──
+        # Replace: "assert res == expected, msg\n    passed += 1"
+        # With:    "if res == expected: passed += 1 else: print(failure)
+        import re as _re
+        def _patch_assertions(code):
+            # Match the common pattern: assert res == expected, f"..."
+            # followed by passed += 1 on the next line (with any indentation)
+            patched = _re.sub(
+                r'([ \t]+)assert (res) == (expected),(.*?)\n([ \t]+)passed \+= 1',
+                r'\1try:\n\1    if \2 == \3:\n\5    passed += 1\n\1    else:\n\5    _msg = f"❌ Test {passed+1} FAILED:\n   Got:      {\2!r}\n   Expected: {\3!r}"\n\5    print(_msg, file=sys.stderr)\n\1except Exception as _exc:\n\5    print(f"❌ Test {passed+1} ERROR: {_exc}", file=sys.stderr)',
+                code, flags=_re.DOTALL
+            )
+            return patched
+        patched_verification = _patch_assertions(verification_code)
+        exec(patched_verification, exec_globals)
+        passed = exec_globals.get("passed_cases", exec_globals.get("passed", 0))
+        total = exec_globals.get("total_cases", exec_globals.get("_total", 1))
         
         # If this is a script-based question (no function fn defined), show exactly 1 test case
         if "fn = exec_globals" not in verification_code and "assert fn(" not in verification_code:
@@ -270,6 +284,10 @@ try:
         else:
             result["passed_cases"] = passed
             result["total_cases"] = total
+            if passed == total:
+                result["status"] = "accepted"
+            else:
+                result["status"] = "wrong_answer"
 
 except AssertionError as ae:
     result["status"] = "wrong_answer"

@@ -23,9 +23,14 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [loadingPath, setLoadingPath] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     setLoadingPath(null)
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current)
+      loadingTimeoutRef.current = null
+    }
   }, [pathname])
 
   useEffect(() => {
@@ -224,7 +229,13 @@ export default function Sidebar() {
               <Link
                 key={item.path}
                 href={item.path}
-                onClick={() => setLoadingPath(item.path)}
+                onClick={() => {
+                    if (loadingPath === item.path) return
+                    if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current)
+                    setLoadingPath(item.path)
+                    // Auto-clear after 3s as safety fallback
+                    loadingTimeoutRef.current = setTimeout(() => setLoadingPath(null), 3000)
+                  }}
                 className={`flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] ${
                   isActive
                     ? 'bg-primary text-on-primary shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-primary'
@@ -251,7 +262,12 @@ export default function Sidebar() {
               <div key={item.path} className="relative group w-full flex justify-center">
                 <Link
                   href={item.path}
-                  onClick={() => setLoadingPath(item.path)}
+                  onClick={() => {
+                    if (loadingPath === item.path) return
+                    if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current)
+                    setLoadingPath(item.path)
+                    loadingTimeoutRef.current = setTimeout(() => setLoadingPath(null), 3000)
+                  }}
                   className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 border hover:scale-[1.02] active:scale-[0.97] ${
                     isActive
                       ? 'bg-primary text-on-primary shadow-[0_4px_16px_rgba(0,0,0,0.06)] border-primary'

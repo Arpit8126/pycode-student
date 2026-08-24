@@ -2264,9 +2264,11 @@ export default function CodeEditorPage() {
 
               {/* Active file indicator badge */}
               {activeFileName && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-hairline bg-surface-soft text-[10px] text-gray-755 font-mono select-none font-bold">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Editing: {activeFileName}</span>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-hairline bg-surface-soft text-[10px] text-gray-755 font-mono select-none font-bold max-w-[200px]">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  <span className="truncate" title={`Editing: ${activeFileName}`}>
+                    Editing: {activeFileName.length > 28 ? '...' + activeFileName.slice(-25) : activeFileName}
+                  </span>
                 </div>
               )}
 
