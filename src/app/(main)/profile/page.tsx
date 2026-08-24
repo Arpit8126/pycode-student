@@ -701,7 +701,13 @@ export default function ProfilePage() {
                               className={`w-4 h-4 rounded-[3px] border transition-all cursor-pointer ${day.color}`}
                             />
                             {/* Custom CSS Hover Tooltip */}
-                            <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 text-[10px] font-semibold font-sans px-2 py-1 rounded shadow-xl whitespace-nowrap z-50 animate-fade-in border border-white/10 dark:border-zinc-800">
+                            <div className={`pointer-events-none absolute bottom-full mb-1.5 hidden group-hover:block bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 text-[10px] font-semibold font-sans px-2 py-1 rounded shadow-xl whitespace-nowrap z-50 animate-fade-in border border-white/10 dark:border-zinc-800 ${
+                              mIdx === 11 
+                                ? 'right-0 -translate-x-0' 
+                                : mIdx === 0 
+                                  ? 'left-0 -translate-x-0' 
+                                  : 'left-1/2 -translate-x-1/2'
+                            }`}>
                               {day.title}
                             </div>
                           </div>

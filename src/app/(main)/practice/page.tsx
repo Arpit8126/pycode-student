@@ -15,6 +15,7 @@ export default function PracticeListPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all')
+  const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [isOnline, setIsOnline] = useState<boolean>(true)
   const [disqualifiedMessage, setDisqualifiedMessage] = useState<string | null>(null)
 
@@ -131,12 +132,26 @@ export default function PracticeListPage() {
 
   // Filtered lists helper
   const getFilteredQuestions = (catId: string) => {
-    return questions.filter(q => {
+    const list = questions.filter(q => {
       const matchCat = q.category === catId
       const matchSearch = q.title.toLowerCase().includes(search.toLowerCase()) || 
                           q.description.toLowerCase().includes(search.toLowerCase())
       const matchDiff = selectedDifficulty === 'all' || q.difficulty === selectedDifficulty
-      return matchCat && matchSearch && matchDiff
+      
+      const isSolved = solvedIds.has(q.id)
+      const matchStatus = selectedStatus === 'all' || 
+                          (selectedStatus === 'solved' && isSolved) || 
+                          (selectedStatus === 'unsolved' && !isSolved)
+                          
+      return matchCat && matchSearch && matchDiff && matchStatus
+    })
+
+    const diffRank: Record<string, number> = { easy: 1, medium: 2, moderate: 2, hard: 3 }
+    return list.sort((a, b) => {
+      const rankA = diffRank[a.difficulty] || 99
+      const rankB = diffRank[b.difficulty] || 99
+      if (rankA !== rankB) return rankA - rankB
+      return a.id - b.id
     })
   }
 
@@ -410,20 +425,42 @@ export default function PracticeListPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
-            {['all', 'easy', 'medium', 'hard'].map((diff) => (
-              <button
-                key={diff}
-                onClick={() => setSelectedDifficulty(diff)}
-                className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest font-mono cursor-pointer transition-all ${
-                  selectedDifficulty === diff
-                    ? 'bg-primary text-on-primary border border-primary shadow-[0_4px_16px_rgba(0,0,0,0.06)]'
-                    : 'bg-canvas text-gray-500 border border-hairline hover:text-ink'
-                }`}
-              >
-                {diff}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-4 w-full md:w-auto overflow-x-auto justify-end">
+            {/* Difficulty Filter */}
+            <div className="flex items-center gap-1.5 bg-hairline-soft/40 p-1 rounded-full border border-hairline">
+              {['all', 'easy', 'medium', 'hard'].map((diff) => (
+                <button
+                  key={diff}
+                  type="button"
+                  onClick={() => setSelectedDifficulty(diff)}
+                  className={`px-3.5 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest font-mono cursor-pointer transition-all ${
+                    selectedDifficulty === diff
+                      ? 'bg-primary text-on-primary shadow-sm'
+                      : 'text-gray-500 hover:text-ink'
+                  }`}
+                >
+                  {diff}
+                </button>
+              ))}
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex items-center gap-1.5 bg-hairline-soft/40 p-1 rounded-full border border-hairline">
+              {['all', 'solved', 'unsolved'].map((status) => (
+                <button
+                  key={status}
+                  type="button"
+                  onClick={() => setSelectedStatus(status)}
+                  className={`px-3.5 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest font-mono cursor-pointer transition-all ${
+                    selectedStatus === status
+                      ? 'bg-primary text-on-primary shadow-sm'
+                      : 'text-gray-500 hover:text-ink'
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

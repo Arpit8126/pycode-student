@@ -87,8 +87,15 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = ${JSON.stringify(restructured, n
 fs.writeFileSync('src/lib/localQuestions.ts', newContent);
 console.log('Done — src/lib/localQuestions.ts saved.');
 
-// ─── WRITE questions_seed.sql ────────────────────────────────
+// Sync with pycode-teacher
 const path = require('path');
+const teacherPath = path.join(__dirname, '..', 'pycode-teacher', 'src', 'lib', 'localQuestions.ts');
+if (fs.existsSync(path.dirname(teacherPath))) {
+  fs.writeFileSync(teacherPath, newContent);
+  console.log('✓ Synced localQuestions.ts with pycode-teacher');
+}
+
+// ─── WRITE questions_seed.sql ────────────────────────────────
 console.log('Generating pycode-supabase/questions_seed.sql & supabase/questions_seed.sql...');
 let sql = `-- PyCode Student — Full Question Seed
 -- Generated automatically. Run in Supabase SQL Editor.
