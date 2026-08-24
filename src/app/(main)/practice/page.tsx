@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { LOCAL_QUESTIONS, LocalQuestion } from '@/lib/localQuestions'
@@ -20,7 +20,18 @@ export default function PracticeListPage() {
   const [isSectionDropdownOpen, setIsSectionDropdownOpen] = useState(false)
   const [isOnline, setIsOnline] = useState<boolean>(true)
   const [disqualifiedMessage, setDisqualifiedMessage] = useState<string | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsSectionDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
   // Save scroll position
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -455,11 +466,11 @@ export default function PracticeListPage() {
 
           <div className="flex flex-wrap items-center gap-4 w-full md:w-auto overflow-x-auto justify-end">
             {/* Custom Section/Topic Filter Dropdown */}
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
                 onClick={() => setIsSectionDropdownOpen(!isSectionDropdownOpen)}
-                className="flex items-center justify-between gap-2 pl-4 pr-10 py-2 bg-hairline-soft/40 border border-hairline rounded-xl text-[10px] font-bold uppercase tracking-widest font-mono text-gray-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-ink transition-all cursor-pointer select-none"
+                className="flex items-center justify-between gap-2 pl-4 pr-10 py-2 bg-hairline-soft/40 border border-hairline rounded-xl text-[10px] font-bold uppercase tracking-widest font-mono text-gray-550 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-ink transition-all cursor-pointer select-none"
               >
                 <span>
                   {selectedSection === 'all'
@@ -470,42 +481,35 @@ export default function PracticeListPage() {
               </button>
 
               {isSectionDropdownOpen && (
-                <>
-                  {/* Backdrop to close when click outside */}
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setIsSectionDropdownOpen(false)}
-                  />
-                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#111216] border border-hairline dark:border-[#232630] rounded-xl shadow-2xl py-1 z-50 animate-fade-in overflow-hidden max-h-80 overflow-y-auto">
+                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#111216] border border-hairline dark:border-[#232630] rounded-xl shadow-2xl py-1 z-50 animate-fade-in overflow-hidden max-h-80 overflow-y-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedSection('all')
+                      setIsSectionDropdownOpen(false)
+                    }}
+                    className={`w-full px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest font-mono hover:bg-surface-soft dark:hover:bg-[#1e1e24] transition-colors border-b border-hairline dark:border-[#232630] ${
+                      selectedSection === 'all' ? 'text-primary' : 'text-gray-500'
+                    }`}
+                  >
+                    All Topics
+                  </button>
+                  {categories.map((cat) => (
                     <button
+                      key={cat.id}
                       type="button"
                       onClick={() => {
-                        setSelectedSection('all')
+                        setSelectedSection(cat.id)
                         setIsSectionDropdownOpen(false)
                       }}
-                      className={`w-full px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest font-mono hover:bg-surface-soft dark:hover:bg-[#1e1e24] transition-colors border-b border-hairline dark:border-[#232630] ${
-                        selectedSection === 'all' ? 'text-primary' : 'text-gray-500'
+                      className={`w-full px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest font-mono hover:bg-surface-soft dark:hover:bg-[#1e1e24] transition-colors ${
+                        selectedSection === cat.id ? 'text-primary' : 'text-gray-500'
                       }`}
                     >
-                      All Topics
+                      {cat.name.replace(/^\d+\.\s*/, '')}
                     </button>
-                    {categories.map((cat) => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedSection(cat.id)
-                          setIsSectionDropdownOpen(false)
-                        }}
-                        className={`w-full px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest font-mono hover:bg-surface-soft dark:hover:bg-[#1e1e24] transition-colors ${
-                          selectedSection === cat.id ? 'text-primary' : 'text-gray-500'
-                        }`}
-                      >
-                        {cat.name.replace(/^\d+\.\s*/, '')}
-                      </button>
-                    ))}
-                  </div>
-                </>
+                  ))}
+                </div>
               )}
             </div>
 
