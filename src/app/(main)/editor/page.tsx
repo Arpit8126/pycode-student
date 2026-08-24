@@ -10,6 +10,7 @@ import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Mo
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
 import { initDB, getDatasets, saveDataset, deleteDataset, CustomDataset } from '@/lib/indexedDb'
+import JSZip from 'jszip'
 
 // Import Monaco Editor dynamically to prevent SSR conflicts
 const Editor = dynamic(() => import('@monaco-editor/react'), { ssr: false })
@@ -1250,6 +1251,34 @@ export default function CodeEditorPage() {
     setActiveDropdownFile(null)
   }
 
+  const handleDownloadFolder = async (folderName: string) => {
+    const zip = new JSZip()
+    const folderFiles = savedFiles.filter(f => f.name.startsWith(`${folderName}/`))
+    
+    if (folderFiles.length === 0) {
+      triggerToast("Folder is empty!", "error")
+      return
+    }
+
+    folderFiles.forEach(file => {
+      zip.file(file.name, file.code)
+    })
+
+    try {
+      const content = await zip.generateAsync({ type: 'blob' })
+      const url = URL.createObjectURL(content)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${folderName}.zip`
+      link.click()
+      URL.revokeObjectURL(url)
+      triggerToast("Folder downloaded as ZIP successfully.", "success")
+    } catch (err) {
+      console.error("Failed to download folder as ZIP:", err)
+      triggerToast("Failed to download folder.", "error")
+    }
+  }
+
   // Read current CSV file contents from Pyodide FS to display preview table
   const loadFilePreview = (filename: string) => {
     setSelectedFile(filename)
@@ -1749,6 +1778,13 @@ export default function CodeEditorPage() {
                             <span className="text-xs font-extrabold text-ink font-mono truncate bg-primary/10 text-primary px-2.5 py-1 rounded-lg">
                               {currentExplorerFolder}
                             </span>
+                            <button
+                              onClick={() => handleDownloadFolder(currentExplorerFolder)}
+                              className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-gray-500 hover:text-emerald-600 hover:border-emerald-200 cursor-pointer transition-colors flex items-center justify-center shrink-0 ml-1"
+                              title="Download entire folder as ZIP"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                           <div className="space-y-1.5">
                             {folderFiles.length === 0 ? (
@@ -1885,6 +1921,13 @@ export default function CodeEditorPage() {
                                         title="Rename folder"
                                       >
                                         <Edit2 className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDownloadFolder(folderName)}
+                                        className="p-2 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-xl cursor-pointer shrink-0"
+                                        title="Download folder as ZIP"
+                                      >
+                                        <Download className="w-3.5 h-3.5" />
                                       </button>
                                       <button
                                         onClick={() => handleDeleteFolder(folderName)}
