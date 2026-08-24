@@ -402,12 +402,18 @@ export default function PracticeListPage() {
         </div>
 
         {/* Premium Google feedback form banner callout */}
-        <div className="bg-amber-500/10 dark:bg-amber-500/5 border border-amber-500/30 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_4px_20px_rgba(245,158,11,0.05)] transition-all hover:border-amber-500/40">
-          <div className="space-y-2 text-left">
-            <h3 className="text-sm font-extrabold text-amber-600 dark:text-amber-400 flex items-center gap-2">
-              <ShieldAlert className="w-5 h-5 animate-pulse text-amber-500" /> Found an issue or bug?
+        <div className="relative overflow-hidden bg-surface-card border border-hairline rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all hover:border-primary/40 group">
+          {/* Premium theme-accented background glow */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none transition-transform duration-700 group-hover:scale-125"></div>
+          
+          {/* Subtle vertical accent border */}
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary/80 rounded-r-full"></div>
+          
+          <div className="pl-3 space-y-2 text-left relative z-10">
+            <h3 className="text-sm font-extrabold text-primary flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 animate-pulse text-primary" /> Found an issue or bug?
             </h3>
-            <p className="text-xs text-ink/80 leading-relaxed max-w-3xl font-normal">
+            <p className="text-xs text-body leading-relaxed max-w-3xl font-medium">
               Please fill this form if you encountered any issue in the website—any kind of issue, either small or large. 
               It will just take 2 minutes! Don't forget to enter your <strong>Email ID</strong> and <strong>PyCode Username</strong>. 
               You will be notified via email regarding the fix, and your username will receive <strong>special appreciation</strong> across the entire website in front of all our users!
@@ -417,7 +423,7 @@ export default function PracticeListPage() {
             href="https://forms.gle/s7xZ2huRorb1G4KB9"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-6 py-3 rounded-full bg-amber-500 hover:bg-amber-600 text-xs font-black text-white shadow-[0_4px_12px_rgba(245,158,11,0.3)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.4)] transition-all cursor-pointer hover:scale-[1.02] shrink-0 text-center uppercase tracking-wider"
+            className="relative z-10 px-6 py-3 rounded-full bg-primary hover:bg-primary-hover text-xs font-black text-on-primary shadow-[0_4px_12px_rgba(204,120,92,0.2)] hover:shadow-[0_6px_16px_rgba(204,120,92,0.3)] transition-all cursor-pointer hover:scale-[1.02] shrink-0 text-center uppercase tracking-wider"
           >
             Report Issue
           </a>
