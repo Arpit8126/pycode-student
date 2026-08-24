@@ -164,7 +164,10 @@ export default function CodeEditorPage() {
   const [saveFileName, setSaveFileName] = useState('')
   const [activeDropdownFile, setActiveDropdownFile] = useState<string | null>(null)
   const [activeFileName, setActiveFileName] = useState<string | null>(globalActiveFileName)
-  const [fileSearch, setFileSearch] = useState('')
+  const [folderSearch, setFolderSearch] = useState('')
+  const [rootFileSearch, setRootFileSearch] = useState('')
+  const [innerFileSearch, setInnerFileSearch] = useState('')
+  const [showAllPreInstalled, setShowAllPreInstalled] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [deletingFileName, setDeletingFileName] = useState<string | null>(null)
   const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null)
@@ -216,6 +219,12 @@ export default function CodeEditorPage() {
   useEffect(() => {
     importedDatasetsRef.current = importedDatasets
   }, [importedDatasets])
+
+  useEffect(() => {
+    setFolderSearch('')
+    setRootFileSearch('')
+    setInnerFileSearch('')
+  }, [currentExplorerFolder, leftSidebarTab])
 
   // Load draft code from SPA module variables or active saved file on mount
   useEffect(() => {
@@ -1671,28 +1680,74 @@ export default function CodeEditorPage() {
                   </form>
                 )}
 
-                {/* Search bar */}
+                {/* Search bar section */}
                 {savedFiles.length > 0 && (
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={fileSearch}
-                      onChange={e => setFileSearch(e.target.value)}
-                      placeholder="Search files..."
-                      className="w-full pl-7 pr-3 py-1.5 text-[11px] font-mono rounded-xl border border-hairline bg-surface-soft text-ink placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-colors"
-                    />
-                    <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                    </svg>
-                    {fileSearch && (
-                      <button
-                        onClick={() => setFileSearch('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink cursor-pointer transition-colors"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
+                  currentExplorerFolder === null ? (
+                    <div className="space-y-2">
+                      {/* Search Folders */}
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={folderSearch}
+                          onChange={e => setFolderSearch(e.target.value)}
+                          placeholder="Search folders..."
+                          className="w-full pl-7 pr-7 py-1.5 text-[11px] font-mono rounded-xl border border-hairline bg-surface-soft text-ink placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-colors font-light"
+                        />
+                        <Folder className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-450 pointer-events-none" />
+                        {folderSearch && (
+                          <button
+                            onClick={() => setFolderSearch('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink cursor-pointer transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Search Root Files */}
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={rootFileSearch}
+                          onChange={e => setRootFileSearch(e.target.value)}
+                          placeholder="Search root files..."
+                          className="w-full pl-7 pr-7 py-1.5 text-[11px] font-mono rounded-xl border border-hairline bg-surface-soft text-ink placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-colors font-light"
+                        />
+                        <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-450 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        {rootFileSearch && (
+                          <button
+                            onClick={() => setRootFileSearch('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink cursor-pointer transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative mb-1">
+                      <input
+                        type="text"
+                        value={innerFileSearch}
+                        onChange={e => setInnerFileSearch(e.target.value)}
+                        placeholder={`Search in ${currentExplorerFolder}...`}
+                        className="w-full pl-7 pr-7 py-1.5 text-[11px] font-mono rounded-xl border border-hairline bg-surface-soft text-ink placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-colors font-light"
+                      />
+                      <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-450 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                      </svg>
+                      {innerFileSearch && (
+                        <button
+                          onClick={() => setInnerFileSearch('')}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink cursor-pointer transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  )
                 )}
 
                 <div className="flex-1 space-y-1.5 overflow-y-auto min-h-0 relative pr-0.5">
@@ -1710,65 +1765,13 @@ export default function CodeEditorPage() {
                     ])).sort()
                     const rootFiles = savedFiles.filter(f => !f.name.includes('/'))
 
-                    if (fileSearch) {
-                      const filtered = savedFiles.filter(f =>
-                        f.name.toLowerCase().includes(fileSearch.toLowerCase())
-                      )
-                      return filtered.length === 0 ? (
-                        <div className="text-center py-6 px-2">
-                          <p className="text-[11px] text-gray-500 font-mono">No files match &quot;{fileSearch}&quot;</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-1.5">
-                          {filtered.map((file) => {
-                            const isActive = activeFileName === file.name
-                            const isDropdownOpen = activeDropdownFile === file.name
-                            return (
-                              <div key={file.name} className="relative group animate-fade-in">
-                                <button
-                                  onClick={() => handleLoadFile(file)}
-                                  className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 pr-10 ${
-                                    isActive
-                                      ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
-                                      : 'bg-canvas border-hairline text-gray-500 hover:text-ink hover:border-gray-400'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-2.5 overflow-hidden w-full">
-                                    <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
-                                    <div className="flex flex-col overflow-hidden">
-                                      <span className="text-xs font-bold font-mono truncate">{file.name}</span>
-                                      <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
-                                    </div>
-                                  </div>
-                                </button>
-
-                                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      if (isDropdownOpen) {
-                                        setActiveDropdownFile(null)
-                                        setDropdownPos(null)
-                                      } else {
-                                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-                                        setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
-                                        setActiveDropdownFile(file.name)
-                                      }
-                                    }}
-                                    className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
-                                  >
-                                    <MoreVertical className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )
-                    }
-
                     if (currentExplorerFolder !== null) {
                       const folderFiles = savedFiles.filter(f => f.name.startsWith(`${currentExplorerFolder}/`))
+                      const filteredFolderFiles = folderFiles.filter(f => {
+                        const displayName = f.name.substring(currentExplorerFolder.length + 1)
+                        return displayName.toLowerCase().includes(innerFileSearch.toLowerCase())
+                      })
+
                       return (
                         <div className="space-y-3">
                           <div className="flex items-center gap-2 mb-3 shrink-0">
@@ -1804,12 +1807,14 @@ export default function CodeEditorPage() {
                             </button>
                           </div>
                           <div className="space-y-1.5">
-                            {folderFiles.length === 0 ? (
+                            {filteredFolderFiles.length === 0 ? (
                               <div className="text-center py-8 px-2 border border-dashed border-hairline rounded-2xl bg-surface-soft">
-                                <p className="text-[11px] text-gray-500">No files in this folder.</p>
+                                <p className="text-[11px] text-gray-500 font-mono">
+                                  {innerFileSearch ? `No files match "${innerFileSearch}"` : 'No files in this folder.'}
+                                </p>
                               </div>
                             ) : (
-                              folderFiles.map((file) => {
+                              filteredFolderFiles.map((file) => {
                                 const isActive = activeFileName === file.name
                                 const isDropdownOpen = activeDropdownFile === file.name
                                 const displayName = file.name.substring(currentExplorerFolder.length + 1)
@@ -1866,13 +1871,31 @@ export default function CodeEditorPage() {
                       )
                     }
 
+                    // Main explorer view (folders & root files)
+                    const filteredFolders = allFolders.filter(folder =>
+                      folder.toLowerCase().includes(folderSearch.toLowerCase())
+                    )
+                    const filteredRootFiles = rootFiles.filter(file =>
+                      file.name.toLowerCase().includes(rootFileSearch.toLowerCase())
+                    )
+
+                    const hasMatches = filteredFolders.length > 0 || filteredRootFiles.length > 0
+
+                    if (!hasMatches) {
+                      return (
+                        <div className="text-center py-8 px-2 border border-dashed border-hairline rounded-2xl bg-surface-soft">
+                          <p className="text-[11px] text-gray-500 font-mono">No matching folders or root files found.</p>
+                        </div>
+                      )
+                    }
+
                     return (
                       <div className="space-y-4">
                         {/* Folders List */}
-                        {allFolders.length > 0 && (
+                        {filteredFolders.length > 0 && (
                           <div className="space-y-1.5">
                             <div className="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider font-mono">Folders</div>
-                            {allFolders.map(folderName => (
+                            {filteredFolders.map(folderName => (
                               <div key={folderName} className="group/folder relative flex items-center gap-1.5">
                                 {renamingFolder === folderName ? (
                                   <form
@@ -1962,17 +1985,10 @@ export default function CodeEditorPage() {
                         )}
 
                         {/* Root Files List */}
-                        <div className="space-y-1.5">
-                          {allFolders.length > 0 && rootFiles.length > 0 && (
+                        {filteredRootFiles.length > 0 && (
+                          <div className="space-y-1.5">
                             <div className="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider font-mono mt-2">Files</div>
-                          )}
-                          {rootFiles.length === 0 && allFolders.length === 0 ? (
-                            <div className="text-center py-8 px-2 border border-dashed border-hairline rounded-2xl bg-surface-soft animate-fade-in">
-                              <p className="text-[11px] text-gray-700 dark:text-gray-300 font-semibold">No saved files yet.</p>
-                              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-light mt-1">Click &quot;Save&quot; in toolbar to store progress!</p>
-                            </div>
-                          ) : (
-                            rootFiles.map((file) => {
+                            {filteredRootFiles.map((file) => {
                               const isActive = activeFileName === file.name
                               const isDropdownOpen = activeDropdownFile === file.name
                               return (
@@ -1986,7 +2002,7 @@ export default function CodeEditorPage() {
                                 >
                                   <button
                                     onClick={() => handleLoadFile(file)}
-                                    className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 pr-10 ${
+                                    className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 ${
                                       isActive
                                         ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
                                         : 'bg-canvas border-hairline text-gray-500 hover:text-ink hover:border-gray-400'
@@ -2001,7 +2017,7 @@ export default function CodeEditorPage() {
                                     </div>
                                   </button>
 
-                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20 opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20 opacity-80 md:opacity-0 md:group-hover/folder:opacity-100 transition-opacity">
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation()
@@ -2021,9 +2037,9 @@ export default function CodeEditorPage() {
                                   </div>
                                 </div>
                               )
-                            })
-                          )}
-                        </div>
+                            })}
+                          </div>
+                        )}
                       </div>
                     )
                   })()}
@@ -2099,6 +2115,10 @@ export default function CodeEditorPage() {
                     const filteredPreInstalled = Object.keys(DATASETS).filter(key =>
                       key.toLowerCase().includes(datasetSearch.toLowerCase())
                     )
+                    const visiblePreInstalled = showAllPreInstalled || datasetSearch
+                      ? filteredPreInstalled
+                      : filteredPreInstalled.slice(0, 3)
+
                     const filteredImported = importedDatasets.filter(d =>
                       d.name.toLowerCase().includes(datasetSearch.toLowerCase())
                     )
@@ -2109,14 +2129,15 @@ export default function CodeEditorPage() {
                         {filteredPreInstalled.length > 0 && (
                           <div className="space-y-1.5">
                             <span className="text-[9px] uppercase tracking-widest font-extrabold text-gray-400 font-mono">Pre-installed Datasets</span>
-                            {filteredPreInstalled.map((key) => {
+                            {visiblePreInstalled.map((key) => {
                               const filename = key as keyof typeof DATASETS
                               const isSelected = selectedFile === filename
                               const isDropdownOpen = activeDropdownDataset === filename
                               return (
-                                <div key={filename} className="relative group">
+                                <div key={filename} className="relative group animate-fade-in">
                                   <button
                                     onClick={() => loadFilePreview(filename)}
+                                    title={DATASETS[filename]?.description || ""}
                                     className={`w-full p-2.5 pr-10 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 ${
                                       isSelected
                                         ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
@@ -2127,7 +2148,7 @@ export default function CodeEditorPage() {
                                       <FileCode className="w-3.5 h-3.5 shrink-0 text-primary mt-0.5" />
                                       <div className="flex flex-col min-w-0">
                                         <span className="text-[11px] font-bold font-mono truncate">{filename}</span>
-                                        <span className="text-[9px] text-gray-500 font-medium font-sans truncate leading-normal">
+                                        <span className="text-[9px] text-gray-500 font-medium font-sans whitespace-normal leading-relaxed mt-0.5">
                                           {getDatasetPurpose(filename)}
                                         </span>
                                       </div>
@@ -2160,6 +2181,26 @@ export default function CodeEditorPage() {
                                 </div>
                               )
                             })}
+
+                            {filteredPreInstalled.length > 3 && !datasetSearch && (
+                              <button
+                                type="button"
+                                onClick={() => setShowAllPreInstalled(!showAllPreInstalled)}
+                                className="w-full py-2.5 mt-2 rounded-xl border border-hairline bg-surface-soft hover:bg-surface-card hover:text-ink text-gray-500 text-[10px] font-bold uppercase tracking-wider font-mono cursor-pointer transition-all flex items-center justify-center gap-1.5"
+                              >
+                                {showAllPreInstalled ? (
+                                  <>
+                                    <span>Show Less</span>
+                                    <ChevronUp className="w-3.5 h-3.5 text-primary animate-bounce" />
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>Show More ({filteredPreInstalled.length - 3} more)</span>
+                                    <ChevronDown className="w-3.5 h-3.5 text-primary animate-bounce" />
+                                  </>
+                                )}
+                              </button>
+                            )}
                           </div>
                         )}
 
