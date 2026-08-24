@@ -270,7 +270,7 @@ try:
                 _indent = _ln[:len(_ln) - len(_stripped)]
                 _out.append(_indent + '_current_ok = (res == expected)')
                 _out.append(_indent + 'exec_globals["_current_ok"] = _current_ok')
-                _out.append(_indent + 'if not _current_ok: print(f"❌ Test FAILED: got {res!r}, expected {expected!r}", file=sys.stderr)')
+                _out.append(_indent + 'if not _current_ok: import sys; print(f"❌ Test FAILED: got {res!r}, expected {expected!r}", file=sys.stderr)')
             elif _stripped == 'passed += 1':
                 _indent = _ln[:len(_ln) - len(_stripped)]
                 _out.append(_indent + 'if exec_globals.get("_current_ok", True): passed += 1')
