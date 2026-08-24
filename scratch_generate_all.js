@@ -1368,13 +1368,27 @@ const patternQuestions = rawPatterns.map(q => {
   };
 });
 
-// Parse string.md (skip Q1 — was Reverse String, duplicated by our explicit reverse_string_algo at ID 103)
+// Parse string.md
 console.log('Parsing string.md...');
 const rawStrings = parseMarkdownFile('string.md');
 const stringAlgoQuestions = rawStrings.map(q => {
-  if (q.id === 1) return null; // Skip — handled separately in ID 103
-  const m = stringAlgoMappings[q.id];
-  if (!m) { console.warn(`No mapping for string Q${q.id}`); return null; }
+  const indexMap = {
+    1: 2,   // Palindrome
+    2: 3,   // Vowels, Consonants, Digits
+    3: 4,   // First Non-Repeating
+    4: 6,   // Anagrams
+    5: 7,   // Valid Palindrome II
+    6: 8,   // String Compression
+    7: 9,   // Reverse Words
+    8: 10,  // Longest Palindromic Substring
+    9: 11,  // Is Subsequence
+    10: 13, // Longest Substring Without Repeating
+    11: 15, // Find All Anagrams
+    12: 19  // Longest Common Prefix
+  };
+  const originalIndex = indexMap[q.id];
+  const m = stringAlgoMappings[originalIndex];
+  if (!m) { console.warn(`No mapping for string Q${q.id} (mapped from ${originalIndex})`); return null; }
   if (m.isMutating) {
     // String compression (Q94) — custom mutating verification
     return {

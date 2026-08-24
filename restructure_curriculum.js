@@ -32,6 +32,7 @@ let newId = 1;
 const restructured = merged.map(q => {
   const oldId = q.id;
   q.id = newId;
+  q.dataset_name = q.dataset_name !== undefined ? q.dataset_name : null;
 
   // Re-map Python category names
   if (['numpy', 'pandas', 'matplotlib-seaborn'].includes(q.category)) {
