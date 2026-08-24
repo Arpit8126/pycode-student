@@ -32,18 +32,32 @@ export default function PracticeListPage() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-  // Save scroll position
+  // Save scroll position on main scroll element
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      let mainEl = document.querySelector('main')
       const handleScroll = () => {
-        if (window.scrollY > 0) {
-          sessionStorage.setItem('practice_scroll_pos', String(window.scrollY))
+        if (mainEl && mainEl.scrollTop > 0) {
+          sessionStorage.setItem('practice_scroll_pos', String(mainEl.scrollTop))
         }
       }
-      window.addEventListener('scroll', handleScroll)
-      return () => window.removeEventListener('scroll', handleScroll)
+      if (mainEl) {
+        mainEl.addEventListener('scroll', handleScroll)
+      }
+      const interval = setInterval(() => {
+        const currentMain = document.querySelector('main')
+        if (currentMain && currentMain !== mainEl) {
+          if (mainEl) mainEl.removeEventListener('scroll', handleScroll)
+          mainEl = currentMain
+          mainEl.addEventListener('scroll', handleScroll)
+        }
+      }, 500)
+      return () => {
+        if (mainEl) mainEl.removeEventListener('scroll', handleScroll)
+        clearInterval(interval)
+      }
     }
-  }, [])
+  }, [loading])
 
   // Restore scroll position
   useEffect(() => {
@@ -51,10 +65,19 @@ export default function PracticeListPage() {
       const savedPos = sessionStorage.getItem('practice_scroll_pos')
       if (savedPos) {
         const pos = parseInt(savedPos)
-        window.scrollTo(0, pos)
-        const timer1 = setTimeout(() => window.scrollTo(0, pos), 150)
+        const mainEl = document.querySelector('main')
+        if (mainEl) {
+          mainEl.scrollTop = pos
+        }
+        const timer1 = setTimeout(() => {
+          const m = document.querySelector('main')
+          if (m) m.scrollTop = pos
+        }, 150)
         const timer2 = setTimeout(() => {
-          window.scrollTo(0, pos)
+          const m = document.querySelector('main')
+          if (m) {
+            m.scrollTop = pos
+          }
           sessionStorage.removeItem('practice_scroll_pos')
         }, 450)
         return () => {
@@ -91,24 +114,40 @@ export default function PracticeListPage() {
   }, [])
 
   // Collapsed sections map
-  const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({
-    'python-ifelse': true,
-    'python-loops': true,
-    'python-patterns': true,
-    'python-strings': true,
-    'python-lists-arrays': true,
-    'python-dicts': true,
-    'python-oop': true,
-    'numpy': true,
-    'pandas': true,
-    'matplotlib-seaborn': true
+  const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('practice_expanded_cats')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch (e) {}
+      }
+    }
+    return {
+      'python-ifelse': true,
+      'python-loops': true,
+      'python-patterns': true,
+      'python-strings': true,
+      'python-lists-arrays': true,
+      'python-dicts': true,
+      'python-oop': true,
+      'numpy': true,
+      'pandas': true,
+      'matplotlib-seaborn': true
+    }
   })
 
   const toggleCategory = (catId: string) => {
-    setExpandedCats(prev => ({
-      ...prev,
-      [catId]: !prev[catId]
-    }))
+    setExpandedCats(prev => {
+      const updated = {
+        ...prev,
+        [catId]: !prev[catId]
+      }
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('practice_expanded_cats', JSON.stringify(updated))
+      }
+      return updated
+    })
   }
 
   const cleanTitle = (title: string): string => {
@@ -653,7 +692,10 @@ export default function PracticeListPage() {
                                     className="text-ink hover:underline group-hover:text-primary transition-colors"
                                     onClick={() => {
                                       if (typeof window !== 'undefined') {
-                                        sessionStorage.setItem('practice_scroll_pos', String(window.scrollY));
+                                        const mainEl = document.querySelector('main')
+                                        if (mainEl) {
+                                          sessionStorage.setItem('practice_scroll_pos', String(mainEl.scrollTop))
+                                        }
                                       }
                                     }}
                                   >

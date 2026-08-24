@@ -2186,17 +2186,17 @@ export default function CodeEditorPage() {
                               <button
                                 type="button"
                                 onClick={() => setShowAllPreInstalled(!showAllPreInstalled)}
-                                className="w-full py-2.5 mt-2 rounded-xl border border-hairline bg-surface-soft hover:bg-surface-card hover:text-ink text-gray-500 text-[10px] font-bold uppercase tracking-wider font-mono cursor-pointer transition-all flex items-center justify-center gap-1.5"
+                                className="w-full py-2.5 mt-2.5 rounded-xl border border-primary/20 dark:border-primary/30 bg-primary/[0.04] dark:bg-primary/[0.07] hover:bg-primary/[0.08] dark:hover:bg-primary/[0.12] hover:border-primary/45 text-primary text-[10px] font-bold uppercase tracking-wider font-mono cursor-pointer transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-sm"
                               >
                                 {showAllPreInstalled ? (
                                   <>
                                     <span>Show Less</span>
-                                    <ChevronUp className="w-3.5 h-3.5 text-primary animate-bounce" />
+                                    <ChevronUp className="w-3.5 h-3.5" />
                                   </>
                                 ) : (
                                   <>
                                     <span>Show More ({filteredPreInstalled.length - 3} more)</span>
-                                    <ChevronDown className="w-3.5 h-3.5 text-primary animate-bounce" />
+                                    <ChevronDown className="w-3.5 h-3.5" />
                                   </>
                                 )}
                               </button>
