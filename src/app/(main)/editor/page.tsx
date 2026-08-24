@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
@@ -1629,14 +1629,17 @@ export default function CodeEditorPage() {
             {leftSidebarTab === 'savedFiles' ? (
               <div className="flex-1 flex flex-col min-h-0 space-y-3">
                 <div className="flex items-start justify-between gap-2">
-                  <div>
+                  <div className="flex-1">
                     <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5 mb-1">
                       <FileCode className="w-3.5 h-3.5 text-primary" />
                       Your Saved Scripts
                     </h3>
-                    <p className="text-[11px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
-                      Resumable Python code files saved locally in browser.
-                    </p>
+                    <div className="mt-1 flex items-start gap-1.5 p-2 rounded-xl bg-primary/[0.04] dark:bg-primary/[0.07] border border-primary/10 max-w-sm">
+                      <Info className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                      <p className="text-[10px] text-gray-600 dark:text-gray-400 font-light leading-relaxed">
+                        Resumable Python code files saved locally in browser.
+                      </p>
+                    </div>
                   </div>
                   <button
                     onClick={() => setShowNewFolderInput(prev => !prev)}
