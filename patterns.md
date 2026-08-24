@@ -881,3 +881,43 @@ n = 1 (The absolute baseline matrix displaying only the single core integer 1)
 n = 3 (Ensures the grid spans exactly 5x5 dimensions and scales numbers downward towards the center)
 
 n = -1 (Negative parameter check resulting in safe exit execution)
+
+23. Pascal's Triangle
+Problem Statement Explanation
+Given an integer n, print Pascal's Triangle up to n rows. Pascal's Triangle is a numerical triangle where each number is the sum of the two numbers directly above it.
+
+To keep the shape centered and symmetric, format each row with appropriate leading spaces, and separate adjacent numbers in a row by a single space. If n is less than or equal to 0, print nothing.
+
+Examples
+Example 1:
+
+Input: n = 4
+
+Output:
+
+   1
+  1 1
+ 1 2 1
+1 3 3 1
+
+Example 2:
+
+Input: n = 1
+
+Output:
+
+1
+
+Example 3:
+
+Input: n = 0
+
+Output: (Empty Output)
+
+Critical Test Cases to Pass
+n = 1 (Solitary cell showing only the top number 1)
+
+n = 5 (Checks proper alignment and values for higher rows)
+
+n = -3 (Negative boundary safety check)
+

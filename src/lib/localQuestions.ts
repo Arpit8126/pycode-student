@@ -1740,7 +1740,18 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
   },
   {
     "id": 158,
-    "title": "158. NumPy Zero Array",
+    "title": "158. Pascal's Triangle",
+    "difficulty": "medium",
+    "points": 200,
+    "category": "python-patterns",
+    "description": "<p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">Given an integer n, print Pascal's Triangle up to n rows. Pascal's Triangle is a numerical triangle where each number is the sum of the two numbers directly above it.</p><p class=\"mb-4 leading-relaxed text-sm font-normal text-ink font-sans\">To keep the shape centered and symmetric, format each row with appropriate leading spaces, and separate adjacent numbers in a row by a single space. If n is less than or equal to 0, print nothing.</p><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 1</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 4</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <div class=\"mt-2\"><pre class=\"bg-surface-soft p-3.5 rounded-2xl font-mono text-xs text-ink whitespace-pre my-2 border border-hairline overflow-x-auto leading-normal select-all\">   1\r\n  1 1\r\n 1 2 1\r\n1 3 3 1</pre></div></div>\n  \n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 2</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 1</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code>1</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">Each subsequent row is calculated by adding adjacent elements of the previous row (e.g. Row 2 [1,2,1] is derived from Row 1 [1,1]).</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Example 3</h3>\n<div class=\"border-l-2 border-primary/40 dark:border-primary/50 pl-4 py-1.5 space-y-1.5 my-3.5 font-mono text-xs text-ink font-normal\">\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Input:</span> <code>n = 0</code></div>\n  <div><span class=\"text-primary font-bold font-sans mr-2\">Output:</span> <code> (Empty Output)</code></div>\n  <div><span class=\"text-ink/80 font-bold font-sans mr-2\">Explanation:</span> <span class=\"text-ink font-normal font-sans\">For n=4, we format the rows with leading spaces to keep the triangle centered symmetrically: row 0 has 3 leading spaces, row 1 has 2, row 2 has 1, and row 3 has 0.</span></div>\n</div><h3 class=\"text-xs font-extrabold text-ink uppercase tracking-widest mb-2 mt-6\">Constraints / Edge Cases</h3>\n<ul class=\"list-disc pl-5 text-xs text-ink space-y-1.5 font-normal\">\n  <li><code>n = 1 (Solitary cell showing only the top number 1)</code></li><li><code>n = 5 (Checks proper alignment and values for higher rows)</code></li><li><code>n = -3 (Negative boundary safety check)</code></li>\n</ul>",
+    "starter_code": "def pascal_triangle(n):\n    # Write your code here\n    pass",
+    "verification_script": "def ref_impl(*args):\n    n = args[0]\n    if n <= 0: return \"\"\n    lines = []\n    row = [1]\n    for i in range(n):\n        row_str = \" \".join(str(x) for x in row)\n        spaces = \" \" * (n - 1 - i)\n        lines.append(spaces + row_str)\n        next_row = [1]\n        for j in range(len(row) - 1):\n            next_row.append(row[j] + row[j+1])\n        next_row.append(1)\n        row = next_row\n    return \"\\n\".join(lines)\n\nassert \"pascal_triangle\" in exec_globals, \"Function pascal_triangle not found\"\nfn = exec_globals[\"pascal_triangle\"]\n\n# Show live output for 2 sample sizes\nprint(\"--- YOUR PATTERN FOR n=4 ---\")\ntry:\n    fn(4)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\nprint(\"--- YOUR PATTERN FOR n=5 ---\")\ntry:\n    fn(5)\nexcept Exception as e:\n    print(f\"Error: {e}\")\nprint(\"----------------------------\")\n\ndef capture(func, n):\n    import io, sys\n    buf = io.StringIO()\n    old = sys.stdout\n    sys.stdout = buf\n    try:\n        func(n)\n    finally:\n        sys.stdout = old\n    return buf.getvalue()\n\ndef normalize(s):\n    lines = [l.rstrip() for l in s.splitlines()]\n    while lines and not lines[-1]: lines.pop()\n    while lines and not lines[0]: lines.pop(0)\n    return lines\n\ntest_cases = [1, 3, 5, -2]\npassed = 0\n_total = 4\n_failures = []\nprint(\"\\n┌─ TEST RESULTS \" + \"─\" * 34)\nfor _i, _tc in enumerate(test_cases, 1):\n    try:\n        _exp = normalize(ref_impl(_tc))\n        _got = normalize(capture(fn, _tc))\n        _ok = _exp == _got\n    except Exception as _e:\n        print(f\"│  [{_i}/{_total}] ✗  Runtime Error: {_e}\")\n        _failures.append(_i)\n        continue\n    if _ok:\n        print(f\"│  [{_i}/{_total}] ✓  Passed\")\n        passed += 1\n    else:\n        print(f\"│  [{_i}/{_total}] ✗  Failed\")\n        _got_vis = _got if _got else [\"(Empty Output)\"]\n        _exp_vis = _exp if _exp else [\"(Empty Output)\"]\n        _max_rows = max(len(_got_vis), len(_exp_vis))\n        _left_width = max(max((len(_r) for _r in _got_vis), default=0) + 6, 25)\n        print(f\"│           {'Your Output'.ljust(_left_width)} Expected\")\n        for _r_idx in range(_max_rows):\n            _got_row = _got_vis[_r_idx] if _r_idx < len(_got_vis) else \"\"\n            _exp_row = _exp_vis[_r_idx] if _r_idx < len(_exp_vis) else \"\"\n            print(f\"│           {_got_row.ljust(_left_width)} {_exp_row}\")\n        _failures.append(_i)\n# Always set exec_globals FIRST before any raise\nexec_globals[\"passed_cases\"] = passed\nexec_globals[\"total_cases\"] = _total\nprint(\"└\" + \"─\" * 49)\nif passed == _total:\n    print(f\"  ✅  All {_total}/{_total} test cases passed!\")\nelse:\n    print(f\"  ❌  {passed}/{_total} test cases passed\")\n    raise AssertionError(f\"done\")",
+    "dataset_name": null
+  },
+  {
+    "id": 159,
+    "title": "159. NumPy Zero Array",
     "difficulty": "easy",
     "points": 100,
     "category": "numpy",
@@ -1749,8 +1760,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 159,
-    "title": "159. Reshape 1D to 2D Matrix",
+    "id": 160,
+    "title": "160. Reshape 1D to 2D Matrix",
     "difficulty": "easy",
     "points": 100,
     "category": "numpy",
@@ -1759,8 +1770,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 160,
-    "title": "160. Line Chart Trend",
+    "id": 161,
+    "title": "161. Line Chart Trend",
     "difficulty": "medium",
     "points": 200,
     "category": "matplotlib-seaborn",
@@ -1769,8 +1780,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "stock_market.csv"
   },
   {
-    "id": 161,
-    "title": "161. Bar Chart Categories",
+    "id": 162,
+    "title": "162. Bar Chart Categories",
     "difficulty": "medium",
     "points": 200,
     "category": "matplotlib-seaborn",
@@ -1779,8 +1790,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "superstore.csv"
   },
   {
-    "id": 162,
-    "title": "162. Simple Student Marks Bar Plot",
+    "id": 163,
+    "title": "163. Simple Student Marks Bar Plot",
     "difficulty": "easy",
     "points": 100,
     "category": "matplotlib-seaborn",
@@ -1789,8 +1800,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 163,
-    "title": "163. Age vs Marks Scatter Plot",
+    "id": 164,
+    "title": "164. Age vs Marks Scatter Plot",
     "difficulty": "easy",
     "points": 100,
     "category": "matplotlib-seaborn",
@@ -1799,8 +1810,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 164,
-    "title": "164. Average Marks by Age Group Bar Plot",
+    "id": 165,
+    "title": "165. Average Marks by Age Group Bar Plot",
     "difficulty": "easy",
     "points": 100,
     "category": "matplotlib-seaborn",
@@ -1809,8 +1820,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": null
   },
   {
-    "id": 165,
-    "title": "165. Isolate Student Identity Columns",
+    "id": 166,
+    "title": "166. Isolate Student Identity Columns",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1819,8 +1830,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 166,
-    "title": "166. Fill Missing Grade Entries",
+    "id": 167,
+    "title": "167. Fill Missing Grade Entries",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1829,8 +1840,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 167,
-    "title": "167. Count Missing Grade Entries",
+    "id": 168,
+    "title": "168. Count Missing Grade Entries",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1839,8 +1850,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 168,
-    "title": "168. Purge Duplicate Student Records",
+    "id": 169,
+    "title": "169. Purge Duplicate Student Records",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1849,8 +1860,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 169,
-    "title": "169. Count Duplicate Student Records",
+    "id": 170,
+    "title": "170. Count Duplicate Student Records",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1859,8 +1870,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 170,
-    "title": "170. Drop Empty Student Names",
+    "id": 171,
+    "title": "171. Drop Empty Student Names",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1869,8 +1880,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 171,
-    "title": "171. Filter Mature Student Cohorts",
+    "id": 172,
+    "title": "172. Filter Mature Student Cohorts",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1879,8 +1890,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 172,
-    "title": "172. Count Unique Student Cohorts",
+    "id": 173,
+    "title": "173. Count Unique Student Cohorts",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1889,8 +1900,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 173,
-    "title": "173. Purge Completely Corrupted Student Records",
+    "id": 174,
+    "title": "174. Purge Completely Corrupted Student Records",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1899,8 +1910,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 174,
-    "title": "174. Reset Structural Data Alignment Indices",
+    "id": 175,
+    "title": "175. Reset Structural Data Alignment Indices",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1909,8 +1920,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 175,
-    "title": "175. Fix Product Registry",
+    "id": 176,
+    "title": "176. Fix Product Registry",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1919,8 +1930,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 176,
-    "title": "176. Standardize Employee Directory",
+    "id": 177,
+    "title": "177. Standardize Employee Directory",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1929,8 +1940,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 177,
-    "title": "177. Correct Invalid Transaction Types",
+    "id": 178,
+    "title": "178. Correct Invalid Transaction Types",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1939,8 +1950,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 178,
-    "title": "178. Parse Raw Sensor Streams",
+    "id": 179,
+    "title": "179. Parse Raw Sensor Streams",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1949,8 +1960,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 179,
-    "title": "179. Filter and Threshold Missing Demographics",
+    "id": 180,
+    "title": "180. Filter and Threshold Missing Demographics",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1959,8 +1970,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 180,
-    "title": "180. Standardize Mixed Discount Percentages",
+    "id": 181,
+    "title": "181. Standardize Mixed Discount Percentages",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -1969,8 +1980,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 181,
-    "title": "181. Purge Exact Duplicate Transaction Logs",
+    "id": 182,
+    "title": "182. Purge Exact Duplicate Transaction Logs",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -1979,8 +1990,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 182,
-    "title": "182. Isolate Frozen and Out-of-Bound Sensor Metrics",
+    "id": 183,
+    "title": "183. Isolate Frozen and Out-of-Bound Sensor Metrics",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -1989,8 +2000,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 183,
-    "title": "183. Clamp Impossible Outliers",
+    "id": 184,
+    "title": "184. Clamp Impossible Outliers",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -1999,8 +2010,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 184,
-    "title": "184. Standardize Messy Categorical Alignments",
+    "id": 185,
+    "title": "185. Standardize Messy Categorical Alignments",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2009,8 +2020,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 185,
-    "title": "185. High-Performing VIP Segment Breakdown",
+    "id": 186,
+    "title": "186. High-Performing VIP Segment Breakdown",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2019,8 +2030,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 186,
-    "title": "186. Identify Outlier Academic Variances",
+    "id": 187,
+    "title": "187. Identify Outlier Academic Variances",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2029,8 +2040,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 187,
-    "title": "187. Detect Suspicious Telemetry Patterns",
+    "id": 188,
+    "title": "188. Detect Suspicious Telemetry Patterns",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2039,8 +2050,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 188,
-    "title": "188. Dynamic Column Dropping and Projection",
+    "id": 189,
+    "title": "189. Dynamic Column Dropping and Projection",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2049,8 +2060,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 189,
-    "title": "189. Select Even-Indexed Analytical Runs",
+    "id": 190,
+    "title": "190. Select Even-Indexed Analytical Runs",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2059,8 +2070,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 190,
-    "title": "190. Temporal Business Hours Snapshot",
+    "id": 191,
+    "title": "191. Temporal Business Hours Snapshot",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2069,8 +2080,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 191,
-    "title": "191. Identify Underperforming Products",
+    "id": 192,
+    "title": "192. Identify Underperforming Products",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2079,8 +2090,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 192,
-    "title": "192. Locate Multi-Country Supply Nodes",
+    "id": 193,
+    "title": "193. Locate Multi-Country Supply Nodes",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2089,8 +2100,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 193,
-    "title": "193. Filter Outliers by Absolute Variance",
+    "id": 194,
+    "title": "194. Filter Outliers by Absolute Variance",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2099,8 +2110,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 194,
-    "title": "194. Select Records by Dynamic Value Arrays",
+    "id": 195,
+    "title": "195. Select Records by Dynamic Value Arrays",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2109,8 +2120,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 195,
-    "title": "195. Compute Store Department Averages",
+    "id": 196,
+    "title": "196. Compute Store Department Averages",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2119,8 +2130,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 196,
-    "title": "196. Calculate Fleet Fuel Efficiency Metrics",
+    "id": 197,
+    "title": "197. Calculate Fleet Fuel Efficiency Metrics",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2129,8 +2140,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 197,
-    "title": "197. Find Maximum Monthly Sales Representatives",
+    "id": 198,
+    "title": "198. Find Maximum Monthly Sales Representatives",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2139,8 +2150,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 198,
-    "title": "198. Count Distinct Class Categories Per School",
+    "id": 199,
+    "title": "199. Count Distinct Class Categories Per School",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2149,8 +2160,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 199,
-    "title": "199. Calculate Multi-Column Inventory Aggregates",
+    "id": 200,
+    "title": "200. Calculate Multi-Column Inventory Aggregates",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2159,8 +2170,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 200,
-    "title": "200. Extract First and Last Transaction Dates",
+    "id": 201,
+    "title": "201. Extract First and Last Transaction Dates",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2169,8 +2180,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "store_dim_customers.csv"
   },
   {
-    "id": 201,
-    "title": "201. Quantify Total Active Users Per Region",
+    "id": 202,
+    "title": "202. Quantify Total Active Users Per Region",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2179,8 +2190,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "store_dim_customers.csv"
   },
   {
-    "id": 202,
-    "title": "202. Find the Most Common Log Error Codes",
+    "id": 203,
+    "title": "203. Find the Most Common Log Error Codes",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2189,8 +2200,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 203,
-    "title": "203. Compute Weighted Passenger Fare Averages",
+    "id": 204,
+    "title": "204. Compute Weighted Passenger Fare Averages",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2199,8 +2210,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 204,
-    "title": "204. Determine Warehouse Capacity Utilization",
+    "id": 205,
+    "title": "205. Determine Warehouse Capacity Utilization",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2209,8 +2220,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 205,
-    "title": "205. Broadcast Departmental Variance to Employees",
+    "id": 206,
+    "title": "206. Broadcast Departmental Variance to Employees",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2219,8 +2230,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 206,
-    "title": "206. Filter Teams by Average Performance Thresholds",
+    "id": 207,
+    "title": "207. Filter Teams by Average Performance Thresholds",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2229,8 +2240,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 207,
-    "title": "207. Calculate Running Regional Revenue Subtotals",
+    "id": 208,
+    "title": "208. Calculate Running Regional Revenue Subtotals",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2239,8 +2250,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 208,
-    "title": "208. Find the N-th Highest Earning Freelancer Per Category",
+    "id": 209,
+    "title": "209. Find the N-th Highest Earning Freelancer Per Category",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2249,8 +2260,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 209,
-    "title": "209. Calculate Customer Segment Z-Scores",
+    "id": 210,
+    "title": "210. Calculate Customer Segment Z-Scores",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2259,8 +2270,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 210,
-    "title": "210. Identify Bounded Inter-Group Running Maximums",
+    "id": 211,
+    "title": "211. Identify Bounded Inter-Group Running Maximums",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2269,8 +2280,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 211,
-    "title": "211. Custom User-Defined Group Aggregations",
+    "id": 212,
+    "title": "212. Custom User-Defined Group Aggregations",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2279,8 +2290,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 212,
-    "title": "212. Impute Missing Values with Group Medians",
+    "id": 213,
+    "title": "213. Impute Missing Values with Group Medians",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2289,8 +2300,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 213,
-    "title": "213. Isolate Top N Dynamic Records Per Group",
+    "id": 214,
+    "title": "214. Isolate Top N Dynamic Records Per Group",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2299,8 +2310,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 214,
-    "title": "214. Calculate Group-Level Retention Rates",
+    "id": 215,
+    "title": "215. Calculate Group-Level Retention Rates",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2309,8 +2320,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 215,
-    "title": "215. Relational Database Inner Reconciliation",
+    "id": 216,
+    "title": "216. Relational Database Inner Reconciliation",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2319,8 +2330,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 216,
-    "title": "216. Complete Outer Inventory Alignment",
+    "id": 217,
+    "title": "217. Complete Outer Inventory Alignment",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2329,8 +2340,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 217,
-    "title": "217. Left Join Audits with Origin Flags",
+    "id": 218,
+    "title": "218. Left Join Audits with Origin Flags",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2339,8 +2350,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "store_dim_customers.csv"
   },
   {
-    "id": 218,
-    "title": "218. Timestamp Match Using Asynchronous Tolerances",
+    "id": 219,
+    "title": "219. Timestamp Match Using Asynchronous Tolerances",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2349,8 +2360,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 219,
-    "title": "219. Cartesian Product Resource Assignment",
+    "id": 220,
+    "title": "220. Cartesian Product Resource Assignment",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2359,8 +2370,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 220,
-    "title": "220. Multi-Key Index Merging",
+    "id": 221,
+    "title": "221. Multi-Key Index Merging",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2369,8 +2380,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 221,
-    "title": "221. Conditional Overlap Fill and Merge",
+    "id": 222,
+    "title": "222. Conditional Overlap Fill and Merge",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2379,8 +2390,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 222,
-    "title": "222. Evaluate Delta Deviations Across Tables",
+    "id": 223,
+    "title": "223. Evaluate Delta Deviations Across Tables",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2389,8 +2400,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "corporate_financials_wide.csv"
   },
   {
-    "id": 223,
-    "title": "223. Track Historical Schema Changes",
+    "id": 224,
+    "title": "224. Track Historical Schema Changes",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2399,8 +2410,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 224,
-    "title": "224. Merge Mismatched Categorical Columns",
+    "id": 225,
+    "title": "225. Merge Mismatched Categorical Columns",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2409,8 +2420,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 225,
-    "title": "225. Unpivot Quarterly Financial Summary Tables",
+    "id": 226,
+    "title": "226. Unpivot Quarterly Financial Summary Tables",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2419,8 +2430,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "corporate_financials_wide.csv"
   },
   {
-    "id": 226,
-    "title": "226. Generate Variable-Width Analytical Bins",
+    "id": 227,
+    "title": "227. Generate Variable-Width Analytical Bins",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2429,8 +2440,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 227,
-    "title": "227. One-Hot Encode Categorical Model Pipelines",
+    "id": 228,
+    "title": "228. One-Hot Encode Categorical Model Pipelines",
     "difficulty": "easy",
     "points": 100,
     "category": "pandas",
@@ -2439,8 +2450,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 228,
-    "title": "228. Resample Daily Financial Data to Monthly Averages",
+    "id": 229,
+    "title": "229. Resample Daily Financial Data to Monthly Averages",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2449,8 +2460,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 229,
-    "title": "229. Calculate Rolling 7-Day Asset Volatility",
+    "id": 230,
+    "title": "230. Calculate Rolling 7-Day Asset Volatility",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2459,8 +2470,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 230,
-    "title": "230. Compute Multi-Column Percentage Change Deltas (Intermediate)",
+    "id": 231,
+    "title": "231. Compute Multi-Column Percentage Change Deltas (Intermediate)",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2469,8 +2480,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 231,
-    "title": "231. Multi-Level Index Cross-Section Extractions",
+    "id": 232,
+    "title": "232. Multi-Level Index Cross-Section Extractions",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2479,8 +2490,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "corporate_financials_wide.csv"
   },
   {
-    "id": 232,
-    "title": "232. Calculate Cumulative Moving Limits",
+    "id": 233,
+    "title": "233. Calculate Cumulative Moving Limits",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2489,8 +2500,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 233,
-    "title": "233. Cross-Tabulate Multi-Factor Frequency Tables",
+    "id": 234,
+    "title": "234. Cross-Tabulate Multi-Factor Frequency Tables",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2499,8 +2510,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 234,
-    "title": "234. Explode Nested JSON Array Columns into Rows",
+    "id": 235,
+    "title": "235. Explode Nested JSON Array Columns into Rows",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2509,8 +2520,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 235,
-    "title": "235. Extract Valid Nested Email Domains",
+    "id": 236,
+    "title": "236. Extract Valid Nested Email Domains",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2519,8 +2530,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 236,
-    "title": "236. Parse Raw Unstructured Log Strings via Regex Captures",
+    "id": 237,
+    "title": "237. Parse Raw Unstructured Log Strings via Regex Captures",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2529,8 +2540,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 237,
-    "title": "237. Sanitize and Standardize Variable Phone Formats",
+    "id": 238,
+    "title": "238. Sanitize and Standardize Variable Phone Formats",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2539,8 +2550,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 238,
-    "title": "238. Vectorized Substring Tokenization and Counting",
+    "id": 239,
+    "title": "239. Vectorized Substring Tokenization and Counting",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2549,8 +2560,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 239,
-    "title": "239. Identify Partial Match Anomalies in Product Descriptions",
+    "id": 240,
+    "title": "240. Identify Partial Match Anomalies in Product Descriptions",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2559,8 +2570,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 240,
-    "title": "240. Mask Sensitive Personally Identifiable Information",
+    "id": 241,
+    "title": "241. Mask Sensitive Personally Identifiable Information",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2569,8 +2580,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 241,
-    "title": "241. Title-Case Multi-Word Exceptions in Names",
+    "id": 242,
+    "title": "242. Title-Case Multi-Word Exceptions in Names",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2579,8 +2590,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 242,
-    "title": "242. Split Variable-Length Delimited Fields into Matrix Columns",
+    "id": 243,
+    "title": "243. Split Variable-Length Delimited Fields into Matrix Columns",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2589,8 +2600,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 243,
-    "title": "243. Flatten Deeply Nested Multi-Indexed Columns Post-Aggregation",
+    "id": 244,
+    "title": "244. Flatten Deeply Nested Multi-Indexed Columns Post-Aggregation",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2599,8 +2610,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 244,
-    "title": "244. Construct Hierarchical Indexes from Dynamic String Cuts",
+    "id": 245,
+    "title": "245. Construct Hierarchical Indexes from Dynamic String Cuts",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2609,8 +2620,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 245,
-    "title": "245. Cross-Sectional Analysis Across Asymmetric Index Levels",
+    "id": 246,
+    "title": "246. Cross-Sectional Analysis Across Asymmetric Index Levels",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2619,8 +2630,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "store_dim_customers.csv"
   },
   {
-    "id": 246,
-    "title": "246. Pivot Complex Aggregations with Variable Margins and Totals",
+    "id": 247,
+    "title": "247. Pivot Complex Aggregations with Variable Margins and Totals",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2629,8 +2640,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 247,
-    "title": "247. Unstacking Selective Tiers of Multi-Dimensional Arrays",
+    "id": 248,
+    "title": "248. Unstacking Selective Tiers of Multi-Dimensional Arrays",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2639,8 +2650,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 248,
-    "title": "248. Multi-Index Swapping and Reordering for Matrix Math",
+    "id": 249,
+    "title": "249. Multi-Index Swapping and Reordering for Matrix Math",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2649,8 +2660,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 249,
-    "title": "249. Reshape Sparse Matrices into Dense DataFrames",
+    "id": 250,
+    "title": "250. Reshape Sparse Matrices into Dense DataFrames",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2659,8 +2670,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 250,
-    "title": "250. Conditional Melting of Multi-Column Data Blocks",
+    "id": 251,
+    "title": "251. Conditional Melting of Multi-Column Data Blocks",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2669,8 +2680,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 251,
-    "title": "251. Asynchronous Time-Zone Alignment and Localization",
+    "id": 252,
+    "title": "252. Asynchronous Time-Zone Alignment and Localization",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2679,8 +2690,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 252,
-    "title": "252. Calculate Custom Business-Day Deltas Excluding Arbitrary Holidays",
+    "id": 253,
+    "title": "253. Calculate Custom Business-Day Deltas Excluding Arbitrary Holidays",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2689,8 +2700,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 253,
-    "title": "253. Forward-Fill Intermittent Time Series with Upper Bounds",
+    "id": 254,
+    "title": "254. Forward-Fill Intermittent Time Series with Upper Bounds",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2699,8 +2710,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 254,
-    "title": "254. Detect Consecutive Day Streaks (The Gaps-and-Islands Problem)",
+    "id": 255,
+    "title": "255. Detect Consecutive Day Streaks (The Gaps-and-Islands Problem)",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2709,8 +2720,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 255,
-    "title": "255. Resample Irregular High-Frequency Ticks to Open-High-Low-Close (OHLC)",
+    "id": 256,
+    "title": "256. Resample Irregular High-Frequency Ticks to Open-High-Low-Close (OHLC)",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2719,8 +2730,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 256,
-    "title": "256. Calculate Rolling Window Metrics with Variable Time-Offsets",
+    "id": 257,
+    "title": "257. Calculate Rolling Window Metrics with Variable Time-Offsets",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2729,8 +2740,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 257,
-    "title": "257. Align Asynchronous Events Using Forward-Looking merge_asof",
+    "id": 258,
+    "title": "258. Align Asynchronous Events Using Forward-Looking merge_asof",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2739,8 +2750,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 258,
-    "title": "258. Compute Expanding Metric Maximums and Exponentially Weighted Decays",
+    "id": 259,
+    "title": "259. Compute Expanding Metric Maximums and Exponentially Weighted Decays",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2749,8 +2760,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 259,
-    "title": "259. Downcast Massive Dataframes via Numeric and Categorical Type Traversal",
+    "id": 260,
+    "title": "260. Downcast Massive Dataframes via Numeric and Categorical Type Traversal",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2759,8 +2770,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 260,
-    "title": "260. Vectorized Numeric Evaluation Using pd.eval() for Compound Logic",
+    "id": 261,
+    "title": "261. Vectorized Numeric Evaluation Using pd.eval() for Compound Logic",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2769,8 +2780,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 261,
-    "title": "261. High-Speed Conditional String Filtering via Vectorized .query()",
+    "id": 262,
+    "title": "262. High-Speed Conditional String Filtering via Vectorized .query()",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2779,8 +2790,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 262,
-    "title": "262. Chunked Processing Architecture for Multi-Gigabyte Ingestion",
+    "id": 263,
+    "title": "263. Chunked Processing Architecture for Multi-Gigabyte Ingestion",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2789,8 +2800,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 263,
-    "title": "263. Eliminate SettingWithCopyWarning in Deeply Nested Views",
+    "id": 264,
+    "title": "264. Eliminate SettingWithCopyWarning in Deeply Nested Views",
     "difficulty": "medium",
     "points": 200,
     "category": "pandas",
@@ -2799,8 +2810,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 264,
-    "title": "264. Optimize Row-Wise Traversal (Replacing iterrows with itertuples)",
+    "id": 265,
+    "title": "265. Optimize Row-Wise Traversal (Replacing iterrows with itertuples)",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2809,8 +2820,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 265,
-    "title": "265. Fast Element-Wise Matrix Mutations Using NumPy Vectorization Backends",
+    "id": 266,
+    "title": "266. Fast Element-Wise Matrix Mutations Using NumPy Vectorization Backends",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2819,8 +2830,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 266,
-    "title": "266. Parallelizing Custom User-Defined Functions Across Groups",
+    "id": 267,
+    "title": "267. Parallelizing Custom User-Defined Functions Across Groups",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2829,8 +2840,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 267,
-    "title": "267. Compute Rolling Correlation Matrices Across Sliding Timelines",
+    "id": 268,
+    "title": "268. Compute Rolling Correlation Matrices Across Sliding Timelines",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2839,8 +2850,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "high_frequency_stock_ticks.csv"
   },
   {
-    "id": 268,
-    "title": "268. Multi-Condition Deduplication Keeping Custom Dynamic Extremes",
+    "id": 269,
+    "title": "269. Multi-Condition Deduplication Keeping Custom Dynamic Extremes",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2849,8 +2860,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 269,
-    "title": "269. Dynamic Quantile-Based Binning Across Variable Group Sizes",
+    "id": 270,
+    "title": "270. Dynamic Quantile-Based Binning Across Variable Group Sizes",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2859,8 +2870,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 270,
-    "title": "270. Reconstruct Lineage Tables from Self-Referential Parent-Child Rows",
+    "id": 271,
+    "title": "271. Reconstruct Lineage Tables from Self-Referential Parent-Child Rows",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2869,8 +2880,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "dirty_store_transactions.csv"
   },
   {
-    "id": 271,
-    "title": "271. Identify Complex Cycle Patterns in Graph Metadata",
+    "id": 272,
+    "title": "272. Identify Complex Cycle Patterns in Graph Metadata",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2879,8 +2890,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 272,
-    "title": "272. Vectorized Matrix Multiplications for Multi-Dimensional Coordinate Tiers",
+    "id": 273,
+    "title": "273. Vectorized Matrix Multiplications for Multi-Dimensional Coordinate Tiers",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2889,8 +2900,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "student_performance_factors.csv"
   },
   {
-    "id": 273,
-    "title": "273. Track Dynamic Multi-Layer State Machine Transitions",
+    "id": 274,
+    "title": "274. Track Dynamic Multi-Layer State Machine Transitions",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",
@@ -2899,8 +2910,8 @@ export const LOCAL_QUESTIONS: LocalQuestion[] = [
     "dataset_name": "sensor_readings_noisy.csv"
   },
   {
-    "id": 274,
-    "title": "274. End-to-End Multiprocess Pipeline Orchestration",
+    "id": 275,
+    "title": "275. End-to-End Multiprocess Pipeline Orchestration",
     "difficulty": "hard",
     "points": 300,
     "category": "pandas",

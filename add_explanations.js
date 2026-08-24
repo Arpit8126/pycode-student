@@ -279,6 +279,9 @@ const EXPLANATIONS = {
         "Box volumes: 1 < 8 → Box(1,1,1) < Box(2,2,2) → True"],
   167: ["10 / 2 = 5.0", "Division by zero is caught → 'Error: Cannot divide by zero'",
         "Index 10 of list size 3 is caught → 'Error: Index out of range'"],
+  168: ["Row 0 starts with [1].",
+        "Each subsequent row is calculated by adding adjacent elements of the previous row (e.g. Row 2 [1,2,1] is derived from Row 1 [1,1]).",
+        "For n=4, we format the rows with leading spaces to keep the triangle centered symmetrically: row 0 has 3 leading spaces, row 1 has 2, row 2 has 1, and row 3 has 0."],
 };
 
 function loadQuestions() {

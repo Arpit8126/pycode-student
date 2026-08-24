@@ -153,7 +153,7 @@ const patternFuncs = {
   15:'inverted_alphabet_triangle', 16:'repeating_alphabet_triangle',
   17:'alphabet_palindrome_pyramid', 18:'alphabet_window',
   19:'inverted_butterfly', 20:'butterfly', 21:'hollow_square',
-  22:'concentric_grid'
+  22:'concentric_grid', 23:'pascal_triangle'
 };
 
 function patternRef(id) {
@@ -179,7 +179,8 @@ function patternRef(id) {
     19: `n = args[0]\nif n <= 0: return ""\nlines = []\nfor i in range(1, n + 1):\n    stars = "*" * (n - i + 1)\n    spaces = " " * (2 * (i - 1))\n    lines.append(stars + spaces + stars)\nfor i in range(1, n + 1):\n    stars = "*" * i\n    spaces = " " * (2 * (n - i))\n    lines.append(stars + spaces + stars)\nreturn "\\n".join(lines)`,
     20: `n = args[0]\nif n <= 0: return ""\nlines = []\nfor i in range(1, n + 1):\n    stars = "*" * i\n    spaces = " " * (2 * (n - i))\n    lines.append(stars + spaces + stars)\nfor i in range(1, n):\n    stars = "*" * (n - i)\n    spaces = " " * (2 * i)\n    lines.append(stars + spaces + stars)\nreturn "\\n".join(lines)`,
     21: `n = args[0]\nif n <= 0: return ""\nif n == 1: return "*"\nlines = []\nlines.append(" ".join(["*"] * n))\nfor _ in range(n - 2):\n    lines.append("*" + " " * (2 * n - 3) + "*")\nlines.append(" ".join(["*"] * n))\nreturn "\\n".join(lines)`,
-    22: `n = args[0]\nif n <= 0: return ""\nsize = 2 * n - 1\nlines = []\nfor r in range(size):\n    row = []\n    for c in range(size):\n        d = min(r, c, size - 1 - r, size - 1 - c)\n        row.append(str(n - d))\n    lines.append(" ".join(row))\nreturn "\\n".join(lines)`
+    22: `n = args[0]\nif n <= 0: return ""\nsize = 2 * n - 1\nlines = []\nfor r in range(size):\n    row = []\n    for c in range(size):\n        d = min(r, c, size - 1 - r, size - 1 - c)\n        row.append(str(n - d))\n    lines.append(" ".join(row))\nreturn "\\n".join(lines)`,
+    23: `n = args[0]\nif n <= 0: return ""\nlines = []\nrow = [1]\nfor i in range(n):\n    row_str = " ".join(str(x) for x in row)\n    spaces = " " * (n - 1 - i)\n    lines.append(spaces + row_str)\n    next_row = [1]\n    for j in range(len(row) - 1):\n        next_row.append(row[j] + row[j+1])\n    next_row.append(1)\n    row = next_row\nreturn "\\n".join(lines)`
   };
   return refs[id];
 }
@@ -651,7 +652,7 @@ const mathMappings = {
 // ─── SECTION 4: PATTERNS (IDs 56-77) — from patterns.md ─────
 const patternDiffs = {1:'easy',2:'easy',3:'easy',4:'easy',5:'easy',6:'easy',7:'easy',8:'easy',
   9:'medium',10:'medium',11:'medium',12:'medium',13:'medium',14:'medium',
-  15:'medium',16:'medium',17:'medium',18:'medium',19:'hard',20:'hard',21:'hard',22:'hard'};
+  15:'medium',16:'medium',17:'medium',18:'medium',19:'hard',20:'hard',21:'hard',22:'hard',23:'medium'};
 
 // ─── SECTION 5: STRING METHODS (IDs 78-87) ──────────────────
 const stringMethodQuestions = [
@@ -1355,7 +1356,7 @@ console.log('Parsing patterns.md...');
 const rawPatterns = parseMarkdownFile('patterns.md');
 const patternQuestions = rawPatterns.map(q => {
   const fn = patternFuncs[q.id];
-  const newId = q.id + 55; // IDs 56-77
+  const newId = q.id === 23 ? 168 : q.id + 55; // IDs 56-77, and 168
   const d = patternDiffs[q.id];
   const pts = d === 'easy' ? 100 : d === 'medium' ? 200 : 300;
   return {

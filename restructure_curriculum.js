@@ -42,7 +42,7 @@ const restructured = merged.map(q => {
       q.category = 'python-ifelse';
     } else if (oldId >= 26 && oldId <= 55) {
       q.category = 'python-loops';
-    } else if (oldId >= 56 && oldId <= 77) {
+    } else if ((oldId >= 56 && oldId <= 77) || oldId === 168) {
       q.category = 'python-patterns';
     } else if (oldId >= 78 && oldId <= 105) {
       q.category = 'python-strings';
