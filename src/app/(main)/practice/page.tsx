@@ -464,7 +464,7 @@ export default function PracticeListPage() {
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 w-full md:w-auto overflow-x-auto justify-end">
+          <div className="flex flex-wrap items-center gap-4 w-full md:w-auto justify-end">
             {/* Custom Section/Topic Filter Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
