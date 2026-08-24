@@ -447,8 +447,11 @@ export default function CodeEditorPage() {
         const activeFile = selectedFileRef.current
         if (activeFile && workerRef.current) {
           const custom = importedDatasetsRef.current.find(d => d.name === activeFile)
-          if (custom && custom.type === 'xlsx') {
+          // Use GET_EXCEL_PREVIEW for any .xlsx file (custom or default built-in)
+          if (activeFile.endsWith('.xlsx')) {
             workerRef.current.postMessage({ type: 'GET_EXCEL_PREVIEW', filename: activeFile })
+          } else if (custom) {
+            workerRef.current.postMessage({ type: 'GET_FILE', filename: activeFile })
           } else {
             workerRef.current.postMessage({ type: 'GET_FILE', filename: activeFile })
           }
@@ -530,6 +533,8 @@ export default function CodeEditorPage() {
           }
           let hasChanges = false
           Object.entries(data.updatedFiles).forEach(([filename, content]) => {
+            // Skip binary Excel files — can't store ArrayBuffer in JSON localStorage
+            if (filename.endsWith('.xlsx')) return
             if (currentStored[filename] !== content) {
               currentStored[filename] = content as string
               hasChanges = true
@@ -538,9 +543,9 @@ export default function CodeEditorPage() {
           if (hasChanges) {
             localStorage.setItem('pycode_dataset_contents', JSON.stringify(currentStored))
             const activeFile = selectedFileRef.current
-            if (activeFile && data.updatedFiles[activeFile]) {
+            if (activeFile && !activeFile.endsWith('.xlsx') && data.updatedFiles[activeFile]) {
               const content = data.updatedFiles[activeFile]
-              const lines = content.trim().split('\n')
+              const lines = (content as string).trim().split('\n')
               setPreviewRows(lines.map((line: string) => {
                 return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, ''))
               }))
@@ -607,6 +612,8 @@ export default function CodeEditorPage() {
           }
           let hasChanges = false
           Object.entries(data.updatedFiles).forEach(([filename, content]) => {
+            // Skip binary Excel files — can't store ArrayBuffer in JSON localStorage
+            if (filename.endsWith('.xlsx')) return
             if (currentStored[filename] !== content) {
               currentStored[filename] = content as string
               hasChanges = true
@@ -615,9 +622,9 @@ export default function CodeEditorPage() {
           if (hasChanges) {
             localStorage.setItem('pycode_dataset_contents', JSON.stringify(currentStored))
             const activeFile = selectedFileRef.current
-            if (activeFile && data.updatedFiles[activeFile]) {
+            if (activeFile && !activeFile.endsWith('.xlsx') && data.updatedFiles[activeFile]) {
               const content = data.updatedFiles[activeFile]
-              const lines = content.trim().split('\n')
+              const lines = (content as string).trim().split('\n')
               setPreviewRows(lines.map((line: string) => {
                 return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, ''))
               }))
@@ -1304,11 +1311,20 @@ export default function CodeEditorPage() {
     }
 
     if (workerRef.current && pyodideState === 'ready') {
-      workerRef.current.postMessage({ type: 'GET_FILE', filename })
+      // Excel files must use GET_EXCEL_PREVIEW — reading as UTF-8 would fail
+      if (filename.endsWith('.xlsx')) {
+        workerRef.current.postMessage({ type: 'GET_EXCEL_PREVIEW', filename })
+      } else {
+        workerRef.current.postMessage({ type: 'GET_FILE', filename })
+      }
     } else if (!workerRef.current) {
       const defaultFilename = filename as keyof typeof DATASETS
-      const lines = DATASETS[defaultFilename].csv.trim().split('\n')
-      setPreviewRows(lines.map(line => line.split(',')))
+      if (!filename.endsWith('.xlsx') && DATASETS[defaultFilename]) {
+        const lines = DATASETS[defaultFilename].csv.trim().split('\n')
+        setPreviewRows(lines.map(line => line.split(',')))
+      } else {
+        setPreviewRows([['Excel preview requires Python environment to load. Please wait...']])
+      }
     }
   }
 
