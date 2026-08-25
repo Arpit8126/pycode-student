@@ -2930,18 +2930,7 @@ export default function CodeEditorPage() {
                       >
                         {/* Top-right icon group — appears on hover */}
                         <div className="absolute top-2 right-2 z-20 flex items-center gap-0 opacity-0 group-hover/cell:opacity-100 transition-opacity duration-150">
-                          <div className="flex items-center rounded-xl border border-hairline/70 dark:border-[#3a3835] bg-canvas dark:bg-[#252320] shadow-sm overflow-hidden">
-                            {/* Cell type toggle */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, type: c.type === 'markdown' ? 'code' : 'markdown' } : c))
-                              }}
-                              className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider text-muted hover:text-primary hover:bg-surface-soft dark:hover:bg-white/5 cursor-pointer transition-colors border-r border-hairline/50 dark:border-[#3a3835]"
-                              title={`Switch to ${cell.type === 'markdown' ? 'Code' : 'Markdown'}`}
-                            >
-                              {cell.type === 'markdown' ? 'Code' : 'MD'}
-                            </button>
+                          <div className="flex items-center rounded-xl border border-hairline/60 dark:border-[#3a3835] bg-canvas dark:bg-[#252320] shadow-sm overflow-hidden">
                             {/* Move up */}
                             <button
                               onClick={(e) => { e.stopPropagation(); moveCellUp(index) }}
@@ -2978,100 +2967,99 @@ export default function CodeEditorPage() {
                           </div>
                         </div>
 
-                        {/* Cell inner layout: left run indicator + editor */}
-                        <div className="flex items-stretch">
-                          {/* Left run gutter */}
+                        {/* Editor fills full card width — no separate gutter column */}
+                        <div className="relative w-full">
+
+                          {/* Tiny run/spinner overlay — bottom-left of card, on hover */}
                           {cell.type !== 'markdown' && (
-                            <div className="w-12 shrink-0 flex flex-col items-center justify-start pt-3 pb-3 select-none border-r border-hairline/30 dark:border-[#2a2927]">
-                              <span className="font-mono text-[10px] text-muted/50 mb-1">
+                            <div className="absolute bottom-2 left-3 z-10 flex items-center gap-1 opacity-0 group-hover/cell:opacity-100 transition-opacity duration-150 select-none">
+                              <span className="font-mono text-[10px] text-muted/40">
                                 [{cell.hasRun ? index + 1 : '\u00a0'}]
                               </span>
                               {isCellRunning ? (
-                                <RefreshCw className="w-3.5 h-3.5 text-primary animate-spin" />
+                                <RefreshCw className="w-3 h-3 text-primary animate-spin" />
                               ) : (
                                 <button
                                   onClick={(e) => { e.stopPropagation(); runCell(cell.id) }}
                                   disabled={pyodideState !== 'ready'}
-                                  className="w-6 h-6 rounded-full flex items-center justify-center text-muted/50 hover:text-primary hover:bg-primary/10 transition-all cursor-pointer disabled:opacity-30"
-                                  title="Run cell (Shift+Enter)"
+                                  className="w-5 h-5 rounded-full flex items-center justify-center text-muted/40 hover:text-primary hover:bg-primary/10 transition-all cursor-pointer disabled:opacity-30"
+                                  title="Run (Shift+Enter)"
                                 >
-                                  <Play className="w-3 h-3" />
+                                  <Play className="w-2.5 h-2.5" />
                                 </button>
                               )}
                             </div>
                           )}
 
-                          {/* Editor / Markdown area */}
-                          <div className="flex-1 min-w-0">
-                            {cell.type === 'markdown' && !isActive ? (
-                              <div
-                                className="w-full min-h-[52px] px-5 py-4 text-ink leading-relaxed text-sm select-text cursor-text"
-                                onClick={() => setActiveCellId(cell.id)}
-                              >
-                                {renderMarkdown(cell.code)}
-                              </div>
-                            ) : (
-                              <Editor
-                                height="52px"
-                                language={cell.type === 'markdown' ? 'markdown' : 'python'}
-                                theme={theme === 'dark' ? 'vs-dark' : 'light'}
-                                value={cell.code}
-                                onChange={(val) => {
-                                  if (ignoreChangeRef.current) return
-                                  updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val || '' } : c))
-                                }}
-                                onMount={(editor, monacoInstance) => {
-                                  const minH = 52
-                                  const updateHeight = () => {
-                                    const h = Math.max(minH, editor.getContentHeight())
-                                    const el = editor.getDomNode()
-                                    if (el) {
-                                      el.style.height = `${h}px`
-                                      if (el.parentElement) {
-                                        el.parentElement.style.height = `${h}px`
-                                        if (el.parentElement.parentElement) {
-                                          el.parentElement.parentElement.style.height = `${h}px`
-                                        }
+                          {/* Editor / Markdown */}
+                          {cell.type === 'markdown' && !isActive ? (
+                            <div
+                              className="w-full min-h-[52px] px-5 py-4 text-ink leading-relaxed text-sm select-text cursor-text"
+                              onClick={() => setActiveCellId(cell.id)}
+                            >
+                              {renderMarkdown(cell.code)}
+                            </div>
+                          ) : (
+                            <Editor
+                              height="52px"
+                              language={cell.type === 'markdown' ? 'markdown' : 'python'}
+                              theme={theme === 'dark' ? 'vs-dark' : 'light'}
+                              value={cell.code}
+                              onChange={(val) => {
+                                if (ignoreChangeRef.current) return
+                                updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val || '' } : c))
+                              }}
+                              onMount={(editor, monacoInstance) => {
+                                const minH = 52
+                                const updateHeight = () => {
+                                  const h = Math.max(minH, editor.getContentHeight())
+                                  const el = editor.getDomNode()
+                                  if (el) {
+                                    el.style.height = `${h}px`
+                                    if (el.parentElement) {
+                                      el.parentElement.style.height = `${h}px`
+                                      if (el.parentElement.parentElement) {
+                                        el.parentElement.parentElement.style.height = `${h}px`
                                       }
-                                      editor.layout()
                                     }
+                                    editor.layout()
                                   }
-                                  editor.onDidContentSizeChange(updateHeight)
-                                  updateHeight()
-                                  editor.onDidFocusEditorText(() => setActiveCellId(cell.id))
-                                  editor.addCommand(monacoInstance.KeyMod.Shift | monacoInstance.KeyCode.Enter, () => {
-                                    if (cell.type === 'markdown') {
-                                      updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, hasRun: true } : c), false)
-                                      setActiveCellId(null)
-                                    } else {
-                                      runCell(cell.id)
-                                    }
-                                  })
-                                }}
-                                options={{
-                                  fontSize: 13.5,
-                                  fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
-                                  lineHeight: 22,
-                                  minimap: { enabled: false },
-                                  lineNumbers: 'off',
-                                  folding: false,
-                                  lineDecorationsWidth: 0,
-                                  lineNumbersMinChars: 0,
-                                  scrollBeyondLastLine: false,
-                                  wordWrap: 'on',
-                                  automaticLayout: true,
-                                  padding: { top: 14, bottom: 14 },
-                                  find: { seedSearchStringFromSelection: 'never', autoFindInSelection: 'never' },
-                                  scrollbar: { vertical: 'hidden', horizontal: 'hidden', handleMouseWheel: false },
-                                  overviewRulerBorder: false,
-                                  overviewRulerLanes: 0,
-                                  hideCursorInOverviewRuler: true,
-                                  contextmenu: false,
-                                  readOnly: isCellRunning,
-                                }}
-                              />
-                            )}
-                          </div>
+                                }
+                                editor.onDidContentSizeChange(updateHeight)
+                                updateHeight()
+                                editor.onDidFocusEditorText(() => setActiveCellId(cell.id))
+                                editor.addCommand(monacoInstance.KeyMod.Shift | monacoInstance.KeyCode.Enter, () => {
+                                  if (cell.type === 'markdown') {
+                                    updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, hasRun: true } : c), false)
+                                    setActiveCellId(null)
+                                  } else {
+                                    runCell(cell.id)
+                                  }
+                                })
+                              }}
+                              options={{
+                                fontSize: 13.5,
+                                fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
+                                lineHeight: 22,
+                                minimap: { enabled: false },
+                                lineNumbers: 'off',
+                                folding: false,
+                                lineDecorationsWidth: 0,
+                                lineNumbersMinChars: 0,
+                                scrollBeyondLastLine: false,
+                                wordWrap: 'on',
+                                automaticLayout: true,
+                                padding: { top: 14, bottom: 14 },
+                                find: { seedSearchStringFromSelection: 'never', autoFindInSelection: 'never' },
+                                scrollbar: { vertical: 'hidden', horizontal: 'hidden', handleMouseWheel: false },
+                                overviewRulerBorder: false,
+                                overviewRulerLanes: 0,
+                                hideCursorInOverviewRuler: true,
+                                contextmenu: false,
+                                readOnly: isCellRunning,
+                              }}
+                            />
+                          )}
                         </div>
 
                         {/* Output section */}
