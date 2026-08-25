@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
@@ -141,50 +141,255 @@ let globalDraftCells: CellType[] = [
 let globalDraftFormat: 'terminal' | 'cell' = 'terminal';
 let globalActiveFileName: string | null = null;
 let globalLastSavedCode: string = '# Write your code here\n';
+const applyInlineFormatting = (text: string): string => {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`(.*?)`/g, '<code class="bg-surface-soft px-1 rounded text-xs font-mono">$1</code>')
+}
+
 const renderMarkdown = (text: string) => {
-  if (!text) return <p className="text-gray-400 italic text-xs">Empty markdown cell. Double-click to edit.</p>;
+  if (!text) return null;
   const lines = text.split('\n');
   const htmlElements = lines.map((line, idx) => {
     if (line.startsWith('# ')) {
-      return <h1 key={idx} className="text-xl font-bold text-ink mt-3 mb-2">{line.substring(2)}</h1>;
+      return <h1 key={idx} className="font-bold text-ink mt-3 mb-2" dangerouslySetInnerHTML={{ __html: applyInlineFormatting(line.substring(2)) }} />;
     }
     if (line.startsWith('## ')) {
-      return <h2 key={idx} className="text-lg font-bold text-ink mt-2.5 mb-1.5">{line.substring(3)}</h2>;
+      return <h2 key={idx} className="font-bold text-ink mt-2.5 mb-1.5" dangerouslySetInnerHTML={{ __html: applyInlineFormatting(line.substring(3)) }} />;
     }
     if (line.startsWith('### ')) {
-      return <h3 key={idx} className="text-base font-bold text-ink mt-2 mb-1">{line.substring(4)}</h3>;
+      return <h3 key={idx} className="font-bold text-ink mt-2 mb-1" dangerouslySetInnerHTML={{ __html: applyInlineFormatting(line.substring(4)) }} />;
+    }
+    if (line.startsWith('#### ')) {
+      return <h4 key={idx} className="font-bold text-ink mt-2 mb-1" dangerouslySetInnerHTML={{ __html: applyInlineFormatting(line.substring(5)) }} />;
+    }
+    if (line.startsWith('##### ')) {
+      return <h5 key={idx} className="font-bold text-ink mt-1.5 mb-1" dangerouslySetInnerHTML={{ __html: applyInlineFormatting(line.substring(6)) }} />;
+    }
+    if (line.startsWith('###### ')) {
+      return <h6 key={idx} className="font-bold text-muted mt-1 mb-1" dangerouslySetInnerHTML={{ __html: applyInlineFormatting(line.substring(7)) }} />;
     }
     if (line.startsWith('- ') || line.startsWith('* ')) {
-      return <li key={idx} className="ml-4 list-disc text-sm text-body leading-relaxed">{line.substring(2)}</li>;
+      return <li key={idx} className="ml-4 list-disc text-sm text-body leading-relaxed" dangerouslySetInnerHTML={{ __html: applyInlineFormatting(line.substring(2)) }} />;
     }
     if (/^\d+\.\s/.test(line)) {
-      return <li key={idx} className="ml-4 list-decimal text-sm text-body leading-relaxed">{line.substring(line.indexOf(' ') + 1)}</li>;
+      const dotIdx = line.indexOf(' ');
+      return <li key={idx} className="ml-4 list-decimal text-sm text-body leading-relaxed" dangerouslySetInnerHTML={{ __html: applyInlineFormatting(line.substring(dotIdx + 1)) }} />;
     }
     if (line.startsWith('> ')) {
-      return <blockquote key={idx} className="border-l-4 border-primary/40 pl-3 py-1 my-2 text-sm text-gray-500 bg-surface-soft rounded-r-md">{line.substring(2)}</blockquote>;
+      return <blockquote key={idx} className="border-l-4 border-primary/40 pl-3 py-1 my-2 text-sm text-gray-500 bg-surface-soft rounded-r-md" dangerouslySetInnerHTML={{ __html: applyInlineFormatting(line.substring(2)) }} />;
     }
     if (line.trim() === '') {
       return <div key={idx} className="h-2" />;
     }
-    const formattedText = line
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/`(.*?)`/g, '<code class="bg-surface-soft px-1 rounded text-xs font-mono">$1</code>');
-      
+    
     return (
       <p 
         key={idx} 
         className="text-sm text-body leading-relaxed min-h-[1.25rem]"
-        dangerouslySetInnerHTML={{ __html: formattedText }}
+        dangerouslySetInnerHTML={{ __html: applyInlineFormatting(line) }}
       />
     );
   });
-  return <div className="space-y-1 font-sans">{htmlElements}</div>;
+  return <div className="space-y-1 font-sans cell-markdown-container select-text">{htmlElements}</div>;
 };
+
+const htmlToMarkdown = (html: string): string => {
+  if (!html) return ''
+  let markdown = html
+    .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+    .replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
+    .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
+    .replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
+    .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '\n# $1\n')
+    .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '\n## $1\n')
+    .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '\n### $1\n')
+    .replace(/<h4[^>]*>(.*?)<\/h4>/gi, '\n#### $1\n')
+    .replace(/<h5[^>]*>(.*?)<\/h5>/gi, '\n##### $1\n')
+    .replace(/<h6[^>]*>(.*?)<\/h6>/gi, '\n###### $1\n')
+    .replace(/<p[^>]*>(.*?)<\/p>/gi, '\n$1\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<ul[^>]*>(.*?)<\/ul>/gi, '\n$1\n')
+    .replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/<[^>]+>/g, '')
+  return markdown.replace(/\n{3,}/g, '\n\n').trim()
+}
+
+const markdownToHtml = (markdown: string): string => {
+  if (!markdown) return ''
+  let html = markdown
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/^###### (.*?)$/gm, '<h6>$1</h6>')
+    .replace(/^##### (.*?)$/gm, '<h5>$1</h5>')
+    .replace(/^#### (.*?)$/gm, '<h4>$1</h4>')
+    .replace(/^### (.*?)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.*?)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.*?)$/gm, '<h1>$1</h1>')
+    .replace(/^- (.*?)$/gm, '<li>$1</li>')
+  
+  return html.split('\n').map(line => {
+    if (line.startsWith('<h') || line.startsWith('<li') || line.startsWith('<ul')) return line
+    if (!line.trim()) return '<br/>'
+    return `<p>${line}</p>`
+  }).join('')
+}
+
+const MarkdownCellEditor = ({ 
+  code, 
+  cellId, 
+  onSave, 
+  onSelect,
+  onCheckStyles
+}: { 
+  code: string; 
+  cellId: string; 
+  onSave: (md: string, run?: boolean) => void; 
+  onSelect: (top: number, left: number, visible: boolean) => void;
+  onCheckStyles: () => void;
+}) => {
+  const editorRef = useRef<HTMLDivElement>(null)
+  
+  // Set initial HTML once per cell load
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = markdownToHtml(code)
+      editorRef.current.focus()
+      onCheckStyles()
+    }
+  }, [cellId])
+
+  return (
+    <div
+      ref={editorRef}
+      contentEditable
+      suppressContentEditableWarning
+      className="w-full min-h-[80px] px-4 py-3 text-ink leading-relaxed text-sm outline-none focus:ring-0 cell-contenteditable-editor select-text"
+      style={{ fontFamily: 'var(--font-sans, sans-serif)' }}
+      onBlur={() => {
+        if (editorRef.current) {
+          onSave(htmlToMarkdown(editorRef.current.innerHTML))
+        }
+      }}
+      onFocus={onCheckStyles}
+      onKeyUp={onCheckStyles}
+      onKeyDown={(e) => {
+        onCheckStyles()
+        if (e.key === 'Enter' && e.shiftKey) {
+          e.preventDefault()
+          if (editorRef.current) {
+            onSave(htmlToMarkdown(editorRef.current.innerHTML), true)
+          }
+        }
+      }}
+      onMouseUp={() => {
+        onCheckStyles()
+        const selection = window.getSelection()
+        if (selection && !selection.isCollapsed) {
+          try {
+            const range = selection.getRangeAt(0)
+            const rect = range.getBoundingClientRect()
+            onSelect(rect.top + window.scrollY - 42, rect.left + window.scrollX + rect.width / 2, true)
+          } catch (err) {
+            onSelect(0, 0, false)
+          }
+        } else {
+          onSelect(0, 0, false)
+        }
+      }}
+    />
+  )
+}
 
 export default function CodeEditorPage() {
   const supabase = createClient()
   const [code, setCode] = useState(globalDraftCode)
+  const [isClient, setIsClient] = useState(false)
+  useEffect(() => {
+    setIsClient(true)
+
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      if (typeof window !== 'undefined' && (window as any).isSwappingCells) {
+        event.preventDefault()
+        event.stopImmediatePropagation()
+        return
+      }
+
+      const reason = event.reason
+      if (!reason) return
+
+      const reasonStr = typeof reason === 'string' 
+        ? reason 
+        : (reason.message || reason.msg || reason.type || reason.name || '')
+
+      const isMonacoCancel = 
+        reason === 'cancelation' ||
+        reason.type === 'cancelation' ||
+        (typeof reasonStr === 'string' && (
+          reasonStr.includes('manually canceled') || 
+          reasonStr.includes('manually cancelled') ||
+          reasonStr.includes('cancelation') ||
+          reasonStr.includes('canceled') ||
+          reasonStr.includes('cancelled')
+        ))
+
+      if (isMonacoCancel) {
+        event.preventDefault()
+        event.stopImmediatePropagation()
+      }
+    }
+
+    window.addEventListener('unhandledrejection', handleRejection, true)
+    return () => {
+      window.removeEventListener('unhandledrejection', handleRejection, true)
+    }
+  }, [])
+
+  const [cellHeights, setCellHeights] = useState<Record<string, number>>({})
+
+  const [activeStyles, setActiveStyles] = useState({
+    bold: false,
+    italic: false,
+    h1: false,
+    h2: false,
+    h3: false,
+    h4: false,
+    h5: false,
+    h6: false,
+    ul: false
+  })
+
+  const checkActiveStyles = () => {
+    if (typeof window === 'undefined') return
+    setTimeout(() => {
+      const selection = window.getSelection()
+      if (!selection || !selection.anchorNode) {
+        setActiveStyles({ bold: false, italic: false, h1: false, h2: false, h3: false, h4: false, h5: false, h6: false, ul: false })
+        return
+      }
+      
+      const bold = document.queryCommandState('bold')
+      const italic = document.queryCommandState('italic')
+      const ul = document.queryCommandState('insertUnorderedList')
+      
+      let h1 = false, h2 = false, h3 = false, h4 = false, h5 = false, h6 = false
+      let node: Node | null = selection.anchorNode
+      while (node && node.nodeName !== 'DIV' && !((node as HTMLElement).classList && (node as HTMLElement).classList.contains('cell-contenteditable-editor'))) {
+        const name = node.nodeName.toLowerCase()
+        if (name === 'h1') h1 = true
+        if (name === 'h2') h2 = true
+        if (name === 'h3') h3 = true
+        if (name === 'h4') h4 = true
+        if (name === 'h5') h5 = true
+        if (name === 'h6') h6 = true
+        node = node.parentNode
+      }
+      
+      setActiveStyles({ bold, italic, h1, h2, h3, h4, h5, h6, ul })
+    }, 10)
+  }
 
   // Pyodide Loading States
   const [pyodideState, setPyodideState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
@@ -211,6 +416,129 @@ export default function CodeEditorPage() {
   const [fullscreenPlotUrl, setFullscreenPlotUrl] = useState<string | null>(null)
   const [activeCellId, setActiveCellId] = useState<string | null>(null)
   const [tabs, setTabs] = useState<Tab[]>([])
+
+  // Ref for active Monaco Editor instance (used for formatting Markdown)
+  const activeEditorRef = useRef<any>(null)
+
+  const applyFormat = (formatType: 'bold' | 'italic' | 'code' | 'header' | 'list') => {
+    const editor = activeEditorRef.current
+    if (!editor) return
+    
+    const selection = editor.getSelection()
+    const model = editor.getModel()
+    if (!selection || !model) return
+    
+    const selectedText = model.getValueInRange(selection)
+    let replacement = ''
+    
+    switch (formatType) {
+      case 'bold':
+        replacement = `**${selectedText || 'bold text'}**`
+        break
+      case 'italic':
+        replacement = `*${selectedText || 'italic text'}*`
+        break
+      case 'code':
+        replacement = `\`${selectedText || 'code'}\``
+        break
+      case 'header':
+        replacement = `### ${selectedText || 'Heading'}`
+        break
+      case 'list':
+        replacement = `\n- ${selectedText || 'List item'}`
+        break
+    }
+    
+    editor.executeEdits('format', [{
+      range: selection,
+      text: replacement,
+      forceMoveMarkers: true
+    }])
+    
+    editor.focus()
+  }
+
+  const [selectionBubble, setSelectionBubble] = useState<{ visible: boolean; top: number; left: number; cellId: string }>({ visible: false, top: 0, left: 0, cellId: '' })
+
+  const applyFormatHeading = (level: number) => {
+    const editor = activeEditorRef.current
+    if (!editor) return
+    
+    const selection = editor.getSelection()
+    const model = editor.getModel()
+    if (!selection || !model) return
+    
+    const selectedText = model.getValueInRange(selection)
+    const hashes = '#'.repeat(level)
+    const replacement = `\n${hashes} ${selectedText || `Heading ${level}`}\n`
+    
+    editor.executeEdits('format', [{
+      range: selection,
+      text: replacement,
+      forceMoveMarkers: true
+    }])
+    
+    editor.focus()
+    setSelectionBubble(prev => ({ ...prev, visible: false }))
+  }
+
+  const applyContentEditableFormat = (formatType: 'bold' | 'italic' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'ul') => {
+    // Find active contenteditable container
+    let activeEl = document.querySelector('.cell-contenteditable-editor:focus') as HTMLDivElement
+    if (!activeEl) {
+      const currentActive = document.querySelector('[contenteditable="true"]') as HTMLDivElement
+      if (currentActive) {
+        currentActive.focus()
+        activeEl = currentActive
+      } else {
+        return
+      }
+    }
+    
+    const selection = window.getSelection()
+    if (!selection) return
+    
+    // If nothing is selected, select the entire content of the active cell's editable container
+    const isSelectionEmpty = selection.isCollapsed
+    if (isSelectionEmpty && activeEl) {
+      const range = document.createRange()
+      range.selectNodeContents(activeEl)
+      selection.removeAllRanges()
+      selection.addRange(range)
+    }
+    
+    switch (formatType) {
+      case 'bold':
+        document.execCommand('bold', false)
+        break
+      case 'italic':
+        document.execCommand('italic', false)
+        break
+      case 'h1':
+      case 'h2':
+      case 'h3':
+      case 'h4':
+      case 'h5':
+      case 'h6':
+        document.execCommand('formatBlock', false, `<${formatType}>`)
+        break
+      case 'ul':
+        document.execCommand('insertUnorderedList', false)
+        break
+    }
+    
+    // If we programmatically selected all text, collapse the selection back to the end
+    if (isSelectionEmpty && activeEl) {
+      const range = document.createRange()
+      range.selectNodeContents(activeEl)
+      range.collapse(false) // collapse to end
+      selection.removeAllRanges()
+      selection.addRange(range)
+    }
+    
+    // Clear selection bubble
+    setSelectionBubble(prev => ({ ...prev, visible: false }))
+  }
 
   const [leftSidebarTab, setLeftSidebarTab] = useState<'savedFiles' | 'datasets'>('savedFiles')
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
@@ -1165,6 +1493,7 @@ export default function CodeEditorPage() {
 
   const moveCellUp = (index: number) => {
     if (index === 0) return
+    ;(window as any).isSwappingCells = true
     updateCells(prev => {
       const next = [...prev]
       const temp = next[index]
@@ -1172,9 +1501,11 @@ export default function CodeEditorPage() {
       next[index - 1] = temp
       return next
     })
+    setTimeout(() => { (window as any).isSwappingCells = false }, 500)
   }
 
   const moveCellDown = (index: number) => {
+    ;(window as any).isSwappingCells = true
     updateCells(prev => {
       if (index === prev.length - 1) return prev
       const next = [...prev]
@@ -1183,10 +1514,21 @@ export default function CodeEditorPage() {
       next[index + 1] = temp
       return next
     })
+    setTimeout(() => { (window as any).isSwappingCells = false }, 500)
   }
 
   const clearCellOutput = (cellId: string) => {
     updateCells(prev => prev.map(c => c.id === cellId ? { ...c, output: '', error: '', plot: '' } : c))
+  }
+
+  const toggleCellType = (cellId: string) => {
+    updateCells(prev => prev.map(c => {
+      if (c.id === cellId) {
+        const newType = c.type === 'markdown' ? 'code' : 'markdown'
+        return { ...c, type: newType, output: '', error: '', plot: '', hasRun: false }
+      }
+      return c
+    }))
   }
 
   const focusCellTextarea = (cellId: string) => {
@@ -2909,6 +3251,21 @@ export default function CodeEditorPage() {
                   </span>
                 </div>
                 {/* Cells */}
+                <div className="space-y-4 select-text animate-fade-in">
+                  <style>{`
+                    .cell-markdown-container h1, [contenteditable="true"] h1 { font-size: 2.25em !important; font-weight: 800 !important; margin-top: 0.6em !important; margin-bottom: 0.35em !important; color: var(--ink) !important; line-height: 1.35 !important; }
+                    .cell-markdown-container h2, [contenteditable="true"] h2 { font-size: 1.75em !important; font-weight: 700 !important; margin-top: 0.5em !important; margin-bottom: 0.3em !important; color: var(--ink) !important; line-height: 1.35 !important; }
+                    .cell-markdown-container h3, [contenteditable="true"] h3 { font-size: 1.4em !important; font-weight: 700 !important; margin-top: 0.4em !important; margin-bottom: 0.25em !important; color: var(--ink) !important; line-height: 1.35 !important; }
+                    .cell-markdown-container h4, [contenteditable="true"] h4 { font-size: 1.2em !important; font-weight: 700 !important; margin-top: 0.35em !important; margin-bottom: 0.2em !important; color: var(--ink) !important; line-height: 1.35 !important; }
+                    .cell-markdown-container h5, [contenteditable="true"] h5 { font-size: 0.95em !important; font-weight: 700 !important; margin-top: 0.3em !important; margin-bottom: 0.15em !important; color: var(--ink) !important; }
+                    .cell-markdown-container h6, [contenteditable="true"] h6 { font-size: 0.85em !important; font-weight: 700 !important; margin-top: 0.25em !important; margin-bottom: 0.1em !important; color: var(--muted) !important; }
+                    .cell-markdown-container p, [contenteditable="true"] p { margin-bottom: 0.5em !important; line-height: 1.6 !important; }
+                    .cell-markdown-container ul, [contenteditable="true"] ul { list-style-type: disc !important; padding-left: 1.25em !important; margin-bottom: 0.5em !important; }
+                    .cell-markdown-container li, [contenteditable="true"] li { margin-bottom: 0.2em !important; }
+                    .cell-markdown-container strong, [contenteditable="true"] strong { font-weight: 700 !important; }
+                    .cell-markdown-container em, [contenteditable="true"] em { font-style: italic !important; }
+                    .monaco-hover, .monaco-editor-hover { pointer-events: none !important; }
+                  `}</style>
                 {cells.map((cell, index) => {
                   const isCellRunning = cell.isRunning || runningCellQueue.includes(cell.id)
                   const isActive = activeCellId === cell.id
@@ -2917,38 +3274,95 @@ export default function CodeEditorPage() {
                       key={cell.id}
                       id={`cell_container_${cell.id}`}
                       onClick={() => setActiveCellId(cell.id)}
-                      className="group/cell relative flex flex-col gap-0 py-1"
+                      className="group relative flex items-start gap-4 py-2"
                     >
-                      {/* ── Full-width cell card ── */}
-                      <div
-                        className={`relative w-full rounded-2xl border transition-all duration-150 overflow-visible ${
-                          isActive
-                            ? 'border-hairline dark:border-[#3a3835] bg-[#1e1d1b] dark:bg-[#1e1d1b]'
-                            : 'border-hairline/60 dark:border-[#2a2927] bg-[#1a1917] dark:bg-[#1a1917]'
-                        }`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {/* Top-right icon group — appears on hover */}
-                        <div className="absolute top-2 right-2 z-20 flex items-center gap-0 opacity-0 group-hover/cell:opacity-100 transition-opacity duration-150">
-                          <div className="flex items-center rounded-xl border border-hairline/60 dark:border-[#3a3835] bg-canvas dark:bg-[#252320] shadow-sm overflow-hidden">
+                      {/* Left Gutter: Play Button / Spinner / Status (Tick/Cross) */}
+                      <div className="w-8 shrink-0 flex flex-col items-center justify-start pt-2 select-none">
+                        <div className="relative w-8 h-8 flex items-center justify-center">
+                          {cell.type !== 'markdown' ? (
+                            isCellRunning ? (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleTerminateCode() }}
+                                className="relative w-8 h-8 flex items-center justify-center cursor-pointer group/stop"
+                                title="Stop Execution"
+                              >
+                                {/* Outer rotating circle loader */}
+                                <div className="absolute inset-0 rounded-full border-2 border-primary/20 border-t-primary animate-spin"></div>
+                                {/* Inner stop square */}
+                                <Square className="w-2.5 h-2.5 fill-primary text-primary transition-transform group-hover/stop:scale-110" />
+                              </button>
+                            ) : (
+                              <>
+                                {/* Play button shown on hover (no background circle, no brown fill, simple white/dark triangle) */}
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); runCell(cell.id) }}
+                                  disabled={pyodideState !== 'ready'}
+                                  className="absolute inset-0 hidden group-hover:flex items-center justify-center text-gray-500 hover:text-[#cc785c] dark:hover:text-[#cc785c] hover:scale-110 transition-all z-10 cursor-pointer disabled:opacity-30"
+                                  title="Run Cell (Shift+Enter)"
+                                >
+                                  <Play className="w-4 h-4 fill-current ml-0.5" />
+                                </button>
+                                
+                                {/* Status Indicator (Check / X / brackets) when not hovered */}
+                                <div className="flex items-center justify-center group-hover:hidden transition-all duration-150">
+                                  {cell.hasRun ? (
+                                    cell.error ? (
+                                      <span className="w-5 h-5 rounded-full bg-red-500/10 border border-red-500/25 flex items-center justify-center text-red-500 font-bold text-xs" title="Execution Error">✕</span>
+                                    ) : (
+                                      <span className="w-5 h-5 rounded-full bg-green-500/10 border border-green-500/25 flex items-center justify-center text-green-500 font-bold text-xs" title="Ran Successfully">✓</span>
+                                    )
+                                  ) : (
+                                    <span className="text-[10px] font-mono text-muted/40 font-bold">[ ]</span>
+                                  )}
+                                </div>
+                              </>
+                            )
+                          ) : (
+                            !cell.code.trim() ? (
+                              <span className="text-[9px] font-sans font-bold text-muted/30 pt-0.5">TEXT</span>
+                            ) : null
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right side wrapper: Code editor/output/pills */}
+                      <div className="flex-1 min-w-0 flex flex-col relative">
+                        {/* Floating Toolbar above the cell (overlapping top border) */}
+                        <div className={`absolute -top-3.5 right-4 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 ${isActive ? 'opacity-100' : ''} transition-all duration-200`}>
+                          <div className={`flex items-center rounded-lg border shadow-md px-1.5 py-1 gap-1.5 overflow-hidden ${
+                            theme === 'dark'
+                              ? 'border-[#3a3835] bg-[#2d3039] text-white'
+                              : 'border-hairline bg-white text-slate-700'
+                          }`}>
                             {/* Move up */}
                             <button
                               onClick={(e) => { e.stopPropagation(); moveCellUp(index) }}
                               disabled={index === 0}
-                              className="p-1.5 text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-white/5 disabled:opacity-25 cursor-pointer transition-colors"
-                              title="Move up"
+                              className={`p-1 rounded cursor-pointer transition-colors ${
+                                theme === 'dark'
+                                  ? 'hover:bg-white/10 text-gray-300 hover:text-white disabled:opacity-20'
+                                  : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900 disabled:opacity-20'
+                              }`}
+                              title="Move cell up"
                             >
-                              <ChevronUp className="w-3.5 h-3.5" />
+                              <ChevronUp className="w-4.5 h-4.5" />
                             </button>
                             {/* Move down */}
                             <button
                               onClick={(e) => { e.stopPropagation(); moveCellDown(index) }}
                               disabled={index === cells.length - 1}
-                              className="p-1.5 text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-white/5 disabled:opacity-25 cursor-pointer transition-colors"
-                              title="Move down"
+                              className={`p-1 rounded cursor-pointer transition-colors ${
+                                theme === 'dark'
+                                  ? 'hover:bg-white/10 text-gray-300 hover:text-white disabled:opacity-20'
+                                  : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900 disabled:opacity-20'
+                              }`}
+                              title="Move cell down"
                             >
-                              <ChevronDown className="w-3.5 h-3.5" />
+                              <ChevronDown className="w-4.5 h-4.5" />
                             </button>
+                            <div className={`w-[1px] h-3.5 mx-0.5 ${
+                              theme === 'dark' ? 'bg-white/20' : 'bg-slate-200'
+                            }`}></div>
                             {/* Delete */}
                             <button
                               onClick={(e) => {
@@ -2959,223 +3373,370 @@ export default function CodeEditorPage() {
                                   updateCells(prev => prev.filter(c => c.id !== cell.id))
                                 }
                               }}
-                              className="p-1.5 text-muted hover:text-red-400 hover:bg-red-500/10 cursor-pointer transition-colors border-l border-hairline/50 dark:border-[#3a3835]"
+                              className={`p-1 rounded cursor-pointer transition-colors ${
+                                theme === 'dark'
+                                  ? 'hover:bg-white/10 text-gray-300 hover:text-white'
+                                  : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+                              }`}
                               title="Delete cell"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4.5 h-4.5" />
                             </button>
                           </div>
                         </div>
 
-                        {/* Editor fills full card width — no separate gutter column */}
-                        <div className="relative w-full">
+                        {/* Cell Card Box - transparent and borderless for inactive markdown cells to display as page body text */}
+                        <div
+                          className={`relative w-full rounded-lg transition-all duration-200 overflow-visible ${
+                            cell.type === 'markdown' && !isActive
+                              ? 'border-none bg-transparent shadow-none'
+                              : theme === 'dark' 
+                                ? `bg-[#1e1e1e] border ${isActive ? 'border-[#cc785c] shadow-[0_2px_10px_rgba(204,120,92,0.1)]' : 'border-[#2d2a26]'}`
+                                : `bg-white border ${isActive ? 'border-[#cc785c] shadow-[0_2px_10px_rgba(204,120,92,0.1)]' : 'border-hairline'}`
+                          }`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {/* Rich Text Formatting Toolbar for active Markdown Cells */}
+                          {cell.type === 'markdown' && isActive && (
+                            <div className="flex items-center gap-1 px-2.5 py-1.5 border-b border-hairline dark:border-[#2d2a26] bg-[#f9f8f6] dark:bg-[#1a1917] select-none rounded-t-lg">
+                              <button
+                                type="button"
+                                onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('bold'); checkActiveStyles() }}
+                                className={`p-1 rounded cursor-pointer transition-colors ${
+                                  activeStyles.bold
+                                    ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light font-bold'
+                                    : 'hover:bg-surface-soft dark:hover:bg-white/5 text-muted hover:text-ink'
+                                }`}
+                                title="Bold"
+                              >
+                                <Bold className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('italic'); checkActiveStyles() }}
+                                className={`p-1 rounded cursor-pointer transition-colors ${
+                                  activeStyles.italic
+                                    ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light font-bold'
+                                    : 'hover:bg-surface-soft dark:hover:bg-white/5 text-muted hover:text-ink'
+                                }`}
+                                title="Italic"
+                              >
+                                <Italic className="w-4 h-4" />
+                              </button>
+                              <div className="w-[1px] h-3.5 bg-hairline dark:bg-[#2d2a26] mx-1"></div>
+                              
+                              <button
+                                type="button"
+                                onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('h1'); checkActiveStyles() }}
+                                className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors font-extrabold text-[10px] tracking-tight ${
+                                  activeStyles.h1
+                                    ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light'
+                                    : 'hover:bg-surface-soft dark:hover:bg-white/5 text-muted hover:text-ink'
+                                }`}
+                                title="H1 heading"
+                              >
+                                H1
+                              </button>
+                              <button
+                                type="button"
+                                onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('h2'); checkActiveStyles() }}
+                                className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors font-bold text-[10px] tracking-tight ${
+                                  activeStyles.h2
+                                    ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light'
+                                    : 'hover:bg-surface-soft dark:hover:bg-white/5 text-muted hover:text-ink'
+                                }`}
+                                title="H2 heading"
+                              >
+                                H2
+                              </button>
+                              <button
+                                type="button"
+                                onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('h3'); checkActiveStyles() }}
+                                className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors font-bold text-[10px] tracking-tight ${
+                                  activeStyles.h3
+                                    ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light'
+                                    : 'hover:bg-surface-soft dark:hover:bg-white/5 text-muted hover:text-ink'
+                                }`}
+                                title="H3 heading"
+                              >
+                                H3
+                              </button>
+                              <button
+                                type="button"
+                                onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('h4'); checkActiveStyles() }}
+                                className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors font-bold text-[10px] tracking-tight ${
+                                  activeStyles.h4
+                                    ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light'
+                                    : 'hover:bg-surface-soft dark:hover:bg-white/5 text-muted hover:text-ink'
+                                }`}
+                                title="H4 heading"
+                              >
+                                H4
+                              </button>
+                              <button
+                                type="button"
+                                onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('h5'); checkActiveStyles() }}
+                                className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors font-bold text-[10px] tracking-tight ${
+                                  activeStyles.h5
+                                    ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light'
+                                    : 'hover:bg-surface-soft dark:hover:bg-white/5 text-muted hover:text-ink'
+                                }`}
+                                title="H5 heading"
+                              >
+                                H5
+                              </button>
+                              <button
+                                type="button"
+                                onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('h6'); checkActiveStyles() }}
+                                className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors font-bold text-[10px] tracking-tight ${
+                                  activeStyles.h6
+                                    ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light'
+                                    : 'hover:bg-surface-soft dark:hover:bg-white/5 text-muted hover:text-ink'
+                                }`}
+                                title="H6 heading"
+                              >
+                                H6
+                              </button>
+                              <div className="w-[1px] h-3.5 bg-hairline dark:bg-[#2d2a26] mx-1"></div>
+                              
+                              <button
+                                type="button"
+                                onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('ul'); checkActiveStyles() }}
+                                className={`p-1 rounded cursor-pointer transition-colors ${
+                                  activeStyles.ul
+                                    ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light font-bold'
+                                    : 'hover:bg-surface-soft dark:hover:bg-white/5 text-muted hover:text-ink'
+                                }`}
+                                title="Bulleted List"
+                              >
+                                <List className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
 
-                          {/* Tiny run/spinner overlay — bottom-left of card, on hover */}
-                          {cell.type !== 'markdown' && (
-                            <div className="absolute bottom-2 left-3 z-10 flex items-center gap-1 opacity-0 group-hover/cell:opacity-100 transition-opacity duration-150 select-none">
-                              <span className="font-mono text-[10px] text-muted/40">
-                                [{cell.hasRun ? index + 1 : '\u00a0'}]
-                              </span>
-                              {isCellRunning ? (
-                                <RefreshCw className="w-3 h-3 text-primary animate-spin" />
-                              ) : (
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); runCell(cell.id) }}
-                                  disabled={pyodideState !== 'ready'}
-                                  className="w-5 h-5 rounded-full flex items-center justify-center text-muted/40 hover:text-primary hover:bg-primary/10 transition-all cursor-pointer disabled:opacity-30"
-                                  title="Run (Shift+Enter)"
+                          {/* Clip wrapper inside card */}
+                          <div className="w-full overflow-hidden rounded-lg">
+                            {cell.type === 'markdown' ? (
+                              !isActive ? (
+                                <div
+                                  className={`w-full min-h-[48px] text-sm select-text cursor-text ${
+                                    !cell.code.trim() 
+                                      ? 'text-muted/50 italic border border-dashed border-hairline/60 rounded-lg bg-surface-soft/10 px-4 py-3' 
+                                      : 'text-ink px-4 py-2'
+                                  }`}
+                                  onClick={() => setActiveCellId(cell.id)}
                                 >
-                                  <Play className="w-2.5 h-2.5" />
-                                </button>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Editor / Markdown */}
-                          {cell.type === 'markdown' && !isActive ? (
-                            <div
-                              className="w-full min-h-[52px] px-5 py-4 text-ink leading-relaxed text-sm select-text cursor-text"
-                              onClick={() => setActiveCellId(cell.id)}
-                            >
-                              {renderMarkdown(cell.code)}
-                            </div>
-                          ) : (
-                            <Editor
-                              height="52px"
-                              language={cell.type === 'markdown' ? 'markdown' : 'python'}
-                              theme={theme === 'dark' ? 'vs-dark' : 'light'}
-                              value={cell.code}
-                              onChange={(val) => {
-                                if (ignoreChangeRef.current) return
-                                updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val || '' } : c))
-                              }}
-                              onMount={(editor, monacoInstance) => {
-                                const minH = 52
-                                const updateHeight = () => {
-                                  const h = Math.max(minH, editor.getContentHeight())
-                                  const el = editor.getDomNode()
-                                  if (el) {
-                                    el.style.height = `${h}px`
-                                    if (el.parentElement) {
-                                      el.parentElement.style.height = `${h}px`
-                                      if (el.parentElement.parentElement) {
-                                        el.parentElement.parentElement.style.height = `${h}px`
-                                      }
+                                  {cell.code.trim() ? renderMarkdown(cell.code) : "Click to write text..."}
+                                </div>
+                              ) : (
+                                <MarkdownCellEditor
+                                  code={cell.code}
+                                  cellId={cell.id}
+                              onSave={(md, run) => {
+                                    updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: md, ...(run ? { hasRun: true } : {}) } : c), false)
+                                    if (run) {
+                                      setActiveCellId(null)
                                     }
-                                    editor.layout()
-                                  }
-                                }
-                                editor.onDidContentSizeChange(updateHeight)
-                                updateHeight()
-                                editor.onDidFocusEditorText(() => setActiveCellId(cell.id))
-                                editor.addCommand(monacoInstance.KeyMod.Shift | monacoInstance.KeyCode.Enter, () => {
-                                  if (cell.type === 'markdown') {
-                                    updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, hasRun: true } : c), false)
-                                    setActiveCellId(null)
-                                  } else {
-                                    runCell(cell.id)
-                                  }
-                                })
-                              }}
-                              options={{
-                                fontSize: 13.5,
-                                fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
-                                lineHeight: 22,
-                                minimap: { enabled: false },
-                                lineNumbers: 'off',
-                                folding: false,
-                                lineDecorationsWidth: 0,
-                                lineNumbersMinChars: 0,
-                                scrollBeyondLastLine: false,
-                                wordWrap: 'on',
-                                automaticLayout: true,
-                                padding: { top: 14, bottom: 14 },
-                                find: { seedSearchStringFromSelection: 'never', autoFindInSelection: 'never' },
-                                scrollbar: { vertical: 'hidden', horizontal: 'hidden', handleMouseWheel: false },
-                                overviewRulerBorder: false,
-                                overviewRulerLanes: 0,
-                                hideCursorInOverviewRuler: true,
-                                contextmenu: false,
-                                readOnly: isCellRunning,
-                              }}
-                            />
-                          )}
+                                  }}
+                                  onSelect={(top, left, visible) => {
+                                    setSelectionBubble({
+                                      visible,
+                                      top,
+                                      left,
+                                      cellId: cell.id
+                                    })
+                                  }}
+                                  onCheckStyles={checkActiveStyles}
+                                />
+                              )
+                            ) : (
+                              isClient ? (
+                                <Editor
+                                  height={`${cellHeights[cell.id] || Math.max(52, (cell.code || '').split('\n').length * 22 + 24)}px`}
+                                  language="python"
+                                  theme={theme === 'dark' ? 'vs-dark' : 'light'}
+                                  value={cell.code}
+                                  onChange={(val) => {
+                                    if (ignoreChangeRef.current) return
+                                    updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val || '' } : c))
+                                  }}
+                                  onMount={(editor, monacoInstance) => {
+                                    activeEditorRef.current = editor
+                                    editor.onDidFocusEditorText(() => setActiveCellId(cell.id))
+                                    
+                                    const updateHeight = () => {
+                                      const h = Math.max(52, editor.getContentHeight())
+                                      setCellHeights(prev => {
+                                        if (prev[cell.id] === h) return prev
+                                        return { ...prev, [cell.id]: h }
+                                      })
+                                    }
+                                    editor.onDidContentSizeChange(updateHeight)
+                                    updateHeight()
+
+                                    editor.addCommand(monacoInstance.KeyMod.Shift | monacoInstance.KeyCode.Enter, () => {
+                                      runCell(cell.id)
+                                    })
+                                    // Disable Monaco's default Find (Ctrl+F) and Replace (Ctrl+H) in notebook cells
+                                    editor.addCommand(monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyF, () => {
+                                      // Do nothing
+                                    })
+                                    editor.addCommand(monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyH, () => {
+                                      // Do nothing
+                                    })
+                                  }}
+                                  options={{
+                                    fontSize: 13.5,
+                                    fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
+                                    lineHeight: 22,
+                                    minimap: { enabled: false },
+                                    lineNumbers: 'off',
+                                    folding: false,
+                                    lineDecorationsWidth: 16,
+                                    lineNumbersMinChars: 0,
+                                    scrollBeyondLastLine: false,
+                                    wordWrap: 'on',
+                                    automaticLayout: true,
+                                    padding: { top: 12, bottom: 12 },
+                                    find: { seedSearchStringFromSelection: 'never', autoFindInSelection: 'never' },
+                                    scrollbar: { vertical: 'hidden', horizontal: 'hidden', handleMouseWheel: false },
+                                    overviewRulerBorder: false,
+                                    overviewRulerLanes: 0,
+                                    hideCursorInOverviewRuler: true,
+                                    contextmenu: false,
+                                    readOnly: isCellRunning,
+                                    renderLineHighlight: 'none',
+                                    fixedOverflowWidgets: true,
+                                  }}
+                                />
+                              ) : (
+                                <div className="h-[52px] bg-slate-50 dark:bg-zinc-900 rounded-lg animate-pulse" />
+                              )
+                            )}
+                          </div>
                         </div>
 
-                        {/* Output section */}
+                        {/* Cell Outputs - Rendered flat on the canvas background directly below cell box */}
                         {cell.type !== 'markdown' && (cell.output || cell.error || cell.plot) && (
                           <div
                             id={`cell_output_${cell.id}`}
-                            className="border-t border-hairline/20 dark:border-[#2a2927] mx-0 group/output relative"
+                            className="relative py-2 mt-1 select-text group/output"
                           >
                             {/* Clear output button */}
                             <button
                               onClick={(e) => { e.stopPropagation(); clearCellOutput(cell.id) }}
-                              className="absolute top-2 right-2 z-10 p-1 rounded text-muted/40 hover:text-muted hover:bg-surface-soft/50 opacity-0 group-hover/output:opacity-100 transition-all cursor-pointer"
+                              className="absolute top-1 right-2 z-10 p-1 rounded-md text-muted/40 hover:text-muted hover:bg-surface-soft dark:hover:bg-white/5 opacity-0 group-hover/output:opacity-100 transition-all cursor-pointer"
                               title="Clear output"
                             >
                               <X className="w-3 h-3" />
                             </button>
-                            <div className="px-5 py-3 font-mono text-xs select-text space-y-3">
+                            
+                            {/* Monospace output text block */}
+                            <div className="font-mono text-xs space-y-2 pl-1 pr-6">
                               {cell.output && (
-                                <pre className="whitespace-pre-wrap text-body leading-relaxed">{cell.output}</pre>
+                                <pre className="whitespace-pre-wrap text-ink dark:text-gray-200 leading-relaxed font-mono">{cell.output}</pre>
                               )}
                               {cell.error && (
-                                <pre className="whitespace-pre-wrap text-red-400 leading-relaxed">{cell.error}</pre>
+                                <pre className="whitespace-pre-wrap text-red-500 dark:text-red-400 bg-red-500/5 dark:bg-red-500/5 p-2 rounded-lg leading-relaxed font-mono">{cell.error}</pre>
                               )}
                               {cell.plot && (
-                                <div className="relative inline-block group/plot">
+                                <div className="relative inline-block group/plot mt-1">
                                   <img
                                     src={cell.plot}
                                     alt="Plot"
                                     onClick={() => setFullscreenPlotUrl(cell.plot)}
-                                    className="max-h-[360px] object-contain rounded-xl border border-hairline cursor-zoom-in hover:opacity-95 transition-all"
+                                    className="max-h-[360px] object-contain rounded-lg border border-hairline/80 dark:border-[#2a2927] cursor-zoom-in bg-white p-2 hover:opacity-98 shadow-sm transition-all"
                                   />
                                   <button
                                     onClick={() => setFullscreenPlotUrl(cell.plot)}
-                                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover/plot:opacity-100 transition-opacity cursor-pointer"
-                                    title="Full screen"
+                                    className="absolute top-3 right-3 p-1.5 rounded-lg bg-black/60 hover:bg-black/85 text-white opacity-0 group-hover/plot:opacity-100 transition-opacity cursor-pointer shadow-md"
+                                    title="Fullscreen View"
                                   >
-                                    <Maximize2 className="w-3.5 h-3.5" />
+                                    <Maximize2 className="w-3 h-3" />
                                   </button>
                                 </div>
                               )}
                             </div>
                           </div>
                         )}
-                      </div>
 
-                      {/* ── + Code / + Markdown pills below each cell ── */}
-                      <div className="flex justify-center items-center gap-2 py-1.5 opacity-0 group-hover/cell:opacity-100 transition-opacity duration-150">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
-                            updateCells(prev => {
-                              const next = [...prev]
-                              next.splice(index + 1, 0, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'code' })
-                              return next
-                            })
-                            focusCellTextarea(newId)
-                          }}
-                          className="px-4 py-1.5 text-[11px] font-semibold text-muted hover:text-ink bg-canvas dark:bg-[#181715] hover:bg-surface-soft dark:hover:bg-[#202020] border border-hairline dark:border-[#2d2b28] rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1.5"
-                        >
-                          <Plus className="w-3 h-3 text-primary" />
-                          Code
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
-                            updateCells(prev => {
-                              const next = [...prev]
-                              next.splice(index + 1, 0, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'markdown' })
-                              return next
-                            })
-                            focusCellTextarea(newId)
-                          }}
-                          className="px-4 py-1.5 text-[11px] font-semibold text-muted hover:text-ink bg-canvas dark:bg-[#181715] hover:bg-surface-soft dark:hover:bg-[#202020] border border-hairline dark:border-[#2d2b28] rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1.5"
-                        >
-                          <Plus className="w-3 h-3 text-primary" />
-                          Markdown
-                        </button>
-                      </div>
+                        {/* Buttons below the cell (and below outputs) - visible on hover or active */}
+                        <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pl-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
+                              updateCells(prev => {
+                                const next = [...prev]
+                                next.splice(index + 1, 0, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'code' })
+                                return next
+                              })
+                              focusCellTextarea(newId)
+                            }}
+                            className="px-3.5 py-1 text-xs font-bold text-gray-500 dark:text-gray-400 bg-transparent hover:bg-surface-soft dark:hover:bg-white/5 border border-hairline dark:border-[#3a3835] rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1.5"
+                          >
+                            <Plus className="w-3.5 h-3.5 text-primary" />
+                            Code
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
+                              updateCells(prev => {
+                                const next = [...prev]
+                                next.splice(index + 1, 0, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'markdown' })
+                                return next
+                              })
+                              focusCellTextarea(newId)
+                            }}
+                            className="px-3.5 py-1 text-xs font-bold text-gray-500 dark:text-gray-400 bg-transparent hover:bg-surface-soft dark:hover:bg-white/5 border border-hairline dark:border-[#3a3835] rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1.5"
+                          >
+                            <Plus className="w-3.5 h-3.5 text-primary" />
+                            Markdown
+                          </button>
+                        </div>
 
+                      </div>
                     </div>
                   )
                 })}
+                </div>
               </div>
             ) : (
-              <Editor
-                height="100%"
-                defaultLanguage="python"
-                theme={theme === 'dark' ? 'vs-dark' : 'light'}
-                value={code}
-                onChange={(val) => {
-                  if (ignoreChangeRef.current) return
-                  setCode(val || '')
-                  setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, code: val || '', isDirty: true } : t))
-                }}
-                onMount={handleEditorDidMount}
-                options={{
-                  fontSize: 14,
-                  fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
-                  minimap: { enabled: false },
-                  lineNumbers: 'on',
-                  scrollBeyondLastLine: false,
-                  readOnly: isRunning,
-                  fixedOverflowWidgets: true,
-                  padding: { top: 16, bottom: 16 },
-                  cursorBlinking: 'smooth',
-                  cursorStyle: 'line',
-                  cursorWidth: 2,
-                  autoClosingBrackets: 'always',
-                  autoClosingQuotes: 'always',
-                  autoClosingDelete: 'always',
-                  autoClosingOvertype: 'always',
-                  matchBrackets: 'never',
-                }}
-              />
+              isClient ? (
+                <Editor
+                  height="100%"
+                  defaultLanguage="python"
+                  theme={theme === 'dark' ? 'vs-dark' : 'light'}
+                  value={code}
+                  onChange={(val) => {
+                    if (ignoreChangeRef.current) return
+                    setCode(val || '')
+                    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, code: val || '', isDirty: true } : t))
+                  }}
+                  onMount={handleEditorDidMount}
+                  options={{
+                    fontSize: 14,
+                    fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
+                    minimap: { enabled: false },
+                    lineNumbers: 'on',
+                    scrollBeyondLastLine: false,
+                    readOnly: isRunning,
+                    fixedOverflowWidgets: true,
+                    padding: { top: 16, bottom: 16 },
+                    cursorBlinking: 'smooth',
+                    cursorStyle: 'line',
+                    cursorWidth: 2,
+                    autoClosingBrackets: 'always',
+                    autoClosingQuotes: 'always',
+                    autoClosingDelete: 'always',
+                    autoClosingOvertype: 'always',
+                    matchBrackets: 'never',
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full bg-slate-50 dark:bg-zinc-900 rounded-lg animate-pulse" />
+              )
             )}
           </div>
 
@@ -3988,6 +4549,123 @@ export default function CodeEditorPage() {
             )}
             <span>{toast.message}</span>
           </div>
+        </div>
+      )}
+
+      {/* Selection Floating Formatting Bubble Toolbar (MS Word Style selection popup) */}
+      {selectionBubble.visible && (
+        <div
+          className={`fixed z-50 flex items-center gap-1.5 rounded-lg border shadow-xl px-2 py-1 text-xs select-none animate-scale-in ${
+            theme === 'dark'
+              ? 'border-[#3a3835] bg-[#2d3039] text-white'
+              : 'border-hairline bg-white text-slate-700'
+          }`}
+          style={{
+            top: `${selectionBubble.top}px`,
+            left: `${selectionBubble.left}px`,
+            transform: 'translateX(-50%)',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('bold'); checkActiveStyles() }}
+            className={`p-1 rounded cursor-pointer transition-colors ${
+              activeStyles.bold
+                ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light font-bold'
+                : theme === 'dark' ? 'hover:bg-white/10 text-gray-300 hover:text-white' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+            }`}
+            title="Bold"
+          >
+            <Bold className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('italic'); checkActiveStyles() }}
+            className={`p-1 rounded cursor-pointer transition-colors ${
+              activeStyles.italic
+                ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light font-bold'
+                : theme === 'dark' ? 'hover:bg-white/10 text-gray-300 hover:text-white' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+            }`}
+            title="Italic"
+          >
+            <Italic className="w-3.5 h-3.5" />
+          </button>
+          <div className={`w-[1px] h-3.5 mx-0.5 ${theme === 'dark' ? 'bg-white/20' : 'bg-slate-200'}`}></div>
+          
+          {/* Heading size tags (H1-H6 headings changing font sizes in Markdown) */}
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('h1'); checkActiveStyles() }}
+            className={`px-1 py-0.5 rounded cursor-pointer font-bold text-[10px] tracking-tighter ${
+              activeStyles.h1
+                ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light'
+                : theme === 'dark' ? 'hover:bg-white/10 text-gray-300 hover:text-white' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+            }`}
+            title="H1 heading"
+          >
+            H1
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('h2'); checkActiveStyles() }}
+            className={`px-1 py-0.5 rounded cursor-pointer font-bold text-[10px] tracking-tighter ${
+              activeStyles.h2
+                ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light'
+                : theme === 'dark' ? 'hover:bg-white/10 text-gray-300 hover:text-white' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+            }`}
+            title="H2 heading"
+          >
+            H2
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('h3'); checkActiveStyles() }}
+            className={`px-1 py-0.5 rounded cursor-pointer font-bold text-[10px] tracking-tighter ${
+              activeStyles.h3
+                ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light'
+                : theme === 'dark' ? 'hover:bg-white/10 text-gray-300 hover:text-white' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+            }`}
+            title="H3 heading"
+          >
+            H3
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('h4'); checkActiveStyles() }}
+            className={`px-1 py-0.5 rounded cursor-pointer font-bold text-[10px] tracking-tighter ${
+              activeStyles.h4
+                ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light'
+                : theme === 'dark' ? 'hover:bg-white/10 text-gray-300 hover:text-white' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+            }`}
+            title="H4 heading"
+          >
+            H4
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('h5'); checkActiveStyles() }}
+            className={`px-1 py-0.5 rounded cursor-pointer font-bold text-[10px] tracking-tighter ${
+              activeStyles.h5
+                ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light'
+                : theme === 'dark' ? 'hover:bg-white/10 text-gray-300 hover:text-white' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+            }`}
+            title="H5 heading"
+          >
+            H5
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); applyContentEditableFormat('h6'); checkActiveStyles() }}
+            className={`px-1 py-0.5 rounded cursor-pointer font-bold text-[10px] tracking-tighter ${
+              activeStyles.h6
+                ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light'
+                : theme === 'dark' ? 'hover:bg-white/10 text-gray-300 hover:text-white' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+            }`}
+            title="H6 heading"
+          >
+            H6
+          </button>
         </div>
       )}
 
