@@ -1493,28 +1493,44 @@ export default function CodeEditorPage() {
 
   const moveCellUp = (index: number) => {
     if (index === 0) return
+    // Blur any active Monaco editor before reordering to prevent unmount crash
+    if (activeEditorRef.current) {
+      try { activeEditorRef.current.blur() } catch {}
+    }
+    ;(document.activeElement as HTMLElement)?.blur?.()
+    setActiveCellId(null)
     ;(window as any).isSwappingCells = true
-    updateCells(prev => {
-      const next = [...prev]
-      const temp = next[index]
-      next[index] = next[index - 1]
-      next[index - 1] = temp
-      return next
-    })
-    setTimeout(() => { (window as any).isSwappingCells = false }, 500)
+    setTimeout(() => {
+      updateCells(prev => {
+        const next = [...prev]
+        const temp = next[index]
+        next[index] = next[index - 1]
+        next[index - 1] = temp
+        return next
+      })
+      setTimeout(() => { (window as any).isSwappingCells = false }, 300)
+    }, 50)
   }
 
   const moveCellDown = (index: number) => {
+    // Blur any active Monaco editor before reordering to prevent unmount crash
+    if (activeEditorRef.current) {
+      try { activeEditorRef.current.blur() } catch {}
+    }
+    ;(document.activeElement as HTMLElement)?.blur?.()
+    setActiveCellId(null)
     ;(window as any).isSwappingCells = true
-    updateCells(prev => {
-      if (index === prev.length - 1) return prev
-      const next = [...prev]
-      const temp = next[index]
-      next[index] = next[index + 1]
-      next[index + 1] = temp
-      return next
-    })
-    setTimeout(() => { (window as any).isSwappingCells = false }, 500)
+    setTimeout(() => {
+      updateCells(prev => {
+        if (index === prev.length - 1) return prev
+        const next = [...prev]
+        const temp = next[index]
+        next[index] = next[index + 1]
+        next[index + 1] = temp
+        return next
+      })
+      setTimeout(() => { (window as any).isSwappingCells = false }, 300)
+    }, 50)
   }
 
   const clearCellOutput = (cellId: string) => {
@@ -3532,7 +3548,7 @@ export default function CodeEditorPage() {
                                 <MarkdownCellEditor
                                   code={cell.code}
                                   cellId={cell.id}
-                              onSave={(md, run) => {
+                                  onSave={(md, run) => {
                                     updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: md, ...(run ? { hasRun: true } : {}) } : c), false)
                                     if (run) {
                                       setActiveCellId(null)
