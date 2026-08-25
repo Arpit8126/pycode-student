@@ -26,6 +26,15 @@ interface CellType {
   type?: 'code' | 'markdown';
 }
 
+interface Tab {
+  name: string;
+  code: string;
+  cells: CellType[];
+  format: 'terminal' | 'cell';
+  isDirty: boolean;
+  isNew?: boolean;
+}
+
 const notebookToCells = (notebook: any): CellType[] => {
   if (!notebook || !Array.isArray(notebook.cells)) {
     return [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }];
@@ -200,6 +209,7 @@ export default function CodeEditorPage() {
   const [runningCellQueue, setRunningCellQueue] = useState<string[]>([])
   const [fullscreenPlotUrl, setFullscreenPlotUrl] = useState<string | null>(null)
   const [activeCellId, setActiveCellId] = useState<string | null>(null)
+  const [tabs, setTabs] = useState<Tab[]>([])
 
   const [leftSidebarTab, setLeftSidebarTab] = useState<'savedFiles' | 'datasets'>('savedFiles')
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
@@ -270,11 +280,10 @@ export default function CodeEditorPage() {
     setInnerFileSearch('')
   }, [currentExplorerFolder, leftSidebarTab])
 
-  // Load draft code from SPA module variables or active saved file on mount
+  // Load open tabs and restore active file state on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedFormat = localStorage.getItem('pycode_editor_format') as 'terminal' | 'cell' | null
-
       const storedFolders = localStorage.getItem('pycode_custom_folders')
       if (storedFolders) {
         try {
@@ -284,32 +293,72 @@ export default function CodeEditorPage() {
         }
       }
 
-      if (globalActiveFileName !== null || globalDraftCode !== '# Write your code here\n' || globalDraftFormat === 'cell') {
-        // Just reload from SPA global variables (user navigated within site)
-        setCode(globalDraftCode)
-        setCells(globalDraftCells)
-        setEditorFormat(globalDraftFormat)
-        setActiveFileName(globalActiveFileName)
-        setLastSavedCode(globalLastSavedCode)
-      } else {
-        // Hard refresh occurred! Load active saved file if one was specifically open
-        const savedActiveFile = localStorage.getItem('pycode_active_file')
-        if (savedActiveFile) {
-          // Handled via loadSavedFiles(savedActiveFile) inside mounting useEffect below!
+      const storedTabs = localStorage.getItem('pycode_open_tabs')
+      const storedActiveTab = localStorage.getItem('pycode_active_tab')
+      
+      let parsedTabs: Tab[] = []
+      if (storedTabs) {
+        try {
+          parsedTabs = JSON.parse(storedTabs)
+        } catch (e) {
+          console.error("Failed to parse stored tabs:", e)
+        }
+      }
+      
+      if (parsedTabs.length > 0) {
+        setTabs(parsedTabs)
+        const activeName = storedActiveTab && parsedTabs.some(t => t.name === storedActiveTab)
+          ? storedActiveTab
+          : parsedTabs[0].name
+          
+        setActiveFileName(activeName)
+        const activeTab = parsedTabs.find(t => t.name === activeName)!
+        setEditorFormat(activeTab.format)
+        
+        if (activeTab.format === 'cell') {
+          setCells(activeTab.cells)
         } else {
-          // No active file, start fresh but preserve format preference
-          setCode('# Write your code here\n')
-          setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }])
-          setEditorFormat(savedFormat || 'terminal')
-          setActiveFileName(null)
-          setLastSavedCode('# Write your code here\n')
+          setCode(activeTab.code)
+          if (editorRef.current) {
+            editorRef.current.setValue(activeTab.code)
+          }
+        }
+      } else {
+        // Fallback to reload from SPA globals or standard default scratch tab
+        if (globalActiveFileName !== null || globalDraftCode !== '# Write your code here\n' || globalDraftFormat === 'cell') {
+          const initialTab: Tab = {
+            name: globalActiveFileName || 'scratch.py',
+            code: globalDraftCode,
+            cells: globalDraftCells,
+            format: globalDraftFormat,
+            isDirty: false
+          }
+          setTabs([initialTab])
+          setActiveFileName(initialTab.name)
+          setCode(globalDraftCode)
+          setCells(globalDraftCells)
+          setEditorFormat(globalDraftFormat)
+        } else {
+          const defaultTab: Tab = {
+            name: 'scratch.py',
+            code: '# Write your code here\n',
+            cells: [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }],
+            format: savedFormat || 'terminal',
+            isDirty: false,
+            isNew: true
+          }
+          setTabs([defaultTab])
+          setActiveFileName(defaultTab.name)
+          setCode(defaultTab.code)
+          setCells(defaultTab.cells)
+          setEditorFormat(defaultTab.format)
         }
       }
       setIsRestored(true)
     }
   }, [])
 
-  // Synchronize state with module-level global variables for SPA routing draft preservation
+  // Synchronize state with localStorage and SPA module-level globals
   useEffect(() => {
     if (typeof window !== 'undefined' && isRestored) {
       globalDraftCode = code
@@ -319,14 +368,16 @@ export default function CodeEditorPage() {
       globalLastSavedCode = lastSavedCode
 
       localStorage.setItem('pycode_editor_format', editorFormat)
-
+      localStorage.setItem('pycode_open_tabs', JSON.stringify(tabs))
       if (activeFileName) {
         localStorage.setItem('pycode_active_file', activeFileName)
+        localStorage.setItem('pycode_active_tab', activeFileName)
       } else {
         localStorage.removeItem('pycode_active_file')
+        localStorage.removeItem('pycode_active_tab')
       }
     }
-  }, [code, cells, editorFormat, activeFileName, lastSavedCode, isRestored])
+  }, [code, cells, editorFormat, activeFileName, lastSavedCode, tabs, isRestored])
 
 
 
@@ -514,7 +565,7 @@ export default function CodeEditorPage() {
         setProgressMsg(data.message || 'Failed to initialize worker.')
       } else if (data.type === 'STDOUT' || data.type === 'STDERR') {
         if (data.cellId) {
-          setCells(prev => prev.map(c => c.id === data.cellId ? { ...c, output: c.output + data.text } : c))
+          updateCells(prev => prev.map(c => c.id === data.cellId ? { ...c, output: c.output + data.text } : c), false)
         } else {
           setConsoleOutput(prev => prev + data.text)
         }
@@ -535,14 +586,14 @@ export default function CodeEditorPage() {
         setIsWaitingForInput(false)
         setActivePrompt(null)
         if (data.cellId) {
-          setCells(prev => prev.map(c => c.id === data.cellId ? {
+          updateCells(prev => prev.map(c => c.id === data.cellId ? {
             ...c,
             plot: (data.plotData && typeof data.plotData === 'string' && data.plotData.length > 100)
               ? `data:image/png;base64,${data.plotData}`
               : c.plot,
             isRunning: false,
             hasRun: true
-          } : c))
+          } : c), false)
           setRunningCellQueue(prev => prev.slice(1))
           setTimeout(() => {
             const outputEl = document.getElementById(`cell_output_${data.cellId}`)
@@ -619,12 +670,12 @@ export default function CodeEditorPage() {
         })
         const cleanMsg = cleanLines.join('\n')
         if (data.cellId) {
-          setCells(prev => prev.map(c => c.id === data.cellId ? {
+          updateCells(prev => prev.map(c => c.id === data.cellId ? {
             ...c,
             error: cleanMsg,
             isRunning: false,
             hasRun: true
-          } : c))
+          } : c), false)
           setRunningCellQueue(prev => prev.slice(1))
           setTimeout(() => {
             const outputEl = document.getElementById(`cell_output_${data.cellId}`)
@@ -767,14 +818,116 @@ export default function CodeEditorPage() {
 
   useEffect(() => {
     initWorker()
-    const activeFileOnRefresh = typeof window !== 'undefined' ? localStorage.getItem('pycode_active_file') : null
-    loadSavedFiles(activeFileOnRefresh || undefined)
+    loadSavedFiles()
     return () => {
       if (workerRef.current) {
         workerRef.current.terminate()
       }
     }
   }, [])
+
+  const updateCells = (newCells: CellType[] | ((prev: CellType[]) => CellType[]), markDirty = true) => {
+    setCells(prev => {
+      const updated = typeof newCells === 'function' ? newCells(prev) : newCells
+      if (activeFileName) {
+        setTabs(tabsPrev => tabsPrev.map(t => t.name === activeFileName ? { 
+          ...t, 
+          cells: updated, 
+          isDirty: markDirty ? true : t.isDirty 
+        } : t))
+      }
+      return updated
+    })
+  }
+
+  const switchTab = (tabName: string) => {
+    const target = tabs.find(t => t.name === tabName)
+    if (!target) return
+    
+    setActiveFileName(tabName)
+    setEditorFormat(target.format)
+    
+    if (target.format === 'cell') {
+      setCells(target.cells)
+    } else {
+      setCode(target.code)
+      if (editorRef.current) {
+        editorRef.current.setValue(target.code)
+      }
+    }
+  }
+
+  const closeTab = (tabName: string, force = false) => {
+    const tab = tabs.find(t => t.name === tabName)
+    if (!tab) return
+    
+    if (!force && tab.isDirty) {
+      const ok = window.confirm(`You have unsaved changes in "${tabName}". Are you sure you want to close it?`)
+      if (!ok) return
+    }
+    
+    setTabs(prev => {
+      const filtered = prev.filter(t => t.name !== tabName)
+      let finalTabs = filtered
+      
+      if (finalTabs.length === 0) {
+        const savedFormat = typeof window !== 'undefined' ? localStorage.getItem('pycode_editor_format') as 'terminal' | 'cell' | null : 'terminal'
+        finalTabs = [{
+          name: 'scratch.py',
+          code: '# Write your code here\n',
+          cells: [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }],
+          format: savedFormat || 'terminal',
+          isDirty: false,
+          isNew: true
+        }]
+      }
+      
+      // If we closed the active tab, select another one
+      if (activeFileName === tabName) {
+        const nextActive = finalTabs[0]
+        setTimeout(() => {
+          setActiveFileName(nextActive.name)
+          setEditorFormat(nextActive.format)
+          if (nextActive.format === 'cell') {
+            setCells(nextActive.cells)
+          } else {
+            setCode(nextActive.code)
+            if (editorRef.current) {
+              editorRef.current.setValue(nextActive.code)
+            }
+          }
+        }, 10)
+      }
+      
+      return finalTabs
+    })
+  }
+
+  const addNewTab = () => {
+    let index = 1
+    while (tabs.some(t => t.name === `Untitled-${index}.py` || t.name === `Untitled-${index}.ipynb`)) {
+      index++
+    }
+    
+    const newName = `Untitled-${index}.py`
+    const newTab: Tab = {
+      name: newName,
+      code: '# Write your code here\n',
+      cells: [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }],
+      format: 'terminal',
+      isDirty: false,
+      isNew: true
+    }
+    
+    setTabs(prev => [...prev, newTab])
+    setActiveFileName(newName)
+    setEditorFormat('terminal')
+    setCode(newTab.code)
+    setCells(newTab.cells)
+    if (editorRef.current) {
+      editorRef.current.setValue(newTab.code)
+    }
+  }
 
   // Sequential execution queue processor for Jupyter Cells
   useEffect(() => {
@@ -788,13 +941,13 @@ export default function CodeEditorPage() {
         }
         
         if (cell.type === 'markdown') {
-          setCells(prev => prev.map(c => c.id === activeCellId ? { ...c, isRunning: false, hasRun: true } : c))
+          updateCells(prev => prev.map(c => c.id === activeCellId ? { ...c, isRunning: false, hasRun: true } : c), false)
           setRunningCellQueue(prev => prev.slice(1))
           return
         }
         
         setIsRunning(true)
-        setCells(prev => prev.map(c => c.id === activeCellId ? { ...c, isRunning: true, output: '', error: '', plot: '' } : c))
+        updateCells(prev => prev.map(c => c.id === activeCellId ? { ...c, isRunning: true, output: '', error: '', plot: '' } : c), false)
         
         const execId = Math.random().toString(36).substring(7)
         execIdRef.current = execId
@@ -814,10 +967,10 @@ export default function CodeEditorPage() {
   const runCell = (cellId: string) => {
     const cell = cells.find(c => c.id === cellId)
     if (cell?.type === 'markdown') {
-      setCells(prev => prev.map(c => c.id === cellId ? { ...c, isRunning: false, hasRun: true } : c))
+      updateCells(prev => prev.map(c => c.id === cellId ? { ...c, isRunning: false, hasRun: true } : c), false)
       return
     }
-    setCells(prev => prev.map(c => c.id === cellId ? { ...c, output: '', error: '', plot: '', isRunning: true, hasRun: false } : c))
+    updateCells(prev => prev.map(c => c.id === cellId ? { ...c, output: '', error: '', plot: '', isRunning: true, hasRun: false } : c), false)
     setRunningCellQueue(prev => {
       if (prev.includes(cellId)) return prev
       return [...prev, cellId]
@@ -825,7 +978,7 @@ export default function CodeEditorPage() {
   }
 
   const runAllCells = () => {
-    setCells(prev => prev.map(c => {
+    updateCells(prev => prev.map(c => {
       if (c.type === 'markdown') {
         return { ...c, hasRun: true, isRunning: false }
       }
@@ -899,6 +1052,7 @@ export default function CodeEditorPage() {
     }
     setCells(finalCells)
     setEditorFormat('cell')
+    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, format: 'cell', cells: finalCells, isDirty: true } : t))
   }
 
   const shiftToTerminalFormat = () => {
@@ -922,11 +1076,12 @@ export default function CodeEditorPage() {
       editorRef.current.setValue(mergedCode)
     }
     setEditorFormat('terminal')
+    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, format: 'terminal', code: mergedCode, isDirty: true } : t))
   }
 
   const moveCellUp = (index: number) => {
     if (index === 0) return
-    setCells(prev => {
+    updateCells(prev => {
       const next = [...prev]
       const temp = next[index]
       next[index] = next[index - 1]
@@ -936,7 +1091,7 @@ export default function CodeEditorPage() {
   }
 
   const moveCellDown = (index: number) => {
-    setCells(prev => {
+    updateCells(prev => {
       if (index === prev.length - 1) return prev
       const next = [...prev]
       const temp = next[index]
@@ -947,7 +1102,7 @@ export default function CodeEditorPage() {
   }
 
   const clearCellOutput = (cellId: string) => {
-    setCells(prev => prev.map(c => c.id === cellId ? { ...c, output: '', error: '', plot: '' } : c))
+    updateCells(prev => prev.map(c => c.id === cellId ? { ...c, output: '', error: '', plot: '' } : c))
   }
 
   const focusCellTextarea = (cellId: string) => {
@@ -1000,6 +1155,7 @@ export default function CodeEditorPage() {
           }, { onConflict: 'user_id, name' })
         
         if (!error) {
+          setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name, isDirty: false, isNew: false } : t))
           await loadSavedFiles(name)
           setLastSavedCode(contentToSave)
           setActiveFileName(name)
@@ -1040,6 +1196,7 @@ export default function CodeEditorPage() {
     }
     setSavedFiles(updatedFiles)
     localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
+    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name, isDirty: false, isNew: false } : t))
     setLastSavedCode(contentToSave)
     setActiveFileName(name)
     if (targetFolder) {
@@ -1074,6 +1231,7 @@ export default function CodeEditorPage() {
           }, { onConflict: 'user_id, name' })
 
         if (!error) {
+          setTabs(prev => prev.map(t => t.name === fileName ? { ...t, isDirty: false } : t))
           await loadSavedFiles(fileName)
           setLastSavedCode(contentToSave)
           setIsSaving(false)
@@ -1103,6 +1261,7 @@ export default function CodeEditorPage() {
     }
     setSavedFiles(updatedFiles)
     localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
+    setTabs(prev => prev.map(t => t.name === fileName ? { ...t, isDirty: false } : t))
     setLastSavedCode(contentToSave)
     setIsSaving(false)
     triggerToast("File saved successfully.", "success")
@@ -1132,6 +1291,7 @@ export default function CodeEditorPage() {
           .eq('name', renameFileName)
 
         if (!error) {
+          setTabs(prev => prev.map(t => t.name === renameFileName ? { ...t, name: newName } : t))
           if (activeFileName === renameFileName) {
             setActiveFileName(newName)
           }
@@ -1161,6 +1321,7 @@ export default function CodeEditorPage() {
         return f
       })
       localStorage.setItem('pycode_saved_files', JSON.stringify(updated))
+      setTabs(prev => prev.map(t => t.name === renameFileName ? { ...t, name: newName } : t))
       if (activeFileName === renameFileName) {
         setActiveFileName(newName)
       }
@@ -1176,19 +1337,36 @@ export default function CodeEditorPage() {
     setActiveFileName(file.name)
     setLastSavedCode(file.code)
     
-    if (file.name.endsWith('.ipynb')) {
+    const isNotebook = file.name.endsWith('.ipynb')
+    const format = isNotebook ? 'cell' : 'terminal'
+    
+    let parsedCells: CellType[] = []
+    if (isNotebook) {
       try {
-        const parsed = JSON.parse(file.code)
-        setCells(notebookToCells(parsed))
-        setEditorFormat('cell')
+        parsedCells = notebookToCells(JSON.parse(file.code))
       } catch (err) {
         console.error("Failed to parse notebook JSON, loading as code:", err)
-        setCode(file.code)
-        setEditorFormat('terminal')
-        if (editorRef.current) {
-          editorRef.current.setValue(file.code)
-        }
       }
+    }
+    
+    setTabs(prev => {
+      const exists = prev.find(t => t.name === file.name)
+      if (exists) {
+        return prev
+      } else {
+        return [...prev, {
+          name: file.name,
+          code: isNotebook ? '' : file.code,
+          cells: parsedCells,
+          format,
+          isDirty: false
+        }]
+      }
+    })
+    
+    if (isNotebook) {
+      setCells(parsedCells)
+      setEditorFormat('cell')
     } else {
       setCode(file.code)
       setEditorFormat('terminal')
@@ -1199,16 +1377,7 @@ export default function CodeEditorPage() {
   }
 
   const handleDeleteFile = async (name: string) => {
-    // Optimistic update — remove from UI immediately so sidebar feels instant
-    if (activeFileName === name) {
-      setActiveFileName(null)
-      const blank = '# Write your code here\n'
-      setCode(blank)
-      setLastSavedCode(blank)
-      setEditorFormat('terminal')
-      setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', type: 'code' }])
-      if (editorRef.current) editorRef.current.setValue(blank)
-    }
+    closeTab(name, true)
     setSavedFiles(prev => prev.filter(f => f.name !== name))
     setActiveDropdownFile(null)
     setDeletingFileName(name)
@@ -1627,7 +1796,7 @@ export default function CodeEditorPage() {
     
     // Reset cell execution states for Jupyter cells
     setRunningCellQueue([])
-    setCells(prev => prev.map(c => c.isRunning ? { ...c, isRunning: false, error: 'Program Terminated by User', hasRun: true } : c))
+    updateCells(prev => prev.map(c => c.isRunning ? { ...c, isRunning: false, error: 'Program Terminated by User', hasRun: true } : c), false)
 
     // Respawn worker to restore VM state
     initWorker()
@@ -2440,35 +2609,6 @@ export default function CodeEditorPage() {
 
               <div className="h-4 w-[1px] bg-hairline mx-1"></div>
 
-              {/* Active file indicator badge */}
-              {activeFileName && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-hairline bg-surface-soft text-[10px] text-gray-755 font-mono select-none font-bold max-w-[200px]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                  <span className="truncate" title={`Editing: ${activeFileName}`}>
-                    Editing: {activeFileName.length > 28 ? '...' + activeFileName.slice(-25) : activeFileName}
-                  </span>
-                </div>
-              )}
-
-              {/* Exit File — only shown when editing a saved file, takes user back to free scratch */}
-              {activeFileName && (
-                <button
-                  onClick={() => {
-                    setActiveFileName(null)
-                    const blank = '# Write your code here\n'
-                    setCode(blank)
-                    setLastSavedCode(blank)
-                    setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }])
-                    if (editorRef.current) editorRef.current.setValue(blank)
-                  }}
-                  title="Exit file — go to free scratch"
-                  className="px-3 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-red-50 dark:hover:bg-red-950/40 text-gray-500 hover:text-red-500 text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Exit File
-                </button>
-              )}
-
               {/* Save File button — always visible */}
               <button
                 onClick={async () => {
@@ -2476,7 +2616,8 @@ export default function CodeEditorPage() {
                   if (!user) {
                     setShowGuestSaveModal(true)
                   } else {
-                    if (activeFileName) {
+                    const activeTab = tabs.find(t => t.name === activeFileName)
+                    if (activeFileName && (!activeTab || !activeTab.isNew)) {
                       handleSaveFileDirectly(activeFileName)
                     } else {
                       setShowSaveModal(true)
@@ -2549,6 +2690,80 @@ export default function CodeEditorPage() {
             </div>
           </div>
 
+          {/* Tabs Bar */}
+          <div className="flex items-center justify-between border-b border-hairline bg-canvas dark:bg-[#181715] select-none shrink-0 h-10 overflow-hidden">
+            <div className="flex items-center overflow-x-auto h-full scrollbar-none flex-1">
+              {tabs.map((tab) => {
+                const isActive = tab.name === activeFileName
+                const isPy = tab.name.endsWith('.py')
+                const isIpynb = tab.name.endsWith('.ipynb')
+                
+                return (
+                  <div
+                    key={tab.name}
+                    onClick={() => switchTab(tab.name)}
+                    className={`group relative flex items-center gap-2 px-4 h-full border-r border-hairline/50 cursor-pointer transition-all duration-150 ${
+                      isActive 
+                        ? 'bg-surface-soft text-ink font-bold border-b border-b-primary' 
+                        : 'text-gray-400 hover:text-ink hover:bg-surface-soft/40'
+                    }`}
+                  >
+                    {/* File Type Icon */}
+                    <span className="text-xs">
+                      {isIpynb ? '📓' : isPy ? '🐍' : '📄'}
+                    </span>
+                    
+                    {/* Filename */}
+                    <span className="text-[11px] font-mono truncate max-w-[120px]">
+                      {tab.name.split('/').pop()}
+                    </span>
+
+                    {/* Unsaved Changes Dot */}
+                    {tab.isDirty && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 animate-pulse" />
+                    )}
+
+                    {/* Close Tab Icon */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        closeTab(tab.name)
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-hairline text-gray-400 hover:text-red-500 cursor-pointer transition-opacity flex items-center justify-center shrink-0"
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </button>
+                  </div>
+                )
+              })}
+
+              {/* Plus Button to Add Tab */}
+              <button
+                onClick={addNewTab}
+                title="New file tab"
+                className="px-3 h-full flex items-center justify-center text-gray-400 hover:text-ink hover:bg-surface-soft/60 cursor-pointer border-r border-hairline/50 transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Breadcrumbs Bar */}
+          {activeFileName && (
+            <div className="px-4 py-1.5 border-b border-hairline/40 bg-surface-soft/40 text-[9px] text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5 select-none shrink-0 tracking-wider">
+              <span className="opacity-60 uppercase font-bold">WORKSPACE</span>
+              <span className="opacity-45">&gt;</span>
+              {activeFileName.split('/').map((part, index, arr) => (
+                <React.Fragment key={index}>
+                  <span className={index === arr.length - 1 ? 'font-bold text-ink' : ''}>
+                    {part}
+                  </span>
+                  {index < arr.length - 1 && <span className="opacity-45">&gt;</span>}
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+
           {/* Monaco Editor / Cell Canvas */}
           <div className={`flex-1 min-h-0 relative select-text flex flex-col ${editorFormat === 'cell' ? 'bg-canvas overflow-y-auto' : 'bg-[#1e1e1e]'}`}>
             {editorFormat === 'cell' ? (
@@ -2567,7 +2782,7 @@ export default function CodeEditorPage() {
                     <button
                       onClick={() => {
                         const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
-                        setCells(prev => [...prev, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'code' }])
+                        updateCells(prev => [...prev, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'code' }])
                         focusCellTextarea(newId)
                       }}
                       className="px-3.5 py-1.5 rounded-xl border border-hairline bg-surface-soft hover:bg-surface-card text-ink text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
@@ -2578,7 +2793,7 @@ export default function CodeEditorPage() {
                     <button
                       onClick={() => {
                         const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
-                        setCells(prev => [...prev, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'markdown' }])
+                        updateCells(prev => [...prev, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'markdown' }])
                         focusCellTextarea(newId)
                       }}
                       className="px-3.5 py-1.5 rounded-xl border border-hairline bg-surface-soft hover:bg-surface-card text-ink text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
@@ -2617,7 +2832,7 @@ export default function CodeEditorPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setCells(prev => prev.map(c => c.id === cell.id ? { ...c, type: c.type === 'markdown' ? 'code' : 'markdown' } : c));
+                            updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, type: c.type === 'markdown' ? 'code' : 'markdown' } : c));
                           }}
                           className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase text-gray-500 hover:text-primary hover:bg-surface-soft rounded cursor-pointer transition-colors border border-transparent hover:border-hairline"
                           title={`Switch to ${cell.type === 'markdown' ? 'Code' : 'Markdown'} cell`}
@@ -2657,9 +2872,9 @@ export default function CodeEditorPage() {
                           onClick={(e) => {
                             e.stopPropagation()
                             if (cells.length === 1) {
-                              setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', type: 'code' }])
+                              updateCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', type: 'code' }])
                             } else {
-                              setCells(prev => prev.filter(c => c.id !== cell.id))
+                              updateCells(prev => prev.filter(c => c.id !== cell.id))
                             }
                           }}
                           className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded cursor-pointer transition-colors"
@@ -2725,7 +2940,7 @@ export default function CodeEditorPage() {
                               theme={theme === 'dark' ? 'vs-dark' : 'light'}
                               value={cell.code}
                               onChange={(val) => {
-                                setCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val || '' } : c))
+                                updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val || '' } : c))
                               }}
                               onMount={(editor, monacoInstance) => {
                                 editor.onDidFocusEditorText(() => {
@@ -2733,7 +2948,7 @@ export default function CodeEditorPage() {
                                 })
                                 editor.addCommand(monacoInstance.KeyMod.Shift | monacoInstance.KeyCode.Enter, () => {
                                   if (cell.type === 'markdown') {
-                                    setCells(prev => prev.map(c => c.id === cell.id ? { ...c, hasRun: true } : c))
+                                    updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, hasRun: true } : c), false)
                                     setActiveCellId(null)
                                   } else {
                                     runCell(cell.id)
@@ -2824,7 +3039,7 @@ export default function CodeEditorPage() {
                           onClick={(e) => {
                             e.stopPropagation()
                             const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
-                            setCells(prev => {
+                            updateCells(prev => {
                               const next = [...prev]
                               next.splice(index + 1, 0, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'code' })
                               return next
@@ -2841,7 +3056,7 @@ export default function CodeEditorPage() {
                           onClick={(e) => {
                             e.stopPropagation()
                             const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
-                            setCells(prev => {
+                            updateCells(prev => {
                               const next = [...prev]
                               next.splice(index + 1, 0, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'markdown' })
                               return next
@@ -2865,7 +3080,10 @@ export default function CodeEditorPage() {
                 defaultLanguage="python"
                 theme={theme === 'dark' ? 'vs-dark' : 'light'}
                 value={code}
-                onChange={(val) => setCode(val || '')}
+                onChange={(val) => {
+                  setCode(val || '')
+                  setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, code: val || '', isDirty: true } : t))
+                }}
                 onMount={handleEditorDidMount}
                 options={{
                   fontSize: 14,
