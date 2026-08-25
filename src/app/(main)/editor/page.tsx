@@ -3027,10 +3027,13 @@ export default function CodeEditorPage() {
                                   const contentHeight = editor.getContentHeight()
                                   const editorElement = editor.getDomNode()
                                   if (editorElement) {
+                                    editorElement.style.height = `${contentHeight}px`
                                     if (editorElement.parentElement) {
                                       editorElement.parentElement.style.height = `${contentHeight}px`
+                                      if (editorElement.parentElement.parentElement) {
+                                        editorElement.parentElement.parentElement.style.height = `${contentHeight}px`
+                                      }
                                     }
-                                    editorElement.style.height = `${contentHeight}px`
                                     editor.layout()
                                   }
                                 }
