@@ -191,6 +191,7 @@ export default function CodeEditorPage() {
   const [progressMsg, setProgressMsg] = useState('')
   const pyodideRef = useRef<any>(null)
   const editorRef = useRef<any>(null)
+  const ignoreChangeRef = useRef(false)
   const stdoutRef = useRef<(text: string) => void>(null)
   
   // Web Worker for Pyodide background thread
@@ -844,6 +845,7 @@ export default function CodeEditorPage() {
     const target = tabs.find(t => t.name === tabName)
     if (!target) return
     
+    ignoreChangeRef.current = true
     setActiveFileName(tabName)
     setEditorFormat(target.format)
     
@@ -855,6 +857,9 @@ export default function CodeEditorPage() {
         editorRef.current.setValue(target.code)
       }
     }
+    setTimeout(() => {
+      ignoreChangeRef.current = false
+    }, 50)
   }
 
   const closeTab = (tabName: string, force = false) => {
@@ -885,6 +890,7 @@ export default function CodeEditorPage() {
       // If we closed the active tab, select another one
       if (activeFileName === tabName) {
         const nextActive = finalTabs[0]
+        ignoreChangeRef.current = true
         setTimeout(() => {
           setActiveFileName(nextActive.name)
           setEditorFormat(nextActive.format)
@@ -896,6 +902,9 @@ export default function CodeEditorPage() {
               editorRef.current.setValue(nextActive.code)
             }
           }
+          setTimeout(() => {
+            ignoreChangeRef.current = false
+          }, 50)
         }, 10)
       }
       
@@ -919,6 +928,7 @@ export default function CodeEditorPage() {
       isNew: true
     }
     
+    ignoreChangeRef.current = true
     setTabs(prev => [...prev, newTab])
     setActiveFileName(newName)
     setEditorFormat('terminal')
@@ -927,6 +937,9 @@ export default function CodeEditorPage() {
     if (editorRef.current) {
       editorRef.current.setValue(newTab.code)
     }
+    setTimeout(() => {
+      ignoreChangeRef.current = false
+    }, 50)
   }
 
   // Sequential execution queue processor for Jupyter Cells
@@ -995,6 +1008,7 @@ export default function CodeEditorPage() {
   }
 
   const shiftToCellFormat = () => {
+    ignoreChangeRef.current = true
     const lines = code.split('\n');
     const parsedCells: CellType[] = [];
     let currentCell: { code: string[]; type: 'code' | 'markdown' } | null = null;
@@ -1061,9 +1075,13 @@ export default function CodeEditorPage() {
     setCells(finalCells)
     setEditorFormat('cell')
     setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name: newTabName, format: 'cell', cells: finalCells, isDirty: true } : t))
+    setTimeout(() => {
+      ignoreChangeRef.current = false
+    }, 50)
   }
 
   const shiftToTerminalFormat = () => {
+    ignoreChangeRef.current = true
     let mergedCode = ''
     if (cells.length === 1) {
       if (cells[0].type === 'markdown') {
@@ -1087,6 +1105,9 @@ export default function CodeEditorPage() {
     }
     setEditorFormat('terminal')
     setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name: newTabName, format: 'terminal', code: mergedCode, isDirty: true } : t))
+    setTimeout(() => {
+      ignoreChangeRef.current = false
+    }, 50)
   }
 
   const moveCellUp = (index: number) => {
@@ -1344,6 +1365,7 @@ export default function CodeEditorPage() {
   }
 
   const handleLoadFile = (file: { name: string; code: string }) => {
+    ignoreChangeRef.current = true
     setActiveFileName(file.name)
     setLastSavedCode(file.code)
     
@@ -1384,6 +1406,9 @@ export default function CodeEditorPage() {
         editorRef.current.setValue(file.code)
       }
     }
+    setTimeout(() => {
+      ignoreChangeRef.current = false
+    }, 50)
   }
 
   const handleDeleteFile = async (name: string) => {
@@ -2739,9 +2764,9 @@ export default function CodeEditorPage() {
                         e.stopPropagation()
                         closeTab(tab.name)
                       }}
-                      className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-hairline text-gray-400 hover:text-red-500 cursor-pointer transition-opacity flex items-center justify-center shrink-0"
+                      className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-hairline/65 text-gray-400 hover:text-red-500 hover:scale-115 cursor-pointer transition-all flex items-center justify-center shrink-0"
                     >
-                      <X className="w-2.5 h-2.5" />
+                      <X className="w-2.5 h-2.5 transition-transform" />
                     </button>
                   </div>
                 )
@@ -2953,6 +2978,7 @@ export default function CodeEditorPage() {
                               theme={theme === 'dark' ? 'vs-dark' : 'light'}
                               value={cell.code}
                               onChange={(val) => {
+                                if (ignoreChangeRef.current) return
                                 updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val || '' } : c))
                               }}
                               onMount={(editor, monacoInstance) => {
@@ -3094,6 +3120,7 @@ export default function CodeEditorPage() {
                 theme={theme === 'dark' ? 'vs-dark' : 'light'}
                 value={code}
                 onChange={(val) => {
+                  if (ignoreChangeRef.current) return
                   setCode(val || '')
                   setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, code: val || '', isDirty: true } : t))
                 }}
