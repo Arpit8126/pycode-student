@@ -915,16 +915,17 @@ export default function CodeEditorPage() {
 
   const addNewTab = () => {
     let index = 1
-    while (tabs.some(t => t.name === `Untitled-${index}.py` || t.name === `Untitled-${index}.ipynb`)) {
+    const ext = editorFormat === 'cell' ? '.ipynb' : '.py'
+    while (tabs.some(t => t.name === `Untitled-${index}${ext}`)) {
       index++
     }
     
-    const newName = `Untitled-${index}.py`
+    const newName = `Untitled-${index}${ext}`
     const newTab: Tab = {
       name: newName,
       code: '# Write your code here\n',
       cells: [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }],
-      format: 'terminal',
+      format: editorFormat,
       isDirty: false,
       isNew: true
     }
@@ -932,11 +933,12 @@ export default function CodeEditorPage() {
     ignoreChangeRef.current = true
     setTabs(prev => [...prev, newTab])
     setActiveFileName(newName)
-    setEditorFormat('terminal')
-    setCode(newTab.code)
     setCells(newTab.cells)
-    if (editorRef.current) {
-      editorRef.current.setValue(newTab.code)
+    setCode(newTab.code)
+    if (editorFormat === 'terminal') {
+      if (editorRef.current) {
+        editorRef.current.setValue(newTab.code)
+      }
     }
     setTimeout(() => {
       ignoreChangeRef.current = false
@@ -1094,23 +1096,29 @@ export default function CodeEditorPage() {
 
   const shiftToCellFormat = () => {
     ignoreChangeRef.current = true
-    const newTabName = renameExtension(activeFileName || 'Untitled-1.py', '.ipynb')
-    setActiveFileName(newTabName)
     setEditorFormat('cell')
     
-    let targetCells: CellType[] = []
-    const activeTab = tabs.find(t => t.name === activeFileName)
-    if (activeTab) {
-      targetCells = activeTab.cells
-      if (!targetCells || targetCells.length === 0 || (targetCells.length === 1 && targetCells[0].id === 'cell_default' && targetCells[0].code === '')) {
-        targetCells = splitCodeToCells(activeTab.code)
-      }
+    // Find first notebook tab (.ipynb) or create one if none exists
+    const notebookTab = tabs.find(t => t.name.endsWith('.ipynb'))
+    if (notebookTab) {
+      setActiveFileName(notebookTab.name)
+      setCells(notebookTab.cells)
+      setCode(notebookTab.code)
     } else {
-      targetCells = splitCodeToCells(code)
+      const newTabName = 'Untitled-1.ipynb'
+      const newTab: Tab = {
+        name: newTabName,
+        code: '# Write your code here\n',
+        cells: [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }],
+        format: 'cell',
+        isDirty: false,
+        isNew: true
+      }
+      setTabs(prev => [...prev, newTab])
+      setActiveFileName(newTabName)
+      setCells(newTab.cells)
+      setCode(newTab.code)
     }
-    
-    setCells(targetCells)
-    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name: newTabName, format: 'cell', cells: targetCells, isDirty: true } : t))
     
     setTimeout(() => {
       ignoreChangeRef.current = false
@@ -1119,26 +1127,35 @@ export default function CodeEditorPage() {
 
   const shiftToTerminalFormat = () => {
     ignoreChangeRef.current = true
-    const newTabName = renameExtension(activeFileName || 'Untitled-1.ipynb', '.py')
-    setActiveFileName(newTabName)
     setEditorFormat('terminal')
     
-    let targetCode = ''
-    const activeTab = tabs.find(t => t.name === activeFileName)
-    if (activeTab) {
-      targetCode = activeTab.code
-      if (!targetCode || targetCode === '# Write your code here\n') {
-        targetCode = mergeCellsToCode(activeTab.cells)
+    // Find first terminal tab (not .ipynb) or create one if none exists
+    const terminalTab = tabs.find(t => !t.name.endsWith('.ipynb'))
+    if (terminalTab) {
+      setActiveFileName(terminalTab.name)
+      setCode(terminalTab.code)
+      setCells(terminalTab.cells)
+      if (editorRef.current) {
+        editorRef.current.setValue(terminalTab.code)
       }
     } else {
-      targetCode = mergeCellsToCode(cells)
+      const newTabName = 'Untitled-1.py'
+      const newTab: Tab = {
+        name: newTabName,
+        code: '# Write your code here\n',
+        cells: [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }],
+        format: 'terminal',
+        isDirty: false,
+        isNew: true
+      }
+      setTabs(prev => [...prev, newTab])
+      setActiveFileName(newTabName)
+      setCode(newTab.code)
+      setCells(newTab.cells)
+      if (editorRef.current) {
+        editorRef.current.setValue(newTab.code)
+      }
     }
-    
-    setCode(targetCode)
-    if (editorRef.current) {
-      editorRef.current.setValue(targetCode)
-    }
-    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name: newTabName, format: 'terminal', code: targetCode, isDirty: true } : t))
     
     setTimeout(() => {
       ignoreChangeRef.current = false
@@ -2763,10 +2780,18 @@ export default function CodeEditorPage() {
           {/* Tabs Bar */}
           <div className="flex items-center justify-between border-b border-hairline bg-canvas dark:bg-[#181715] select-none shrink-0 h-10 overflow-hidden">
             <div className="flex items-center overflow-x-auto h-full scrollbar-none flex-1">
-              {tabs.map((tab) => {
-                const isActive = tab.name === activeFileName
-                const isPy = tab.name.endsWith('.py')
-                const isIpynb = tab.name.endsWith('.ipynb')
+              {tabs
+                .filter((tab) => {
+                  if (editorFormat === 'cell') {
+                    return tab.name.endsWith('.ipynb')
+                  } else {
+                    return !tab.name.endsWith('.ipynb')
+                  }
+                })
+                .map((tab) => {
+                  const isActive = tab.name === activeFileName
+                  const isPy = tab.name.endsWith('.py')
+                  const isIpynb = tab.name.endsWith('.ipynb')
                 
                 return (
                   <div
