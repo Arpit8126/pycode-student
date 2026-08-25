@@ -136,9 +136,13 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 /* Force Monaco Editor text elements to use monospace font and ignore proportional resets */
 .monaco-editor, 
 .monaco-editor .view-line, 
-.monaco-editor .view-lines, 
-.monaco-editor * {
+.monaco-editor .view-lines {
   font-family: 'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace !important;
+}
+
+/* Restore font-family for Monaco icon elements */
+.monaco-editor .codicon {
+  font-family: 'codicon' !important;
 }
 
 /* Custom text selection styling matching theme */
