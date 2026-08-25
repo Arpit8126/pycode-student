@@ -988,6 +988,12 @@ export default function CodeEditorPage() {
     setRunningCellQueue(codeCellIds)
   }
 
+  const renameExtension = (name: string, toExt: '.py' | '.ipynb') => {
+    const lastDot = name.lastIndexOf('.')
+    const base = lastDot > -1 ? name.substring(0, lastDot) : name
+    return base + toExt
+  }
+
   const shiftToCellFormat = () => {
     const lines = code.split('\n');
     const parsedCells: CellType[] = [];
@@ -1050,9 +1056,11 @@ export default function CodeEditorPage() {
     if (finalCells.length === 0) {
       finalCells = [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }]
     }
+    const newTabName = renameExtension(activeFileName || 'scratch.py', '.ipynb')
+    setActiveFileName(newTabName)
     setCells(finalCells)
     setEditorFormat('cell')
-    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, format: 'cell', cells: finalCells, isDirty: true } : t))
+    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name: newTabName, format: 'cell', cells: finalCells, isDirty: true } : t))
   }
 
   const shiftToTerminalFormat = () => {
@@ -1071,12 +1079,14 @@ export default function CodeEditorPage() {
         return `# %%\n${c.code.replace(/^\n+|\n+$/g, '')}`
       }).join('\n\n')
     }
+    const newTabName = renameExtension(activeFileName || 'scratch.ipynb', '.py')
+    setActiveFileName(newTabName)
     setCode(mergedCode)
     if (editorRef.current) {
       editorRef.current.setValue(mergedCode)
     }
     setEditorFormat('terminal')
-    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, format: 'terminal', code: mergedCode, isDirty: true } : t))
+    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name: newTabName, format: 'terminal', code: mergedCode, isDirty: true } : t))
   }
 
   const moveCellUp = (index: number) => {
@@ -2648,16 +2658,16 @@ export default function CodeEditorPage() {
                   title="Shift to standard Python script editor and terminal"
                 >
                   <Terminal className="w-3.5 h-3.5 text-primary" />
-                  <span>Shift to Terminal Format</span>
+                  <span>Terminal</span>
                 </button>
               ) : (
                 <button
                   onClick={shiftToCellFormat}
                   className="px-3.5 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 shadow-sm"
-                  title="Shift to Jupyter cell editor format"
+                  title="Shift to Jupyter Notebook format"
                 >
                   <Database className="w-3.5 h-3.5 text-primary rotate-90" />
-                  <span>Shift to Cell Format</span>
+                  <span>Notebook</span>
                 </button>
               )}
 
@@ -2816,19 +2826,19 @@ export default function CodeEditorPage() {
                       key={cell.id}
                       id={`cell_container_${cell.id}`}
                       onClick={() => setActiveCellId(cell.id)}
-                      className={`group/cell relative flex flex-col border rounded-xl transition-all duration-200 pl-2 pr-4 py-3 bg-canvas dark:bg-canvas ${
+                      className={`group/cell relative flex flex-col border rounded-xl transition-all duration-200 pl-2 pr-4 py-3 bg-surface-soft/20 dark:bg-[#1a1917]/30 ${
                         isActive 
-                          ? 'border-hairline shadow-md shadow-primary/5 ring-1 ring-primary/10' 
-                          : 'border-transparent hover:border-hairline/60 hover:shadow-xs'
+                          ? 'bg-white dark:bg-[#1f1e1c] border-hairline/80 shadow-md shadow-primary/5 ring-1 ring-primary/8' 
+                          : 'border-transparent hover:border-hairline/45 hover:shadow-xs'
                       }`}
                     >
                       {/* Left vertical highlights bar for active cell */}
                       {isActive && (
-                        <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-primary rounded-l-xl" />
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary rounded-l-xl" />
                       )}
 
                       {/* Hover Actions Toolbar */}
-                      <div className="absolute -top-3.5 right-4 flex items-center gap-1 bg-canvas dark:bg-surface-soft border border-hairline px-1.5 py-0.5 rounded-lg shadow-sm opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20">
+                      <div className="absolute -top-3.5 right-4 flex items-center gap-1 bg-white/95 dark:bg-[#252320]/95 backdrop-blur-md border border-hairline px-1.5 py-0.5 rounded-lg shadow-sm opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -2924,10 +2934,13 @@ export default function CodeEditorPage() {
                         </div>
 
                         {/* Editor Column */}
-                        <div className="flex-1 min-w-0 bg-[#fafafa] dark:bg-[#151413] rounded-lg border border-gray-300 dark:border-[#403f3e] focus-within:border-primary/80 transition-colors p-2.5">
+                        <div 
+                          className="flex-1 min-w-0 bg-[#fafafa] dark:bg-[#151413] rounded-lg border border-gray-300 dark:border-[#403f3e] focus-within:border-primary/80 transition-colors p-2.5"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {cell.type === 'markdown' && !isActive ? (
                             <div 
-                              className="w-full text-ink min-h-[40px] px-1 py-1 cursor-text"
+                              className="w-full text-ink min-h-[48px] px-4 py-3 bg-surface-soft/10 dark:bg-black/5 rounded-lg border border-transparent hover:border-hairline/25 cursor-text transition-all leading-relaxed text-sm select-text"
                               onDoubleClick={() => setActiveCellId(cell.id)}
                               onClick={() => setActiveCellId(cell.id)}
                             >
@@ -2984,10 +2997,10 @@ export default function CodeEditorPage() {
                       {cell.type !== 'markdown' && (cell.output || cell.error || cell.plot) && (
                         <div 
                           id={`cell_output_${cell.id}`}
-                          className="mt-3 border-t border-hairline/30 pt-3 pl-12 flex items-start gap-3 w-full relative group/output"
+                          className="mt-3 border-t border-hairline/25 pt-3.5 pl-12 flex items-start gap-3 w-full relative group/output"
                         >
                           {/* Close / Clear output button on left hover */}
-                          <div className="absolute left-3 top-3.5 opacity-0 group-hover/output:opacity-100 transition-opacity">
+                          <div className="absolute left-3 top-4 opacity-0 group-hover/output:opacity-100 transition-opacity">
                             <button
                               onClick={(e) => { e.stopPropagation(); clearCellOutput(cell.id); }}
                               className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
@@ -2997,7 +3010,7 @@ export default function CodeEditorPage() {
                             </button>
                           </div>
 
-                          <div className="flex-1 min-w-0 space-y-4 font-mono text-xs select-text">
+                          <div className="flex-1 min-w-0 space-y-4 font-mono text-xs select-text bg-surface-soft/20 dark:bg-black/10 rounded-xl p-3.5 border border-hairline/20 shadow-xs">
                             {cell.output && (
                               <div className="space-y-1">
                                 <pre className="whitespace-pre-wrap text-body leading-relaxed font-mono">{cell.output}</pre>
@@ -3006,7 +3019,7 @@ export default function CodeEditorPage() {
 
                             {cell.error && (
                               <div className="space-y-1">
-                                <pre className="whitespace-pre-wrap text-red-650 dark:text-red-400 bg-red-50/50 dark:bg-red-950/10 p-3.5 rounded-xl border border-red-100/30 dark:border-red-950/20 leading-relaxed font-mono font-bold">{cell.error}</pre>
+                                <pre className="whitespace-pre-wrap text-red-650 dark:text-red-400 bg-red-50/20 dark:bg-red-950/5 p-3 rounded-lg border border-red-200/20 leading-relaxed font-mono font-bold">{cell.error}</pre>
                               </div>
                             )}
 
@@ -3318,10 +3331,10 @@ export default function CodeEditorPage() {
             <div className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-6 shadow-2xl space-y-4 animate-scale-in">
               <h3 className="text-xs uppercase font-mono font-extrabold text-primary flex items-center gap-2">
                 <Save className="w-4 h-4" />
-                Save Code Script
+                {editorFormat === 'cell' ? 'Save Notebook' : 'Save Code Script'}
               </h3>
               <p className="text-sm font-medium text-ink">
-                Configure path and filename to save this script in your browser workspace:
+                Configure path and filename to save this {editorFormat === 'cell' ? 'notebook' : 'script'} in your browser workspace:
               </p>
               <div className="space-y-4">
                 <div>
@@ -3331,7 +3344,7 @@ export default function CodeEditorPage() {
                     value={saveFileName}
                     onChange={(e) => setSaveFileName(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-hairline bg-surface-soft text-sm font-mono text-ink outline-none focus:border-primary transition-colors"
-                    placeholder="e.g. solution.py"
+                    placeholder={editorFormat === 'cell' ? "e.g. solution.ipynb" : "e.g. solution.py"}
                     autoFocus
                   />
                 </div>
