@@ -2892,34 +2892,30 @@ export default function CodeEditorPage() {
                       key={cell.id}
                       id={`cell_container_${cell.id}`}
                       onClick={() => setActiveCellId(cell.id)}
-                      className={`group/cell relative flex flex-col border rounded-xl transition-all duration-200 pl-2 pr-4 py-3 bg-surface-soft/20 dark:bg-[#1a1917]/30 ${
-                        isActive 
-                          ? 'bg-white dark:bg-[#1f1e1c] border-hairline/80 shadow-md shadow-primary/5 ring-1 ring-primary/8' 
-                          : 'border-transparent hover:border-hairline/45 hover:shadow-xs'
-                      }`}
+                      className="group/cell relative flex flex-col pl-14 pr-4 py-3 bg-transparent border-none shadow-none"
                     >
                       {/* Left vertical highlights bar for active cell */}
                       {isActive && (
-                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary rounded-l-xl" />
+                        <div className="absolute left-2.5 top-3 w-[4px] h-[34px] bg-primary rounded-full transition-all" />
                       )}
 
                       {/* Hover Actions Toolbar */}
-                      <div className="absolute -top-3.5 right-4 flex items-center gap-1 bg-white/95 dark:bg-[#252320]/95 backdrop-blur-md border border-hairline px-1.5 py-0.5 rounded-lg shadow-sm opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20">
+                      <div className="absolute top-4 right-8 flex items-center gap-0.5 bg-white dark:bg-[#202022] border border-hairline rounded-lg p-0.5 shadow-sm opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, type: c.type === 'markdown' ? 'code' : 'markdown' } : c));
                           }}
-                          className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase text-gray-500 hover:text-primary hover:bg-surface-soft rounded cursor-pointer transition-colors border border-transparent hover:border-hairline"
+                          className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase text-gray-400 hover:text-primary rounded cursor-pointer transition-colors"
                           title={`Switch to ${cell.type === 'markdown' ? 'Code' : 'Markdown'} cell`}
                         >
                           {cell.type === 'markdown' ? 'Code' : 'Markdown'}
                         </button>
-                        <div className="w-[1px] h-3.5 bg-hairline mx-0.5" />
+                        <div className="w-[1px] h-3 bg-hairline mx-0.5" />
                         <button
                           onClick={(e) => { e.stopPropagation(); moveCellUp(index); }}
                           disabled={index === 0}
-                          className="p-1 text-gray-500 hover:text-ink hover:bg-surface-soft rounded disabled:opacity-30 cursor-pointer transition-colors"
+                          className="p-1 text-gray-400 hover:text-ink hover:bg-surface-soft dark:hover:bg-white/10 rounded disabled:opacity-30 cursor-pointer transition-colors"
                           title="Move cell up"
                         >
                           <ChevronUp className="w-3.5 h-3.5" />
@@ -2927,7 +2923,7 @@ export default function CodeEditorPage() {
                         <button
                           onClick={(e) => { e.stopPropagation(); moveCellDown(index); }}
                           disabled={index === cells.length - 1}
-                          className="p-1 text-gray-500 hover:text-ink hover:bg-surface-soft rounded disabled:opacity-30 cursor-pointer transition-colors"
+                          className="p-1 text-gray-400 hover:text-ink hover:bg-surface-soft dark:hover:bg-white/10 rounded disabled:opacity-30 cursor-pointer transition-colors"
                           title="Move cell down"
                         >
                           <ChevronDown className="w-3.5 h-3.5" />
@@ -2936,14 +2932,14 @@ export default function CodeEditorPage() {
                           <>
                             <button
                               onClick={(e) => { e.stopPropagation(); clearCellOutput(cell.id); }}
-                              className="p-1 text-gray-500 hover:text-ink hover:bg-surface-soft rounded cursor-pointer transition-colors"
+                              className="p-1 text-gray-400 hover:text-ink hover:bg-surface-soft dark:hover:bg-white/10 rounded cursor-pointer transition-colors"
                               title="Clear cell outputs"
                             >
                               <RotateCcw className="w-3.5 h-3.5" />
                             </button>
-                            <div className="w-[1px] h-3.5 bg-hairline mx-0.5" />
                           </>
                         )}
+                        <div className="w-[1px] h-3 bg-hairline mx-0.5" />
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
@@ -2953,7 +2949,7 @@ export default function CodeEditorPage() {
                               updateCells(prev => prev.filter(c => c.id !== cell.id))
                             }
                           }}
-                          className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded cursor-pointer transition-colors"
+                          className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded cursor-pointer transition-colors"
                           title="Delete cell"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -2964,35 +2960,30 @@ export default function CodeEditorPage() {
                       <div className="flex items-start gap-3 w-full">
                         
                         {/* Play/Type Indicator Margin */}
-                        <div className="w-12 shrink-0 select-none flex flex-col items-center justify-start pt-1.5 relative">
+                        <div className="absolute left-6 top-3 w-8 select-none flex flex-col items-center justify-start">
                           {cell.type === 'markdown' ? (
-                            <div className="flex items-center justify-center h-6" title="Markdown cell">
+                            <div className="flex items-center justify-center h-[34px]" title="Markdown cell">
                               <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 font-bold uppercase">MD</span>
                             </div>
                           ) : (
-                            <div className="relative w-12 h-6 flex items-center justify-center">
-                              {/* Circular spinner when running */}
+                            <div className="relative w-8 h-[34px] flex items-center justify-center">
                               {isCellRunning ? (
                                 <RefreshCw className="w-4 h-4 text-primary animate-spin" />
                               ) : (
                                 <>
-                                  {/* Play icon on hover / focus */}
+                                  {/* Play icon outline */}
                                   <button
                                     onClick={(e) => { e.stopPropagation(); runCell(cell.id); }}
                                     disabled={pyodideState !== 'ready' || isRunning}
-                                    className="absolute inset-x-3 inset-y-0 z-10 rounded-full bg-primary text-white flex items-center justify-center opacity-0 group-hover/cell:opacity-100 group-focus-within/cell:opacity-100 transition-opacity cursor-pointer shadow-sm disabled:opacity-50"
+                                    className="absolute inset-0 z-10 flex items-center justify-center text-gray-400 hover:text-primary transition-colors cursor-pointer disabled:opacity-50"
+                                    title="Run cell"
                                   >
-                                    <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+                                    <Play className="w-3.5 h-3.5 stroke-1 fill-none" />
                                   </button>
-                                  {/* Default execution number index, hidden on hover */}
-                                  <div className="flex items-center gap-0.5 pointer-events-none group-hover/cell:opacity-0 group-focus-within/cell:opacity-0 transition-opacity">
-                                    <span className="text-[11px] font-mono text-gray-400 dark:text-gray-500 font-bold">
-                                      [{index + 1}]
-                                    </span>
-                                    {cell.hasRun && (
-                                      <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                    )}
-                                  </div>
+                                  {/* Execution count brackets on left */}
+                                  <span className="absolute -left-6 font-mono text-[9px] text-gray-400 dark:text-gray-500 font-bold select-none">
+                                    [{cell.hasRun ? index + 1 : ' '}]
+                                  </span>
                                 </>
                               )}
                             </div>
@@ -3001,7 +2992,11 @@ export default function CodeEditorPage() {
 
                         {/* Editor Column */}
                         <div 
-                          className={`flex-1 min-w-0 rounded-xl border border-hairline focus-within:border-primary/45 transition-all duration-200 p-3 ${isActive ? 'bg-surface-soft/45 dark:bg-black/35' : 'bg-surface-soft/60 dark:bg-black/25'}`}
+                          className={`flex-1 min-w-0 rounded-xl transition-all duration-200 p-3.5 ${
+                            cell.type === 'markdown' && !isActive
+                              ? 'bg-transparent border border-transparent'
+                              : 'bg-surface-soft/45 dark:bg-[#202022] border border-hairline/50 dark:border-[#2d2c2e]'
+                          }`}
                           onClick={(e) => e.stopPropagation()}
                         >
                           {cell.type === 'markdown' && !isActive ? (
@@ -3132,7 +3127,7 @@ export default function CodeEditorPage() {
                       )}
 
                       {/* Hover Add Cell Below center pill */}
-                      <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20 flex items-center gap-1.5 bg-canvas dark:bg-surface-soft border border-hairline px-2 py-0.5 rounded-full shadow-sm">
+                      <div className="absolute -bottom-4.5 left-1/2 -translate-x-1/2 opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20 flex items-center gap-2">
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
@@ -3144,12 +3139,11 @@ export default function CodeEditorPage() {
                             })
                             focusCellTextarea(newId)
                           }}
-                          className="px-2 py-0.5 text-[9px] font-bold text-ink hover:text-primary flex items-center gap-1 cursor-pointer transition-colors"
+                          className="px-3.5 py-1.5 text-[10px] font-bold text-gray-500 hover:text-primary bg-canvas dark:bg-[#181715] hover:bg-surface-soft dark:hover:bg-[#202022] border border-hairline rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1"
                         >
-                          <Plus className="w-2.5 h-2.5 text-primary" />
+                          <Plus className="w-3 h-3 text-primary" />
                           Code
                         </button>
-                        <div className="w-[1px] h-3 bg-hairline" />
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
@@ -3161,9 +3155,9 @@ export default function CodeEditorPage() {
                             })
                             focusCellTextarea(newId)
                           }}
-                          className="px-2 py-0.5 text-[9px] font-bold text-ink hover:text-primary flex items-center gap-1 cursor-pointer transition-colors"
+                          className="px-3.5 py-1.5 text-[10px] font-bold text-gray-500 hover:text-primary bg-canvas dark:bg-[#181715] hover:bg-surface-soft dark:hover:bg-[#202022] border border-hairline rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1"
                         >
-                          <Plus className="w-2.5 h-2.5 text-primary" />
+                          <Plus className="w-3 h-3 text-primary" />
                           Markdown
                         </button>
                       </div>
