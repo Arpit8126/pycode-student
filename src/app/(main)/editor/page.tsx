@@ -321,13 +321,11 @@ export default function CodeEditorPage() {
         const activeTab = alignedTabs.find(t => t.name === activeName)!
         setEditorFormat(activeTab.format)
         
-        if (activeTab.format === 'cell') {
-          setCells(activeTab.cells)
-        } else {
-          setCode(activeTab.code)
-          if (editorRef.current) {
-            editorRef.current.setValue(activeTab.code)
-          }
+        // Restore BOTH cells and code to preserve formats context!
+        setCells(activeTab.cells)
+        setCode(activeTab.code)
+        if (activeTab.format === 'terminal' && editorRef.current) {
+          editorRef.current.setValue(activeTab.code)
         }
       } else {
         // Fallback to reload from SPA globals or standard default scratch tab
@@ -854,13 +852,11 @@ export default function CodeEditorPage() {
     setActiveFileName(tabName)
     setEditorFormat(target.format)
     
-    if (target.format === 'cell') {
-      setCells(target.cells)
-    } else {
-      setCode(target.code)
-      if (editorRef.current) {
-        editorRef.current.setValue(target.code)
-      }
+    // Restore BOTH cells and code to preserve formats context!
+    setCells(target.cells)
+    setCode(target.code)
+    if (target.format === 'terminal' && editorRef.current) {
+      editorRef.current.setValue(target.code)
     }
     setTimeout(() => {
       ignoreChangeRef.current = false
@@ -3031,6 +3027,9 @@ export default function CodeEditorPage() {
                                   const contentHeight = editor.getContentHeight()
                                   const editorElement = editor.getDomNode()
                                   if (editorElement) {
+                                    if (editorElement.parentElement) {
+                                      editorElement.parentElement.style.height = `${contentHeight}px`
+                                    }
                                     editorElement.style.height = `${contentHeight}px`
                                     editor.layout()
                                   }
