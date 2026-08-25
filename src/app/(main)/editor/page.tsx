@@ -2808,7 +2808,7 @@ export default function CodeEditorPage() {
                       {isIpynb ? (
                         <Database className="w-3.5 h-3.5 text-primary rotate-90" />
                       ) : isPy ? (
-                        <FileCode className="w-3.5 h-3.5 text-sky-500" />
+                        <FileCode className="w-3.5 h-3.5 text-primary/70" />
                       ) : (
                         <FileCode className="w-3.5 h-3.5 text-gray-400" />
                       )}
@@ -2917,54 +2917,51 @@ export default function CodeEditorPage() {
                       key={cell.id}
                       id={`cell_container_${cell.id}`}
                       onClick={() => setActiveCellId(cell.id)}
-                      className="group/cell relative flex flex-col pl-14 pr-4 py-3 bg-transparent border-none shadow-none"
+                      className="group/cell relative flex flex-col gap-2 py-2 bg-transparent"
                     >
-                      {/* Left vertical highlights bar for active cell */}
-                      {isActive && (
-                        <div className="absolute left-2.5 top-3 w-[4px] h-[34px] bg-primary rounded-full transition-all" />
-                      )}
-
-                      {/* Hover Actions Toolbar */}
-                      <div className="absolute top-4 right-8 flex items-center gap-0.5 bg-white dark:bg-[#202022] border border-hairline rounded-lg p-0.5 shadow-sm opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, type: c.type === 'markdown' ? 'code' : 'markdown' } : c));
-                          }}
-                          className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase text-gray-400 hover:text-primary rounded cursor-pointer transition-colors"
-                          title={`Switch to ${cell.type === 'markdown' ? 'Code' : 'Markdown'} cell`}
-                        >
-                          {cell.type === 'markdown' ? 'Code' : 'Markdown'}
-                        </button>
-                        <div className="w-[1px] h-3 bg-hairline mx-0.5" />
-                        <button
-                          onClick={(e) => { e.stopPropagation(); moveCellUp(index); }}
-                          disabled={index === 0}
-                          className="p-1 text-gray-400 hover:text-ink hover:bg-surface-soft dark:hover:bg-white/10 rounded disabled:opacity-30 cursor-pointer transition-colors"
-                          title="Move cell up"
-                        >
-                          <ChevronUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); moveCellDown(index); }}
-                          disabled={index === cells.length - 1}
-                          className="p-1 text-gray-400 hover:text-ink hover:bg-surface-soft dark:hover:bg-white/10 rounded disabled:opacity-30 cursor-pointer transition-colors"
-                          title="Move cell down"
-                        >
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        </button>
-                        {cell.type !== 'markdown' && (
-                          <>
+                      {/* ── Top toolbar row: always visible on hover, above the editor card ── */}
+                      <div className="flex items-center justify-between px-1 opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
+                        {/* Left: cell type badge + move buttons */}
+                        <div className="flex items-center gap-1">
+                          {/* Type toggle badge */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, type: c.type === 'markdown' ? 'code' : 'markdown' } : c));
+                            }}
+                            className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide rounded-md border border-hairline bg-surface-soft dark:bg-surface-card text-muted hover:text-primary hover:border-primary/40 cursor-pointer transition-all"
+                            title={`Switch to ${cell.type === 'markdown' ? 'Code' : 'Markdown'} cell`}
+                          >
+                            {cell.type === 'markdown' ? '{ } Code' : 'MD Markdown'}
+                          </button>
+                          <div className="w-px h-4 bg-hairline mx-1" />
+                          <button
+                            onClick={(e) => { e.stopPropagation(); moveCellUp(index); }}
+                            disabled={index === 0}
+                            className="p-1 text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-white/10 rounded-md disabled:opacity-25 cursor-pointer transition-colors"
+                            title="Move cell up"
+                          >
+                            <ChevronUp className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); moveCellDown(index); }}
+                            disabled={index === cells.length - 1}
+                            className="p-1 text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-white/10 rounded-md disabled:opacity-25 cursor-pointer transition-colors"
+                            title="Move cell down"
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                          {cell.type !== 'markdown' && (
                             <button
                               onClick={(e) => { e.stopPropagation(); clearCellOutput(cell.id); }}
-                              className="p-1 text-gray-400 hover:text-ink hover:bg-surface-soft dark:hover:bg-white/10 rounded cursor-pointer transition-colors"
-                              title="Clear cell outputs"
+                              className="p-1 text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-white/10 rounded-md cursor-pointer transition-colors"
+                              title="Clear outputs"
                             >
-                              <RotateCcw className="w-3.5 h-3.5" />
+                              <RotateCcw className="w-4 h-4" />
                             </button>
-                          </>
-                        )}
-                        <div className="w-[1px] h-3 bg-hairline mx-0.5" />
+                          )}
+                        </div>
+                        {/* Right: labeled delete button */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
@@ -2974,42 +2971,43 @@ export default function CodeEditorPage() {
                               updateCells(prev => prev.filter(c => c.id !== cell.id))
                             }
                           }}
-                          className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded cursor-pointer transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-red-500/80 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 bg-transparent hover:bg-red-50 dark:hover:bg-red-950/30 border border-transparent hover:border-red-200/60 dark:hover:border-red-900/50 rounded-lg cursor-pointer transition-all"
                           title="Delete cell"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
+                          Delete
                         </button>
                       </div>
 
                       {/* Main Cell Content Grid */}
-                      <div className="flex items-start gap-3 w-full">
+                      <div className={`flex items-start gap-4 w-full rounded-xl transition-all duration-200 ${
+                        isActive ? 'ring-1 ring-primary/20' : ''
+                      }`}>
                         
-                        {/* Play/Type Indicator Margin */}
-                        <div className="absolute left-6 top-3 w-8 select-none flex flex-col items-center justify-start">
+                        {/* Left gutter: active indicator bar + execution counter + play */}
+                        <div className="w-12 shrink-0 select-none flex flex-col items-center pt-4 gap-1">
+                          {/* Active indicator */}
+                          <div className={`w-0.5 h-5 rounded-full transition-all duration-200 ${
+                            isActive ? 'bg-primary' : 'bg-transparent'
+                          }`} />
                           {cell.type === 'markdown' ? (
-                            <div className="flex items-center justify-center h-[34px]" title="Markdown cell">
-                              <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 font-bold uppercase">MD</span>
-                            </div>
+                            <span className="text-[9px] font-mono text-muted font-bold uppercase tracking-widest mt-1">MD</span>
                           ) : (
-                            <div className="relative w-8 h-[34px] flex items-center justify-center">
+                            <div className="relative flex flex-col items-center gap-0.5 mt-1">
+                              <span className="font-mono text-[10px] text-muted select-none">
+                                [{cell.hasRun ? index + 1 : ' '}]
+                              </span>
                               {isCellRunning ? (
-                                <RefreshCw className="w-4 h-4 text-primary animate-spin" />
+                                <RefreshCw className="w-4 h-4 text-primary animate-spin mt-1" />
                               ) : (
-                                <>
-                                  {/* Play icon outline */}
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); runCell(cell.id); }}
-                                    disabled={pyodideState !== 'ready' || isRunning}
-                                    className="absolute inset-0 z-10 flex items-center justify-center text-gray-400 hover:text-primary transition-colors cursor-pointer disabled:opacity-50"
-                                    title="Run cell"
-                                  >
-                                    <Play className="w-3.5 h-3.5 stroke-1 fill-none" />
-                                  </button>
-                                  {/* Execution count brackets on left */}
-                                  <span className="absolute -left-6 font-mono text-[9px] text-gray-400 dark:text-gray-500 font-bold select-none">
-                                    [{cell.hasRun ? index + 1 : ' '}]
-                                  </span>
-                                </>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); runCell(cell.id); }}
+                                  disabled={pyodideState !== 'ready' || isRunning}
+                                  className="mt-1 w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-primary hover:bg-primary/10 transition-all cursor-pointer disabled:opacity-40"
+                                  title="Run cell (Shift+Enter)"
+                                >
+                                  <Play className="w-3.5 h-3.5 fill-none stroke-2" />
+                                </button>
                               )}
                             </div>
                           )}
@@ -3017,16 +3015,20 @@ export default function CodeEditorPage() {
 
                         {/* Editor Column */}
                         <div 
-                          className={`flex-1 min-w-0 rounded-xl transition-all duration-200 p-3.5 ${
+                          className={`flex-1 min-w-0 rounded-xl transition-all duration-200 ${
                             cell.type === 'markdown' && !isActive
-                              ? 'bg-transparent border border-transparent'
-                              : 'bg-surface-soft/45 dark:bg-[#202022] border border-hairline/50 dark:border-[#2d2c2e]'
+                              ? 'border border-transparent hover:border-hairline/40'
+                              : `border ${
+                                  isActive
+                                    ? 'border-primary/30 dark:border-primary/20 bg-canvas dark:bg-[#1c1b19]'
+                                    : 'border-hairline dark:border-[#2d2c2e] bg-surface-soft/30 dark:bg-[#1c1b19]'
+                                }`
                           }`}
                           onClick={(e) => e.stopPropagation()}
                         >
                           {cell.type === 'markdown' && !isActive ? (
                             <div 
-                              className="w-full text-ink min-h-[48px] px-4 py-3 bg-surface-soft/10 dark:bg-black/5 rounded-lg border border-transparent hover:border-hairline/25 cursor-text transition-all leading-relaxed text-sm select-text"
+                              className="w-full text-ink min-h-[72px] px-5 py-4 rounded-lg cursor-text transition-all leading-relaxed text-sm select-text"
                               onDoubleClick={() => setActiveCellId(cell.id)}
                               onClick={() => setActiveCellId(cell.id)}
                             >
@@ -3073,7 +3075,7 @@ export default function CodeEditorPage() {
                                 })
                               }}
                               options={{
-                                fontSize: 13,
+                                fontSize: 14,
                                 fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
                                 minimap: { enabled: false },
                                 lineNumbers: 'off',
@@ -3084,6 +3086,7 @@ export default function CodeEditorPage() {
                                 wordWrap: 'on',
                                 automaticLayout: true,
                                 fixedOverflowWidgets: true,
+                                padding: { top: 14, bottom: 14 },
                                 scrollbar: {
                                   vertical: 'hidden',
                                   horizontal: 'hidden',
