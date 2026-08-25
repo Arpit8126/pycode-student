@@ -23,11 +23,12 @@ interface CellType {
   error: string;
   isRunning?: boolean;
   hasRun?: boolean;
+  type?: 'code' | 'markdown';
 }
 
 const notebookToCells = (notebook: any): CellType[] => {
   if (!notebook || !Array.isArray(notebook.cells)) {
-    return [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false }];
+    return [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }];
   }
   return notebook.cells.map((c: any, index: number) => {
     const source = Array.isArray(c.source) ? c.source.join('') : (c.source || '');
@@ -59,7 +60,8 @@ const notebookToCells = (notebook: any): CellType[] => {
       plot: plotImg,
       error: errorText,
       isRunning: false,
-      hasRun: outputText !== '' || errorText !== '' || plotImg !== ''
+      hasRun: outputText !== '' || errorText !== '' || plotImg !== '',
+      type: c.cell_type === 'markdown' ? 'markdown' : 'code'
     };
   });
 };
@@ -68,38 +70,40 @@ const cellsToNotebook = (cellsList: CellType[]) => {
   return {
     cells: cellsList.map(c => {
       const outputs: any[] = [];
-      if (c.output) {
-        outputs.push({
-          output_type: 'stream',
-          name: 'stdout',
-          text: c.output.split('\n').map((line, idx, arr) => line + (idx < arr.length - 1 ? '\n' : ''))
-        });
-      }
-      if (c.plot) {
-        const base64Data = c.plot.replace(/^data:image\/png;base64,/, '');
-        outputs.push({
-          output_type: 'display_data',
-          data: {
-            'image/png': base64Data,
-            'text/plain': ['<Figure size matplotlib>']
-          },
-          metadata: {}
-        });
-      }
-      if (c.error) {
-        outputs.push({
-          output_type: 'error',
-          ename: 'Error',
-          evalue: c.error,
-          traceback: [c.error]
-        });
+      if (c.type !== 'markdown') {
+        if (c.output) {
+          outputs.push({
+            output_type: 'stream',
+            name: 'stdout',
+            text: c.output.split('\n').map((line, idx, arr) => line + (idx < arr.length - 1 ? '\n' : ''))
+          });
+        }
+        if (c.plot) {
+          const base64Data = c.plot.replace(/^data:image\/png;base64,/, '');
+          outputs.push({
+            output_type: 'display_data',
+            data: {
+              'image/png': base64Data,
+              'text/plain': ['<Figure size matplotlib>']
+            },
+            metadata: {}
+          });
+        }
+        if (c.error) {
+          outputs.push({
+            output_type: 'error',
+            ename: 'Error',
+            evalue: c.error,
+            traceback: [c.error]
+          });
+        }
       }
       const cleanCode = c.code.replace(/^\n+|\n+$/g, '');
       return {
-        cell_type: 'code',
+        cell_type: c.type || 'code',
         execution_count: null,
         metadata: {},
-        outputs: outputs,
+        outputs: c.type === 'markdown' ? [] : outputs,
         source: cleanCode.split('\n').map((line, idx, arr) => line + (idx < arr.length - 1 ? '\n' : ''))
       };
     }),
@@ -123,11 +127,51 @@ declare global {
 
 let globalDraftCode = '# Write your code here\n';
 let globalDraftCells: CellType[] = [
-  { id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false }
+  { id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, type: 'code' }
 ];
 let globalDraftFormat: 'terminal' | 'cell' = 'terminal';
 let globalActiveFileName: string | null = null;
 let globalLastSavedCode: string = '# Write your code here\n';
+const renderMarkdown = (text: string) => {
+  if (!text) return <p className="text-gray-400 italic text-xs">Empty markdown cell. Double-click to edit.</p>;
+  const lines = text.split('\n');
+  const htmlElements = lines.map((line, idx) => {
+    if (line.startsWith('# ')) {
+      return <h1 key={idx} className="text-xl font-bold text-ink mt-3 mb-2">{line.substring(2)}</h1>;
+    }
+    if (line.startsWith('## ')) {
+      return <h2 key={idx} className="text-lg font-bold text-ink mt-2.5 mb-1.5">{line.substring(3)}</h2>;
+    }
+    if (line.startsWith('### ')) {
+      return <h3 key={idx} className="text-base font-bold text-ink mt-2 mb-1">{line.substring(4)}</h3>;
+    }
+    if (line.startsWith('- ') || line.startsWith('* ')) {
+      return <li key={idx} className="ml-4 list-disc text-sm text-body leading-relaxed">{line.substring(2)}</li>;
+    }
+    if (/^\d+\.\s/.test(line)) {
+      return <li key={idx} className="ml-4 list-decimal text-sm text-body leading-relaxed">{line.substring(line.indexOf(' ') + 1)}</li>;
+    }
+    if (line.startsWith('> ')) {
+      return <blockquote key={idx} className="border-l-4 border-primary/40 pl-3 py-1 my-2 text-sm text-gray-500 bg-surface-soft rounded-r-md">{line.substring(2)}</blockquote>;
+    }
+    if (line.trim() === '') {
+      return <div key={idx} className="h-2" />;
+    }
+    const formattedText = line
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`(.*?)`/g, '<code class="bg-surface-soft px-1 rounded text-xs font-mono">$1</code>');
+      
+    return (
+      <p 
+        key={idx} 
+        className="text-sm text-body leading-relaxed min-h-[1.25rem]"
+        dangerouslySetInnerHTML={{ __html: formattedText }}
+      />
+    );
+  });
+  return <div className="space-y-1 font-sans">{htmlElements}</div>;
+};
 
 export default function CodeEditorPage() {
   const supabase = createClient()
@@ -255,7 +299,7 @@ export default function CodeEditorPage() {
         } else {
           // No active file, start fresh but preserve format preference
           setCode('# Write your code here\n')
-          setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false }])
+          setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }])
           setEditorFormat(savedFormat || 'terminal')
           setActiveFileName(null)
           setLastSavedCode('# Write your code here\n')
@@ -743,6 +787,12 @@ export default function CodeEditorPage() {
           return
         }
         
+        if (cell.type === 'markdown') {
+          setCells(prev => prev.map(c => c.id === activeCellId ? { ...c, isRunning: false, hasRun: true } : c))
+          setRunningCellQueue(prev => prev.slice(1))
+          return
+        }
+        
         setIsRunning(true)
         setCells(prev => prev.map(c => c.id === activeCellId ? { ...c, isRunning: true, output: '', error: '', plot: '' } : c))
         
@@ -762,6 +812,11 @@ export default function CodeEditorPage() {
   }, [runningCellQueue, isRunning, pyodideState, cells])
 
   const runCell = (cellId: string) => {
+    const cell = cells.find(c => c.id === cellId)
+    if (cell?.type === 'markdown') {
+      setCells(prev => prev.map(c => c.id === cellId ? { ...c, isRunning: false, hasRun: true } : c))
+      return
+    }
     setCells(prev => prev.map(c => c.id === cellId ? { ...c, output: '', error: '', plot: '', isRunning: true, hasRun: false } : c))
     setRunningCellQueue(prev => {
       if (prev.includes(cellId)) return prev
@@ -770,37 +825,97 @@ export default function CodeEditorPage() {
   }
 
   const runAllCells = () => {
-    setCells(prev => prev.map(c => ({ ...c, output: '', error: '', plot: '', isRunning: true, hasRun: false })))
-    setRunningCellQueue(cells.map(c => c.id))
+    setCells(prev => prev.map(c => {
+      if (c.type === 'markdown') {
+        return { ...c, hasRun: true, isRunning: false }
+      }
+      return { ...c, output: '', error: '', plot: '', isRunning: true, hasRun: false }
+    }))
+    const codeCellIds = cells.filter(c => c.type !== 'markdown').map(c => c.id)
+    setRunningCellQueue(codeCellIds)
   }
 
   const shiftToCellFormat = () => {
-    const parts = code.split(/#\s*%%\s*(?:\n|$)/)
-    let parsedCells = parts.map((part, index) => ({
-      id: `cell_${index}_${Math.random().toString(36).substring(5)}`,
-      code: part.replace(/^\n+|\n+$/g, ''),
-      output: '',
-      plot: '',
-      error: '',
-      isRunning: false,
-      hasRun: false
-    }))
-    if (parsedCells.length > 1 && parsedCells[0].code.trim() === '') {
-      parsedCells.shift()
+    const lines = code.split('\n');
+    const parsedCells: CellType[] = [];
+    let currentCell: { code: string[]; type: 'code' | 'markdown' } | null = null;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const matchMarkdown = line.match(/^#\s*%%\s*\[markdown\]/i);
+      const matchCode = line.match(/^#\s*%%\s*(?!\[markdown\])/i) || (!currentCell && i === 0 && !line.startsWith('# %%'));
+      
+      if (matchMarkdown) {
+        if (currentCell) {
+          parsedCells.push({
+            id: `cell_${parsedCells.length}_${Math.random().toString(36).substring(5)}`,
+            code: currentCell.code.join('\n').replace(/^\n+|\n+$/g, ''),
+            output: '', plot: '', error: '', isRunning: false, hasRun: false,
+            type: currentCell.type
+          });
+        }
+        currentCell = { code: [], type: 'markdown' };
+      } else if (matchCode) {
+        if (currentCell) {
+          parsedCells.push({
+            id: `cell_${parsedCells.length}_${Math.random().toString(36).substring(5)}`,
+            code: currentCell.code.join('\n').replace(/^\n+|\n+$/g, ''),
+            output: '', plot: '', error: '', isRunning: false, hasRun: false,
+            type: currentCell.type
+          });
+        }
+        currentCell = { 
+          code: line.startsWith('# %%') ? [] : [line], 
+          type: 'code' 
+        };
+      } else {
+        if (!currentCell) {
+          currentCell = { code: [], type: 'code' };
+        }
+        if (currentCell.type === 'markdown') {
+          const strippedLine = line.startsWith('# ') ? line.substring(2) : (line.startsWith('#') ? line.substring(1) : line);
+          currentCell.code.push(strippedLine);
+        } else {
+          currentCell.code.push(line);
+        }
+      }
     }
-    if (parsedCells.length === 0) {
-      parsedCells = [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false }]
+    
+    if (currentCell) {
+      parsedCells.push({
+        id: `cell_${parsedCells.length}_${Math.random().toString(36).substring(5)}`,
+        code: currentCell.code.join('\n').replace(/^\n+|\n+$/g, ''),
+        output: '', plot: '', error: '', isRunning: false, hasRun: false,
+        type: currentCell.type
+      });
     }
-    setCells(parsedCells)
+    
+    let finalCells = parsedCells;
+    if (finalCells.length > 1 && finalCells[0].code.trim() === '' && finalCells[0].type === 'code') {
+      finalCells.shift()
+    }
+    if (finalCells.length === 0) {
+      finalCells = [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }]
+    }
+    setCells(finalCells)
     setEditorFormat('cell')
   }
 
   const shiftToTerminalFormat = () => {
     let mergedCode = ''
     if (cells.length === 1) {
-      mergedCode = cells[0].code.replace(/^\n+|\n+$/g, '')
+      if (cells[0].type === 'markdown') {
+        mergedCode = `# %% [markdown]\n${cells[0].code.split('\n').map(line => `# ${line}`).join('\n')}`
+      } else {
+        mergedCode = cells[0].code.replace(/^\n+|\n+$/g, '')
+      }
     } else {
-      mergedCode = cells.map(c => `# %%\n${c.code.replace(/^\n+|\n+$/g, '')}`).join('\n\n')
+      mergedCode = cells.map(c => {
+        if (c.type === 'markdown') {
+          return `# %% [markdown]\n${c.code.split('\n').map(line => `# ${line}`).join('\n')}`
+        }
+        return `# %%\n${c.code.replace(/^\n+|\n+$/g, '')}`
+      }).join('\n\n')
     }
     setCode(mergedCode)
     if (editorRef.current) {
@@ -836,11 +951,11 @@ export default function CodeEditorPage() {
   }
 
   const focusCellTextarea = (cellId: string) => {
+    setActiveCellId(cellId)
     setTimeout(() => {
-      const textarea = document.getElementById(`textarea_${cellId}`) as HTMLTextAreaElement | null
-      if (textarea) {
-        textarea.focus()
-        textarea.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      const cellEl = document.getElementById(`cell_container_${cellId}`)
+      if (cellEl) {
+        cellEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       }
     }, 100)
   }
@@ -1091,7 +1206,7 @@ export default function CodeEditorPage() {
       setCode(blank)
       setLastSavedCode(blank)
       setEditorFormat('terminal')
-      setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '' }])
+      setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', type: 'code' }])
       if (editorRef.current) editorRef.current.setValue(blank)
     }
     setSavedFiles(prev => prev.filter(f => f.name !== name))
@@ -1510,6 +1625,10 @@ export default function CodeEditorPage() {
     setIsRunning(false)
     setConsoleOutput(prev => prev + '\n[Program Terminated by User]')
     
+    // Reset cell execution states for Jupyter cells
+    setRunningCellQueue([])
+    setCells(prev => prev.map(c => c.isRunning ? { ...c, isRunning: false, error: 'Program Terminated by User', hasRun: true } : c))
+
     // Respawn worker to restore VM state
     initWorker()
   }
@@ -2339,7 +2458,7 @@ export default function CodeEditorPage() {
                     const blank = '# Write your code here\n'
                     setCode(blank)
                     setLastSavedCode(blank)
-                    setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false }])
+                    setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }])
                     if (editorRef.current) editorRef.current.setValue(blank)
                   }}
                   title="Exit file — go to free scratch"
@@ -2448,13 +2567,24 @@ export default function CodeEditorPage() {
                     <button
                       onClick={() => {
                         const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
-                        setCells(prev => [...prev, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false }])
+                        setCells(prev => [...prev, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'code' }])
                         focusCellTextarea(newId)
                       }}
                       className="px-3.5 py-1.5 rounded-xl border border-hairline bg-surface-soft hover:bg-surface-card text-ink text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Add Code Cell
+                    </button>
+                    <button
+                      onClick={() => {
+                        const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
+                        setCells(prev => [...prev, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'markdown' }])
+                        focusCellTextarea(newId)
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl border border-hairline bg-surface-soft hover:bg-surface-card text-ink text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Markdown Cell
                     </button>
                   </div>
                   <span className="text-[10px] text-gray-500 font-mono font-bold">
@@ -2469,6 +2599,7 @@ export default function CodeEditorPage() {
                   return (
                     <div
                       key={cell.id}
+                      id={`cell_container_${cell.id}`}
                       onClick={() => setActiveCellId(cell.id)}
                       className={`group/cell relative flex flex-col border rounded-xl transition-all duration-200 pl-2 pr-4 py-3 bg-canvas dark:bg-canvas ${
                         isActive 
@@ -2483,6 +2614,17 @@ export default function CodeEditorPage() {
 
                       {/* Hover Actions Toolbar */}
                       <div className="absolute -top-3.5 right-4 flex items-center gap-1 bg-canvas dark:bg-surface-soft border border-hairline px-1.5 py-0.5 rounded-lg shadow-sm opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCells(prev => prev.map(c => c.id === cell.id ? { ...c, type: c.type === 'markdown' ? 'code' : 'markdown' } : c));
+                          }}
+                          className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase text-gray-500 hover:text-primary hover:bg-surface-soft rounded cursor-pointer transition-colors border border-transparent hover:border-hairline"
+                          title={`Switch to ${cell.type === 'markdown' ? 'Code' : 'Markdown'} cell`}
+                        >
+                          {cell.type === 'markdown' ? 'Code' : 'Markdown'}
+                        </button>
+                        <div className="w-[1px] h-3.5 bg-hairline mx-0.5" />
                         <button
                           onClick={(e) => { e.stopPropagation(); moveCellUp(index); }}
                           disabled={index === 0}
@@ -2499,19 +2641,23 @@ export default function CodeEditorPage() {
                         >
                           <ChevronDown className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); clearCellOutput(cell.id); }}
-                          className="p-1 text-gray-500 hover:text-ink hover:bg-surface-soft rounded cursor-pointer transition-colors"
-                          title="Clear cell outputs"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                        </button>
-                        <div className="w-[1px] h-3.5 bg-hairline mx-0.5" />
+                        {cell.type !== 'markdown' && (
+                          <>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); clearCellOutput(cell.id); }}
+                              className="p-1 text-gray-500 hover:text-ink hover:bg-surface-soft rounded cursor-pointer transition-colors"
+                              title="Clear cell outputs"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                            <div className="w-[1px] h-3.5 bg-hairline mx-0.5" />
+                          </>
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
                             if (cells.length === 1) {
-                              setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '' }])
+                              setCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', type: 'code' }])
                             } else {
                               setCells(prev => prev.filter(c => c.id !== cell.id))
                             }
@@ -2526,81 +2672,101 @@ export default function CodeEditorPage() {
                       {/* Main Cell Content Grid */}
                       <div className="flex items-start gap-3 w-full">
                         
-                        {/* Play Indicator Margin */}
+                        {/* Play/Type Indicator Margin */}
                         <div className="w-12 shrink-0 select-none flex flex-col items-center justify-start pt-1.5 relative">
-                          <div className="relative w-12 h-6 flex items-center justify-center">
-                            {/* Circular spinner when running */}
-                            {isCellRunning ? (
-                              <RefreshCw className="w-4 h-4 text-primary animate-spin" />
-                            ) : (
-                              <>
-                                {/* Play icon on hover / focus */}
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); runCell(cell.id); }}
-                                  disabled={pyodideState !== 'ready' || isRunning}
-                                  className="absolute inset-x-3 inset-y-0 z-10 rounded-full bg-primary text-white flex items-center justify-center opacity-0 group-hover/cell:opacity-100 group-focus-within/cell:opacity-100 transition-opacity cursor-pointer shadow-sm disabled:opacity-50"
-                                >
-                                  <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
-                                </button>
-                                {/* Default execution number index, hidden on hover */}
-                                <div className="flex items-center gap-0.5 pointer-events-none group-hover/cell:opacity-0 group-focus-within/cell:opacity-0 transition-opacity">
-                                  <span className="text-[11px] font-mono text-gray-400 dark:text-gray-500 font-bold">
-                                    [{index + 1}]
-                                  </span>
-                                  {cell.hasRun && (
-                                    <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </div>
+                          {cell.type === 'markdown' ? (
+                            <div className="flex items-center justify-center h-6" title="Markdown cell">
+                              <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 font-bold uppercase">MD</span>
+                            </div>
+                          ) : (
+                            <div className="relative w-12 h-6 flex items-center justify-center">
+                              {/* Circular spinner when running */}
+                              {isCellRunning ? (
+                                <RefreshCw className="w-4 h-4 text-primary animate-spin" />
+                              ) : (
+                                <>
+                                  {/* Play icon on hover / focus */}
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); runCell(cell.id); }}
+                                    disabled={pyodideState !== 'ready' || isRunning}
+                                    className="absolute inset-x-3 inset-y-0 z-10 rounded-full bg-primary text-white flex items-center justify-center opacity-0 group-hover/cell:opacity-100 group-focus-within/cell:opacity-100 transition-opacity cursor-pointer shadow-sm disabled:opacity-50"
+                                  >
+                                    <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+                                  </button>
+                                  {/* Default execution number index, hidden on hover */}
+                                  <div className="flex items-center gap-0.5 pointer-events-none group-hover/cell:opacity-0 group-focus-within/cell:opacity-0 transition-opacity">
+                                    <span className="text-[11px] font-mono text-gray-400 dark:text-gray-500 font-bold">
+                                      [{index + 1}]
+                                    </span>
+                                    {cell.hasRun && (
+                                      <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                    )}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
                         </div>
 
-                        {/* Code Editor Column */}
+                        {/* Editor Column */}
                         <div className="flex-1 min-w-0 bg-[#fafafa] dark:bg-[#151413] rounded-lg border border-gray-300 dark:border-[#403f3e] focus-within:border-primary/80 transition-colors p-2.5">
-                          <textarea
-                            id={`textarea_${cell.id}`}
-                            value={cell.code}
-                            onChange={(e) => {
-                              const val = e.target.value
-                              setCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val } : c))
-                            }}
-                            placeholder="# Write your Python code here..."
-                            rows={Math.max(2, cell.code.split('\n').length)}
-                            onFocus={() => setActiveCellId(cell.id)}
-                            onPaste={(e) => {
-                              const target = e.currentTarget;
-                              setTimeout(() => {
-                                target.scrollIntoView({ behavior: 'smooth', block: 'end' });
-                              }, 80);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && e.shiftKey) {
-                                e.preventDefault()
-                                runCell(cell.id)
-                              }
-                              if (e.key === 'Enter' && e.altKey) {
-                                e.preventDefault()
-                                runCell(cell.id)
-                                const newId = `cell_${Date.now()}`
-                                setCells(prev => {
-                                  const next = [...prev]
-                                  next.splice(index + 1, 0, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false })
-                                  return next
+                          {cell.type === 'markdown' && !isActive ? (
+                            <div 
+                              className="w-full text-ink min-h-[40px] px-1 py-1 cursor-text"
+                              onDoubleClick={() => setActiveCellId(cell.id)}
+                              onClick={() => setActiveCellId(cell.id)}
+                            >
+                              {renderMarkdown(cell.code)}
+                            </div>
+                          ) : (
+                            <Editor
+                              height={`${Math.max(60, cell.code.split('\n').length * 19 + 10)}px`}
+                              language={cell.type === 'markdown' ? 'markdown' : 'python'}
+                              theme={theme === 'dark' ? 'vs-dark' : 'light'}
+                              value={cell.code}
+                              onChange={(val) => {
+                                setCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val || '' } : c))
+                              }}
+                              onMount={(editor, monacoInstance) => {
+                                editor.onDidFocusEditorText(() => {
+                                  setActiveCellId(cell.id)
                                 })
-                                focusCellTextarea(newId)
-                              }
-                            }}
-                            disabled={isRunning}
-                            className="w-full bg-transparent text-ink font-mono text-sm focus:outline-none resize-none leading-relaxed p-1 border-0 select-text"
-                            style={{ fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace' }}
-                          />
+                                editor.addCommand(monacoInstance.KeyMod.Shift | monacoInstance.KeyCode.Enter, () => {
+                                  if (cell.type === 'markdown') {
+                                    setCells(prev => prev.map(c => c.id === cell.id ? { ...c, hasRun: true } : c))
+                                    setActiveCellId(null)
+                                  } else {
+                                    runCell(cell.id)
+                                  }
+                                })
+                              }}
+                              options={{
+                                fontSize: 13,
+                                fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
+                                minimap: { enabled: false },
+                                lineNumbers: 'off',
+                                folding: false,
+                                lineDecorationsWidth: 0,
+                                lineNumbersMinChars: 0,
+                                scrollBeyondLastLine: false,
+                                wordWrap: 'on',
+                                automaticLayout: true,
+                                scrollbar: {
+                                  vertical: 'hidden',
+                                  horizontal: 'hidden',
+                                  handleMouseWheel: false
+                                },
+                                contextmenu: false,
+                                readOnly: isRunning || isCellRunning,
+                              }}
+                            />
+                          )}
                         </div>
 
                       </div>
 
                       {/* Cell Output Section */}
-                      {(cell.output || cell.error || cell.plot) && (
+                      {cell.type !== 'markdown' && (cell.output || cell.error || cell.plot) && (
                         <div 
                           id={`cell_output_${cell.id}`}
                           className="mt-3 border-t border-hairline/30 pt-3 pl-12 flex items-start gap-3 w-full relative group/output"
@@ -2653,22 +2819,39 @@ export default function CodeEditorPage() {
                       )}
 
                       {/* Hover Add Cell Below center pill */}
-                      <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20">
+                      <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 opacity-0 group-hover/cell:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20 flex items-center gap-1.5 bg-canvas dark:bg-surface-soft border border-hairline px-2 py-0.5 rounded-full shadow-sm">
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
                             const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
                             setCells(prev => {
                               const next = [...prev]
-                              next.splice(index + 1, 0, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false })
+                              next.splice(index + 1, 0, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'code' })
                               return next
                             })
                             focusCellTextarea(newId)
                           }}
-                          className="px-3 py-1 rounded-full border border-gray-300 dark:border-[#403f3e] bg-canvas dark:bg-surface-soft hover:bg-surface-soft hover:text-primary dark:hover:bg-[#1a1a1a] text-ink text-[10px] font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
+                          className="px-2 py-0.5 text-[9px] font-bold text-ink hover:text-primary flex items-center gap-1 cursor-pointer transition-colors"
                         >
-                          <Plus className="w-3 h-3 text-primary" />
-                          Code Cell
+                          <Plus className="w-2.5 h-2.5 text-primary" />
+                          Code
+                        </button>
+                        <div className="w-[1px] h-3 bg-hairline" />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const newId = `cell_${Date.now()}_${Math.random().toString(36).substring(5)}`
+                            setCells(prev => {
+                              const next = [...prev]
+                              next.splice(index + 1, 0, { id: newId, code: '', output: '', plot: '', error: '', isRunning: false, type: 'markdown' })
+                              return next
+                            })
+                            focusCellTextarea(newId)
+                          }}
+                          className="px-2 py-0.5 text-[9px] font-bold text-ink hover:text-primary flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <Plus className="w-2.5 h-2.5 text-primary" />
+                          Markdown
                         </button>
                       </div>
 
