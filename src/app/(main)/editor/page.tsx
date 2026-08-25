@@ -307,13 +307,18 @@ export default function CodeEditorPage() {
       }
       
       if (parsedTabs.length > 0) {
-        setTabs(parsedTabs)
-        const activeName = storedActiveTab && parsedTabs.some(t => t.name === storedActiveTab)
+        // Enforce format alignment based on file extension
+        const alignedTabs = parsedTabs.map(t => ({
+          ...t,
+          format: t.name.endsWith('.ipynb') ? 'cell' : 'terminal' as 'cell' | 'terminal'
+        }))
+        setTabs(alignedTabs)
+        const activeName = storedActiveTab && alignedTabs.some(t => t.name === storedActiveTab)
           ? storedActiveTab
-          : parsedTabs[0].name
+          : alignedTabs[0].name
           
         setActiveFileName(activeName)
-        const activeTab = parsedTabs.find(t => t.name === activeName)!
+        const activeTab = alignedTabs.find(t => t.name === activeName)!
         setEditorFormat(activeTab.format)
         
         if (activeTab.format === 'cell') {
@@ -328,20 +333,20 @@ export default function CodeEditorPage() {
         // Fallback to reload from SPA globals or standard default scratch tab
         if (globalActiveFileName !== null || globalDraftCode !== '# Write your code here\n' || globalDraftFormat === 'cell') {
           const initialTab: Tab = {
-            name: globalActiveFileName || 'scratch.py',
+            name: globalActiveFileName || 'Untitled-1.py',
             code: globalDraftCode,
             cells: globalDraftCells,
-            format: globalDraftFormat,
+            format: globalActiveFileName?.endsWith('.ipynb') ? 'cell' : 'terminal',
             isDirty: false
           }
           setTabs([initialTab])
           setActiveFileName(initialTab.name)
           setCode(globalDraftCode)
           setCells(globalDraftCells)
-          setEditorFormat(globalDraftFormat)
+          setEditorFormat(initialTab.format)
         } else {
           const defaultTab: Tab = {
-            name: 'scratch.py',
+            name: 'Untitled-1.py',
             code: '# Write your code here\n',
             cells: [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }],
             format: savedFormat || 'terminal',
@@ -878,7 +883,7 @@ export default function CodeEditorPage() {
       if (finalTabs.length === 0) {
         const savedFormat = typeof window !== 'undefined' ? localStorage.getItem('pycode_editor_format') as 'terminal' | 'cell' | null : 'terminal'
         finalTabs = [{
-          name: 'scratch.py',
+          name: 'Untitled-1.py',
           code: '# Write your code here\n',
           cells: [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }],
           format: savedFormat || 'terminal',
@@ -1007,9 +1012,8 @@ export default function CodeEditorPage() {
     return base + toExt
   }
 
-  const shiftToCellFormat = () => {
-    ignoreChangeRef.current = true
-    const lines = code.split('\n');
+  const splitCodeToCells = (codeStr: string): CellType[] => {
+    const lines = codeStr.split('\n');
     const parsedCells: CellType[] = [];
     let currentCell: { code: string[]; type: 'code' | 'markdown' } | null = null;
     
@@ -1070,11 +1074,48 @@ export default function CodeEditorPage() {
     if (finalCells.length === 0) {
       finalCells = [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }]
     }
-    const newTabName = renameExtension(activeFileName || 'scratch.py', '.ipynb')
+    return finalCells;
+  }
+
+  const mergeCellsToCode = (cellsList: CellType[]): string => {
+    let mergedCode = ''
+    if (cellsList.length === 1) {
+      if (cellsList[0].type === 'markdown') {
+        mergedCode = `# %% [markdown]\n${cellsList[0].code.split('\n').map(line => `# ${line}`).join('\n')}`
+      } else {
+        mergedCode = cellsList[0].code.replace(/^\n+|\n+$/g, '')
+      }
+    } else {
+      mergedCode = cellsList.map(c => {
+        if (c.type === 'markdown') {
+          return `# %% [markdown]\n${c.code.split('\n').map(line => `# ${line}`).join('\n')}`
+        }
+        return `# %%\n${c.code.replace(/^\n+|\n+$/g, '')}`
+      }).join('\n\n')
+    }
+    return mergedCode
+  }
+
+  const shiftToCellFormat = () => {
+    ignoreChangeRef.current = true
+    const newTabName = renameExtension(activeFileName || 'Untitled-1.py', '.ipynb')
     setActiveFileName(newTabName)
-    setCells(finalCells)
     setEditorFormat('cell')
-    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name: newTabName, format: 'cell', cells: finalCells, isDirty: true } : t))
+    
+    let targetCells: CellType[] = []
+    const activeTab = tabs.find(t => t.name === activeFileName)
+    if (activeTab) {
+      targetCells = activeTab.cells
+      if (!targetCells || targetCells.length === 0 || (targetCells.length === 1 && targetCells[0].id === 'cell_default' && targetCells[0].code === '')) {
+        targetCells = splitCodeToCells(activeTab.code)
+      }
+    } else {
+      targetCells = splitCodeToCells(code)
+    }
+    
+    setCells(targetCells)
+    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name: newTabName, format: 'cell', cells: targetCells, isDirty: true } : t))
+    
     setTimeout(() => {
       ignoreChangeRef.current = false
     }, 50)
@@ -1082,29 +1123,27 @@ export default function CodeEditorPage() {
 
   const shiftToTerminalFormat = () => {
     ignoreChangeRef.current = true
-    let mergedCode = ''
-    if (cells.length === 1) {
-      if (cells[0].type === 'markdown') {
-        mergedCode = `# %% [markdown]\n${cells[0].code.split('\n').map(line => `# ${line}`).join('\n')}`
-      } else {
-        mergedCode = cells[0].code.replace(/^\n+|\n+$/g, '')
+    const newTabName = renameExtension(activeFileName || 'Untitled-1.ipynb', '.py')
+    setActiveFileName(newTabName)
+    setEditorFormat('terminal')
+    
+    let targetCode = ''
+    const activeTab = tabs.find(t => t.name === activeFileName)
+    if (activeTab) {
+      targetCode = activeTab.code
+      if (!targetCode || targetCode === '# Write your code here\n') {
+        targetCode = mergeCellsToCode(activeTab.cells)
       }
     } else {
-      mergedCode = cells.map(c => {
-        if (c.type === 'markdown') {
-          return `# %% [markdown]\n${c.code.split('\n').map(line => `# ${line}`).join('\n')}`
-        }
-        return `# %%\n${c.code.replace(/^\n+|\n+$/g, '')}`
-      }).join('\n\n')
+      targetCode = mergeCellsToCode(cells)
     }
-    const newTabName = renameExtension(activeFileName || 'scratch.ipynb', '.py')
-    setActiveFileName(newTabName)
-    setCode(mergedCode)
+    
+    setCode(targetCode)
     if (editorRef.current) {
-      editorRef.current.setValue(mergedCode)
+      editorRef.current.setValue(targetCode)
     }
-    setEditorFormat('terminal')
-    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name: newTabName, format: 'terminal', code: mergedCode, isDirty: true } : t))
+    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name: newTabName, format: 'terminal', code: targetCode, isDirty: true } : t))
+    
     setTimeout(() => {
       ignoreChangeRef.current = false
     }, 50)
@@ -2744,8 +2783,14 @@ export default function CodeEditorPage() {
                     }`}
                   >
                     {/* File Type Icon */}
-                    <span className="text-xs">
-                      {isIpynb ? '📓' : isPy ? '🐍' : '📄'}
+                    <span className="flex items-center shrink-0">
+                      {isIpynb ? (
+                        <Database className="w-3.5 h-3.5 text-primary rotate-90" />
+                      ) : isPy ? (
+                        <FileCode className="w-3.5 h-3.5 text-sky-500" />
+                      ) : (
+                        <FileCode className="w-3.5 h-3.5 text-gray-400" />
+                      )}
                     </span>
                     
                     {/* Filename */}
@@ -2960,7 +3005,7 @@ export default function CodeEditorPage() {
 
                         {/* Editor Column */}
                         <div 
-                          className="flex-1 min-w-0 bg-[#fafafa] dark:bg-[#151413] rounded-lg border border-gray-300 dark:border-[#403f3e] focus-within:border-primary/80 transition-colors p-2.5"
+                          className={`flex-1 min-w-0 rounded-xl border border-hairline focus-within:border-primary/45 transition-all duration-200 p-3 ${isActive ? 'bg-surface-soft/45 dark:bg-black/35' : 'bg-surface-soft/60 dark:bg-black/25'}`}
                           onClick={(e) => e.stopPropagation()}
                         >
                           {cell.type === 'markdown' && !isActive ? (
@@ -2973,7 +3018,7 @@ export default function CodeEditorPage() {
                             </div>
                           ) : (
                             <Editor
-                              height={`${Math.max(60, cell.code.split('\n').length * 19 + 10)}px`}
+                              height="60px"
                               language={cell.type === 'markdown' ? 'markdown' : 'python'}
                               theme={theme === 'dark' ? 'vs-dark' : 'light'}
                               value={cell.code}
@@ -2982,6 +3027,17 @@ export default function CodeEditorPage() {
                                 updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val || '' } : c))
                               }}
                               onMount={(editor, monacoInstance) => {
+                                const updateHeight = () => {
+                                  const contentHeight = editor.getContentHeight()
+                                  const editorElement = editor.getDomNode()
+                                  if (editorElement) {
+                                    editorElement.style.height = `${contentHeight}px`
+                                    editor.layout()
+                                  }
+                                }
+                                editor.onDidContentSizeChange(updateHeight)
+                                updateHeight()
+
                                 editor.onDidFocusEditorText(() => {
                                   setActiveCellId(cell.id)
                                 })
@@ -3005,6 +3061,7 @@ export default function CodeEditorPage() {
                                 scrollBeyondLastLine: false,
                                 wordWrap: 'on',
                                 automaticLayout: true,
+                                fixedOverflowWidgets: true,
                                 scrollbar: {
                                   vertical: 'hidden',
                                   horizontal: 'hidden',
@@ -3132,6 +3189,7 @@ export default function CodeEditorPage() {
                   lineNumbers: 'on',
                   scrollBeyondLastLine: false,
                   readOnly: isRunning,
+                  fixedOverflowWidgets: true,
                   padding: { top: 16, bottom: 16 },
                   cursorBlinking: 'smooth',
                   cursorStyle: 'line',
