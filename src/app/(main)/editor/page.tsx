@@ -2908,7 +2908,6 @@ export default function CodeEditorPage() {
                     {cells.length} Cell{cells.length > 1 ? 's' : ''}
                   </span>
                 </div>
-
                 {/* Cells */}
                 {cells.map((cell, index) => {
                   const isCellRunning = cell.isRunning || runningCellQueue.includes(cell.id)
@@ -2918,233 +2917,208 @@ export default function CodeEditorPage() {
                       key={cell.id}
                       id={`cell_container_${cell.id}`}
                       onClick={() => setActiveCellId(cell.id)}
-                      className="group/cell flex flex-col"
+                      className="group/cell relative flex flex-col gap-0 py-1"
                     >
-                      {/* ── Top toolbar row (hover to reveal) ── */}
-                      <div className="flex items-center justify-between px-2 h-7 opacity-0 group-hover/cell:opacity-100 transition-opacity duration-150">
-                        {/* Left controls */}
-                        <div className="flex items-center gap-0.5">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, type: c.type === 'markdown' ? 'code' : 'markdown' } : c));
-                            }}
-                            className="px-2 py-0.5 text-[10px] font-semibold rounded border border-hairline/60 bg-surface-soft dark:bg-surface-card text-muted hover:text-primary hover:border-primary/50 cursor-pointer transition-all"
-                            title={`Switch to ${cell.type === 'markdown' ? 'Code' : 'Markdown'}`}
-                          >
-                            {cell.type === 'markdown' ? '{ } Code' : '# Markdown'}
-                          </button>
-                          <div className="w-px h-3.5 bg-hairline mx-1.5" />
-                          <button
-                            onClick={(e) => { e.stopPropagation(); moveCellUp(index); }}
-                            disabled={index === 0}
-                            className="p-0.5 text-muted hover:text-ink rounded disabled:opacity-20 cursor-pointer transition-colors"
-                            title="Move up"
-                          >
-                            <ChevronUp className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); moveCellDown(index); }}
-                            disabled={index === cells.length - 1}
-                            className="p-0.5 text-muted hover:text-ink rounded disabled:opacity-20 cursor-pointer transition-colors"
-                            title="Move down"
-                          >
-                            <ChevronDown className="w-3.5 h-3.5" />
-                          </button>
-                          {cell.type !== 'markdown' && (
+                      {/* ── Full-width cell card ── */}
+                      <div
+                        className={`relative w-full rounded-2xl border transition-all duration-150 overflow-visible ${
+                          isActive
+                            ? 'border-hairline dark:border-[#3a3835] bg-[#1e1d1b] dark:bg-[#1e1d1b]'
+                            : 'border-hairline/60 dark:border-[#2a2927] bg-[#1a1917] dark:bg-[#1a1917]'
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {/* Top-right icon group — appears on hover */}
+                        <div className="absolute top-2 right-2 z-20 flex items-center gap-0 opacity-0 group-hover/cell:opacity-100 transition-opacity duration-150">
+                          <div className="flex items-center rounded-xl border border-hairline/70 dark:border-[#3a3835] bg-canvas dark:bg-[#252320] shadow-sm overflow-hidden">
+                            {/* Cell type toggle */}
                             <button
-                              onClick={(e) => { e.stopPropagation(); clearCellOutput(cell.id); }}
-                              className="p-0.5 text-muted hover:text-ink rounded cursor-pointer transition-colors"
-                              title="Clear output"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, type: c.type === 'markdown' ? 'code' : 'markdown' } : c))
+                              }}
+                              className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider text-muted hover:text-primary hover:bg-surface-soft dark:hover:bg-white/5 cursor-pointer transition-colors border-r border-hairline/50 dark:border-[#3a3835]"
+                              title={`Switch to ${cell.type === 'markdown' ? 'Code' : 'Markdown'}`}
                             >
-                              <RotateCcw className="w-3.5 h-3.5" />
+                              {cell.type === 'markdown' ? 'Code' : 'MD'}
                             </button>
-                          )}
+                            {/* Move up */}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); moveCellUp(index) }}
+                              disabled={index === 0}
+                              className="p-1.5 text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-white/5 disabled:opacity-25 cursor-pointer transition-colors"
+                              title="Move up"
+                            >
+                              <ChevronUp className="w-3.5 h-3.5" />
+                            </button>
+                            {/* Move down */}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); moveCellDown(index) }}
+                              disabled={index === cells.length - 1}
+                              className="p-1.5 text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-white/5 disabled:opacity-25 cursor-pointer transition-colors"
+                              title="Move down"
+                            >
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            </button>
+                            {/* Delete */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                if (cells.length === 1) {
+                                  updateCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', type: 'code' }])
+                                } else {
+                                  updateCells(prev => prev.filter(c => c.id !== cell.id))
+                                }
+                              }}
+                              className="p-1.5 text-muted hover:text-red-400 hover:bg-red-500/10 cursor-pointer transition-colors border-l border-hairline/50 dark:border-[#3a3835]"
+                              title="Delete cell"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
-                        {/* Right: delete */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            if (cells.length === 1) {
-                              updateCells([{ id: 'cell_default', code: '', output: '', plot: '', error: '', type: 'code' }])
-                            } else {
-                              updateCells(prev => prev.filter(c => c.id !== cell.id))
-                            }
-                          }}
-                          className="flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-semibold text-red-400/80 hover:text-red-500 hover:bg-red-500/8 border border-transparent hover:border-red-400/25 rounded cursor-pointer transition-all"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          Delete
-                        </button>
-                      </div>
 
-                      {/* ── Cell card ── */}
-                      <div className="flex items-stretch gap-0 mb-1">
-
-                        {/* Gutter */}
-                        <div className="w-14 shrink-0 flex flex-col items-center justify-start pt-3 gap-1 select-none">
-                          {/* Active indicator */}
-                          <div className={`w-[3px] h-5 rounded-full transition-colors duration-200 ${isActive ? 'bg-primary' : 'bg-transparent'}`} />
-                          {cell.type === 'markdown' ? (
-                            <span className="text-[10px] font-mono font-semibold text-muted/60 mt-1 tracking-wider">MD</span>
-                          ) : (
-                            <div className="flex flex-col items-center gap-1 mt-0.5">
-                              <span className="font-mono text-[10px] text-muted/70">
+                        {/* Cell inner layout: left run indicator + editor */}
+                        <div className="flex items-stretch">
+                          {/* Left run gutter */}
+                          {cell.type !== 'markdown' && (
+                            <div className="w-12 shrink-0 flex flex-col items-center justify-start pt-3 pb-3 select-none border-r border-hairline/30 dark:border-[#2a2927]">
+                              <span className="font-mono text-[10px] text-muted/50 mb-1">
                                 [{cell.hasRun ? index + 1 : '\u00a0'}]
                               </span>
                               {isCellRunning ? (
-                                <div className="w-5 h-5 flex items-center justify-center">
-                                  <RefreshCw className="w-3.5 h-3.5 text-primary animate-spin" />
-                                </div>
+                                <RefreshCw className="w-3.5 h-3.5 text-primary animate-spin" />
                               ) : (
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); runCell(cell.id); }}
+                                  onClick={(e) => { e.stopPropagation(); runCell(cell.id) }}
                                   disabled={pyodideState !== 'ready'}
-                                  className="w-6 h-6 rounded-full flex items-center justify-center text-muted/60 hover:text-primary hover:bg-primary/10 transition-all cursor-pointer disabled:opacity-30"
-                                  title="Run (Shift+Enter)"
+                                  className="w-6 h-6 rounded-full flex items-center justify-center text-muted/50 hover:text-primary hover:bg-primary/10 transition-all cursor-pointer disabled:opacity-30"
+                                  title="Run cell (Shift+Enter)"
                                 >
                                   <Play className="w-3 h-3" />
                                 </button>
                               )}
                             </div>
                           )}
-                        </div>
 
-                        {/* Editor card with left accent border */}
-                        <div
-                          className={`flex-1 min-w-0 rounded-lg overflow-hidden transition-all duration-150 border-l-[3px] ${
-                            isActive
-                              ? 'border-l-primary border border-primary/20 bg-canvas dark:bg-[#1d1c1a]'
-                              : 'border-l-hairline border border-hairline/50 bg-surface-soft/20 dark:bg-[#1a1918]'
-                          }`}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {cell.type === 'markdown' && !isActive ? (
-                            <div
-                              className="w-full min-h-[52px] px-5 py-4 text-ink leading-relaxed text-sm select-text cursor-text"
-                              onClick={() => setActiveCellId(cell.id)}
-                            >
-                              {renderMarkdown(cell.code)}
-                            </div>
-                          ) : (
-                            <Editor
-                              height="52px"
-                              language={cell.type === 'markdown' ? 'markdown' : 'python'}
-                              theme={theme === 'dark' ? 'vs-dark' : 'light'}
-                              value={cell.code}
-                              onChange={(val) => {
-                                if (ignoreChangeRef.current) return
-                                updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val || '' } : c))
-                              }}
-                              onMount={(editor, monacoInstance) => {
-                                const minHeight = 52
-                                const updateHeight = () => {
-                                  const contentHeight = Math.max(minHeight, editor.getContentHeight())
-                                  const el = editor.getDomNode()
-                                  if (el) {
-                                    el.style.height = `${contentHeight}px`
-                                    if (el.parentElement) {
-                                      el.parentElement.style.height = `${contentHeight}px`
-                                      if (el.parentElement.parentElement) {
-                                        el.parentElement.parentElement.style.height = `${contentHeight}px`
+                          {/* Editor / Markdown area */}
+                          <div className="flex-1 min-w-0">
+                            {cell.type === 'markdown' && !isActive ? (
+                              <div
+                                className="w-full min-h-[52px] px-5 py-4 text-ink leading-relaxed text-sm select-text cursor-text"
+                                onClick={() => setActiveCellId(cell.id)}
+                              >
+                                {renderMarkdown(cell.code)}
+                              </div>
+                            ) : (
+                              <Editor
+                                height="52px"
+                                language={cell.type === 'markdown' ? 'markdown' : 'python'}
+                                theme={theme === 'dark' ? 'vs-dark' : 'light'}
+                                value={cell.code}
+                                onChange={(val) => {
+                                  if (ignoreChangeRef.current) return
+                                  updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, code: val || '' } : c))
+                                }}
+                                onMount={(editor, monacoInstance) => {
+                                  const minH = 52
+                                  const updateHeight = () => {
+                                    const h = Math.max(minH, editor.getContentHeight())
+                                    const el = editor.getDomNode()
+                                    if (el) {
+                                      el.style.height = `${h}px`
+                                      if (el.parentElement) {
+                                        el.parentElement.style.height = `${h}px`
+                                        if (el.parentElement.parentElement) {
+                                          el.parentElement.parentElement.style.height = `${h}px`
+                                        }
                                       }
+                                      editor.layout()
                                     }
-                                    editor.layout()
                                   }
-                                }
-                                editor.onDidContentSizeChange(updateHeight)
-                                updateHeight()
-                                editor.onDidFocusEditorText(() => setActiveCellId(cell.id))
-                                editor.addCommand(monacoInstance.KeyMod.Shift | monacoInstance.KeyCode.Enter, () => {
-                                  if (cell.type === 'markdown') {
-                                    updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, hasRun: true } : c), false)
-                                    setActiveCellId(null)
-                                  } else {
-                                    runCell(cell.id)
-                                  }
-                                })
-                              }}
-                              options={{
-                                fontSize: 13.5,
-                                fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
-                                lineHeight: 22,
-                                minimap: { enabled: false },
-                                lineNumbers: 'off',
-                                folding: false,
-                                lineDecorationsWidth: 0,
-                                lineNumbersMinChars: 0,
-                                scrollBeyondLastLine: false,
-                                wordWrap: 'on',
-                                automaticLayout: true,
-                                padding: { top: 12, bottom: 12 },
-                                find: { seedSearchStringFromSelection: 'never', autoFindInSelection: 'never' },
-                                scrollbar: { vertical: 'hidden', horizontal: 'hidden', handleMouseWheel: false },
-                                overviewRulerBorder: false,
-                                overviewRulerLanes: 0,
-                                hideCursorInOverviewRuler: true,
-                                contextmenu: false,
-                                readOnly: isCellRunning,
-                              }}
-                            />
-                          )}
+                                  editor.onDidContentSizeChange(updateHeight)
+                                  updateHeight()
+                                  editor.onDidFocusEditorText(() => setActiveCellId(cell.id))
+                                  editor.addCommand(monacoInstance.KeyMod.Shift | monacoInstance.KeyCode.Enter, () => {
+                                    if (cell.type === 'markdown') {
+                                      updateCells(prev => prev.map(c => c.id === cell.id ? { ...c, hasRun: true } : c), false)
+                                      setActiveCellId(null)
+                                    } else {
+                                      runCell(cell.id)
+                                    }
+                                  })
+                                }}
+                                options={{
+                                  fontSize: 13.5,
+                                  fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
+                                  lineHeight: 22,
+                                  minimap: { enabled: false },
+                                  lineNumbers: 'off',
+                                  folding: false,
+                                  lineDecorationsWidth: 0,
+                                  lineNumbersMinChars: 0,
+                                  scrollBeyondLastLine: false,
+                                  wordWrap: 'on',
+                                  automaticLayout: true,
+                                  padding: { top: 14, bottom: 14 },
+                                  find: { seedSearchStringFromSelection: 'never', autoFindInSelection: 'never' },
+                                  scrollbar: { vertical: 'hidden', horizontal: 'hidden', handleMouseWheel: false },
+                                  overviewRulerBorder: false,
+                                  overviewRulerLanes: 0,
+                                  hideCursorInOverviewRuler: true,
+                                  contextmenu: false,
+                                  readOnly: isCellRunning,
+                                }}
+                              />
+                            )}
+                          </div>
                         </div>
-                      </div>{/* end flex card row */}
 
-                      {/* Cell Output Section */}
-                      {cell.type !== 'markdown' && (cell.output || cell.error || cell.plot) && (
-                        <div 
-                          id={`cell_output_${cell.id}`}
-                          className="mt-1 mb-1 ml-14 flex items-start gap-3 w-auto relative group/output"
-                        >
-                          {/* Close / Clear output button on left hover */}
-                          <div className="absolute left-3 top-4 opacity-0 group-hover/output:opacity-100 transition-opacity">
+                        {/* Output section */}
+                        {cell.type !== 'markdown' && (cell.output || cell.error || cell.plot) && (
+                          <div
+                            id={`cell_output_${cell.id}`}
+                            className="border-t border-hairline/20 dark:border-[#2a2927] mx-0 group/output relative"
+                          >
+                            {/* Clear output button */}
                             <button
-                              onClick={(e) => { e.stopPropagation(); clearCellOutput(cell.id); }}
-                              className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                              onClick={(e) => { e.stopPropagation(); clearCellOutput(cell.id) }}
+                              className="absolute top-2 right-2 z-10 p-1 rounded text-muted/40 hover:text-muted hover:bg-surface-soft/50 opacity-0 group-hover/output:opacity-100 transition-all cursor-pointer"
                               title="Clear output"
                             >
-                              <X className="w-3.5 h-3.5" />
+                              <X className="w-3 h-3" />
                             </button>
-                          </div>
-
-                          <div className="flex-1 min-w-0 space-y-4 font-mono text-xs select-text bg-surface-soft/20 dark:bg-black/10 rounded-xl p-3.5 border border-hairline/20 shadow-xs">
-                            {cell.output && (
-                              <div className="space-y-1">
-                                <pre className="whitespace-pre-wrap text-body leading-relaxed font-mono">{cell.output}</pre>
-                              </div>
-                            )}
-
-                            {cell.error && (
-                              <div className="space-y-1">
-                                <pre className="whitespace-pre-wrap text-red-650 dark:text-red-400 bg-red-50/20 dark:bg-red-950/5 p-3 rounded-lg border border-red-200/20 leading-relaxed font-mono font-bold">{cell.error}</pre>
-                              </div>
-                            )}
-
-                            {cell.plot && (
-                              <div className="space-y-1">
+                            <div className="px-5 py-3 font-mono text-xs select-text space-y-3">
+                              {cell.output && (
+                                <pre className="whitespace-pre-wrap text-body leading-relaxed">{cell.output}</pre>
+                              )}
+                              {cell.error && (
+                                <pre className="whitespace-pre-wrap text-red-400 leading-relaxed">{cell.error}</pre>
+                              )}
+                              {cell.plot && (
                                 <div className="relative inline-block group/plot">
                                   <img
                                     src={cell.plot}
-                                    alt="Matplotlib visualization"
+                                    alt="Plot"
                                     onClick={() => setFullscreenPlotUrl(cell.plot)}
-                                    className="max-h-[360px] object-contain rounded-xl border border-hairline cursor-zoom-in hover:opacity-95 transition-all shadow-sm"
+                                    className="max-h-[360px] object-contain rounded-xl border border-hairline cursor-zoom-in hover:opacity-95 transition-all"
                                   />
                                   <button
                                     onClick={() => setFullscreenPlotUrl(cell.plot)}
-                                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover/plot:opacity-100 transition-opacity cursor-pointer flex items-center justify-center"
-                                    title="View full screen"
+                                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover/plot:opacity-100 transition-opacity cursor-pointer"
+                                    title="Full screen"
                                   >
                                     <Maximize2 className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
 
-                      {/* Hover Add Cell Below center pill */}
-                      <div className="flex justify-center items-center gap-2 py-0.5 opacity-0 group-hover/cell:opacity-100 transition-opacity duration-150">
+                      {/* ── + Code / + Markdown pills below each cell ── */}
+                      <div className="flex justify-center items-center gap-2 py-1.5 opacity-0 group-hover/cell:opacity-100 transition-opacity duration-150">
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
@@ -3156,7 +3130,7 @@ export default function CodeEditorPage() {
                             })
                             focusCellTextarea(newId)
                           }}
-                          className="px-3.5 py-1.5 text-[10px] font-bold text-gray-500 hover:text-primary bg-canvas dark:bg-[#181715] hover:bg-surface-soft dark:hover:bg-[#202022] border border-hairline rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1"
+                          className="px-4 py-1.5 text-[11px] font-semibold text-muted hover:text-ink bg-canvas dark:bg-[#181715] hover:bg-surface-soft dark:hover:bg-[#202020] border border-hairline dark:border-[#2d2b28] rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1.5"
                         >
                           <Plus className="w-3 h-3 text-primary" />
                           Code
@@ -3172,7 +3146,7 @@ export default function CodeEditorPage() {
                             })
                             focusCellTextarea(newId)
                           }}
-                          className="px-3.5 py-1.5 text-[10px] font-bold text-gray-500 hover:text-primary bg-canvas dark:bg-[#181715] hover:bg-surface-soft dark:hover:bg-[#202022] border border-hairline rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1"
+                          className="px-4 py-1.5 text-[11px] font-semibold text-muted hover:text-ink bg-canvas dark:bg-[#181715] hover:bg-surface-soft dark:hover:bg-[#202020] border border-hairline dark:border-[#2d2b28] rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1.5"
                         >
                           <Plus className="w-3 h-3 text-primary" />
                           Markdown
