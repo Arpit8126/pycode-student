@@ -2572,12 +2572,7 @@ export default function CodeEditorPage() {
                   )}
                 </div>
 
-                <div className="flex items-start gap-1.5 p-2 rounded-xl bg-primary/[0.04] dark:bg-primary/[0.07] border border-primary/10 w-full">
-                  <Info className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-gray-600 dark:text-gray-400 font-light leading-relaxed">
-                    Resumable Python code files saved locally in browser.
-                  </p>
-                </div>
+
 
                 {showNewFolderInput && (
                   <form
@@ -2998,13 +2993,13 @@ export default function CodeEditorPage() {
                                         className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 ${
                                           isActive
                                             ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
-                                            : 'bg-canvas border-hairline text-gray-500 hover:text-ink hover:border-gray-400'
+                                            : 'bg-canvas border-hairline hover:border-gray-400'
                                         }`}
                                       >
                                         <div className="flex items-center gap-2.5 overflow-hidden w-full">
                                           <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
                                           <div className="flex flex-col overflow-hidden">
-                                            <span className="text-xs font-bold font-mono truncate">{displayName}</span>
+                                            <span className={`text-xs font-extrabold font-mono truncate ${isActive ? 'text-ink' : 'text-gray-800 dark:text-gray-200'}`}>{displayName}</span>
                                             <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
                                           </div>
                                         </div>
@@ -3174,13 +3169,13 @@ export default function CodeEditorPage() {
                                     className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 ${
                                       isActive
                                         ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
-                                        : 'bg-canvas border-hairline text-gray-500 hover:text-ink hover:border-gray-400'
+                                        : 'bg-canvas border-hairline hover:border-gray-400'
                                     }`}
                                   >
                                     <div className="flex items-center gap-2.5 overflow-hidden w-full">
                                       <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
                                       <div className="flex flex-col overflow-hidden">
-                                        <span className="text-xs font-bold font-mono truncate">{file.name}</span>
+                                        <span className={`text-xs font-extrabold font-mono truncate ${isActive ? 'text-ink' : 'text-gray-800 dark:text-gray-200'}`}>{file.name}</span>
                                         <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
                                       </div>
                                     </div>
@@ -3592,7 +3587,7 @@ export default function CodeEditorPage() {
                     className={`group relative flex items-center gap-2 px-4 h-full border-r border-hairline/50 cursor-pointer transition-all duration-150 ${
                       isActive 
                         ? 'bg-surface-soft text-ink font-bold border-b border-b-primary' 
-                        : 'text-gray-500 dark:text-gray-300 hover:text-ink hover:bg-surface-soft/40'
+                        : 'text-gray-700 dark:text-gray-200 hover:text-ink hover:bg-surface-soft/40 font-medium'
                     }`}
                   >
                     {/* File Type Icon */}
