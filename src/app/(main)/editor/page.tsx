@@ -629,6 +629,8 @@ export default function CodeEditorPage() {
   const [currentExplorerFolder, setCurrentExplorerFolder] = useState<string | null>(null)
   const [showNewFolderInput, setShowNewFolderInput] = useState(false)
   const [folderInputName, setFolderInputName] = useState('')
+  const [showNewFileInput, setShowNewFileInput] = useState(false)
+  const [fileInputName, setFileInputName] = useState('')
   const [saveToFolder, setSaveToFolder] = useState<string>('')
   const [newSaveFolderName, setNewSaveFolderName] = useState<string>('')
   const [showNewFolderSaveInput, setShowNewFolderSaveInput] = useState<boolean>(false)
@@ -1934,6 +1936,114 @@ export default function CodeEditorPage() {
     triggerToast(`Folder "${folderName}" and its files deleted.`, "success")
   }
 
+  const handleCreateFileExplorer = async (fileName: string) => {
+    let name = fileName.trim()
+    if (!name) return
+
+    // Ensure extension matches formatting
+    const isNotebook = name.endsWith('.ipynb')
+    const isPy = name.endsWith('.py')
+
+    if (!isNotebook && !isPy) {
+      // Append default extension based on active format
+      name += editorFormat === 'cell' ? '.ipynb' : '.py'
+    }
+
+    const fullPath = currentExplorerFolder ? `${currentExplorerFolder}/${name}` : name
+
+    // Check if file already exists
+    if (savedFiles.some(f => f.name.toLowerCase() === fullPath.toLowerCase())) {
+      triggerToast("File already exists.", "error")
+      return
+    }
+
+    const initialContent = name.endsWith('.ipynb')
+      ? JSON.stringify(cellsToNotebook([{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }]), null, 2)
+      : '# Write your code here\n'
+
+    setIsSaving(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { error } = await (supabase.from('saved_scripts') as any)
+          .insert({
+            user_id: user.id,
+            name: fullPath,
+            code: initialContent,
+            last_modified: new Date().toISOString()
+          })
+        
+        if (!error) {
+          await loadSavedFiles()
+          // Open the new file in a tab
+          const newTab: Tab = {
+            name: fullPath,
+            code: name.endsWith('.ipynb') ? '' : initialContent,
+            cells: name.endsWith('.ipynb') ? [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }] : [],
+            format: name.endsWith('.ipynb') ? 'cell' : 'terminal',
+            isDirty: false
+          }
+          setTabs(prev => {
+            if (prev.some(t => t.name === fullPath)) return prev
+            return [...prev, newTab]
+          })
+          setActiveFileName(fullPath)
+          setEditorFormat(newTab.format)
+          setCells(newTab.cells)
+          setCode(newTab.code)
+          if (newTab.format === 'terminal' && editorRef.current) {
+            editorRef.current.setValue(newTab.code)
+          }
+          setShowNewFileInput(false)
+          setFileInputName('')
+          setIsSaving(false)
+          triggerToast("File created successfully.", "success")
+          return
+        }
+      }
+    } catch (e) {
+      console.warn("Supabase file create failed, falling back to local:", e)
+    }
+
+    // LocalStorage fallback
+    const newFile = {
+      name: fullPath,
+      code: initialContent,
+      lastModified: new Date().toLocaleString()
+    }
+    const filesStr = localStorage.getItem('pycode_saved_files')
+    let files = []
+    if (filesStr) {
+      files = JSON.parse(filesStr)
+    }
+    files.push(newFile)
+    localStorage.setItem('pycode_saved_files', JSON.stringify(files))
+
+    await loadSavedFiles()
+    const newTab: Tab = {
+      name: fullPath,
+      code: name.endsWith('.ipynb') ? '' : initialContent,
+      cells: name.endsWith('.ipynb') ? [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }] : [],
+      format: name.endsWith('.ipynb') ? 'cell' : 'terminal',
+      isDirty: false
+    }
+    setTabs(prev => {
+      if (prev.some(t => t.name === fullPath)) return prev
+      return [...prev, newTab]
+    })
+    setActiveFileName(fullPath)
+    setEditorFormat(newTab.format)
+    setCells(newTab.cells)
+    setCode(newTab.code)
+    if (newTab.format === 'terminal' && editorRef.current) {
+      editorRef.current.setValue(newTab.code)
+    }
+    setShowNewFileInput(false)
+    setFileInputName('')
+    setIsSaving(false)
+    triggerToast("File created successfully.", "success")
+  }
+
   const handleMoveFile = async (oldName: string, targetFolder: string | null) => {
     const parts = oldName.split('/')
     const baseName = parts[parts.length - 1]
@@ -2431,18 +2541,32 @@ export default function CodeEditorPage() {
             {leftSidebarTab === 'savedFiles' ? (
               <div className="flex-1 flex flex-col min-h-0 space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5">
-                    <FileCode className="w-3.5 h-3.5 text-primary" />
-                    Your Saved Scripts
+                  <h3 className="text-[10px] uppercase tracking-widest font-extrabold text-gray-555 dark:text-gray-400 font-mono flex items-center gap-1.5 truncate">
+                    <FileCode className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <span className="truncate">Saved Scripts</span>
                   </h3>
-                  <button
-                    onClick={() => setShowNewFolderInput(prev => !prev)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-hairline hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-all shrink-0 text-[10px] font-bold uppercase tracking-wider font-mono bg-canvas"
-                    title="Create New Folder"
-                  >
-                    <FolderPlus className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Create Folder</span>
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => {
+                        setShowNewFileInput(prev => !prev)
+                        setShowNewFolderInput(false)
+                      }}
+                      className="p-1.5 rounded-xl border border-hairline hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-all bg-canvas flex items-center justify-center shrink-0"
+                      title="Create New File"
+                    >
+                      <Plus className="w-4 h-4 text-primary" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowNewFolderInput(prev => !prev)
+                        setShowNewFileInput(false)
+                      }}
+                      className="p-1.5 rounded-xl border border-hairline hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-all bg-canvas flex items-center justify-center shrink-0"
+                      title="Create New Folder"
+                    >
+                      <FolderPlus className="w-4 h-4 text-amber-500" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-start gap-1.5 p-2 rounded-xl bg-primary/[0.04] dark:bg-primary/[0.07] border border-primary/10 w-full">
@@ -2478,6 +2602,32 @@ export default function CodeEditorPage() {
                     <button
                       type="submit"
                       disabled={!folderInputName.trim()}
+                      className="px-3 py-1.5 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-[11px] font-bold transition-all cursor-pointer shrink-0"
+                    >
+                      Create
+                    </button>
+                  </form>
+                )}
+
+                {showNewFileInput && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      handleCreateFileExplorer(fileInputName)
+                    }}
+                    className="flex items-center gap-2 animate-fade-in"
+                  >
+                    <input
+                      type="text"
+                      value={fileInputName}
+                      onChange={e => setFileInputName(e.target.value)}
+                      placeholder="e.g. script.py or code.ipynb..."
+                      className="flex-1 px-3 py-1.5 text-[11px] font-mono rounded-xl border border-hairline bg-surface-soft text-ink outline-none focus:border-primary/50 transition-colors"
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      disabled={!fileInputName.trim()}
                       className="px-3 py-1.5 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-[11px] font-bold transition-all cursor-pointer shrink-0"
                     >
                       Create
@@ -4217,22 +4367,27 @@ export default function CodeEditorPage() {
                           <span>Without Folder (Save in Root)</span>
                         </button>
                         
-                        {allFolders.map(folder => (
-                          <button
-                            key={folder}
-                            type="button"
-                            onClick={() => {
-                              setSaveToFolder(folder)
-                              setShowNewFolderSaveInput(false)
-                              setNewSaveFolderName('')
-                              setShowSaveDropdownPanel(false)
-                            }}
-                            className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-medium text-left hover:bg-surface-soft ${saveToFolder === folder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
-                          >
-                            <Folder className="w-3.5 h-3.5 text-amber-500" />
-                            <span className="truncate">{folder}</span>
-                          </button>
-                        ))}
+                        {allFolders.map(folder => {
+                          const depth = folder.split('/').length - 1
+                          const displayName = folder.split('/').pop()
+                          return (
+                            <button
+                              key={folder}
+                              type="button"
+                              onClick={() => {
+                                setSaveToFolder(folder)
+                                setShowNewFolderSaveInput(false)
+                                setNewSaveFolderName('')
+                                setShowSaveDropdownPanel(false)
+                              }}
+                              style={{ paddingLeft: `${14 + depth * 12}px` }}
+                              className={`w-full flex items-center gap-2.5 py-2 px-3.5 text-xs font-medium text-left hover:bg-surface-soft ${saveToFolder === folder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
+                            >
+                              <Folder className={`w-3.5 h-3.5 shrink-0 ${depth > 0 ? 'text-amber-400' : 'text-amber-500'}`} />
+                              <span className="truncate">{displayName}</span>
+                            </button>
+                          )
+                        })}
 
                         <button
                           type="button"
@@ -4347,22 +4502,27 @@ export default function CodeEditorPage() {
                           <span>Root Directory</span>
                         </button>
                         
-                        {allFolders.map(folder => (
-                          <button
-                            key={folder}
-                            type="button"
-                            onClick={() => {
-                              setMoveToFolder(folder)
-                              setShowNewFolderMoveInput(false)
-                              setNewMoveFolderName('')
-                              setShowMoveDropdownPanel(false)
-                            }}
-                            className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-medium text-left hover:bg-surface-soft ${moveToFolder === folder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
-                          >
-                            <Folder className="w-3.5 h-3.5 text-amber-500" />
-                            <span className="truncate">{folder}</span>
-                          </button>
-                        ))}
+                        {allFolders.map(folder => {
+                          const depth = folder.split('/').length - 1
+                          const displayName = folder.split('/').pop()
+                          return (
+                            <button
+                              key={folder}
+                              type="button"
+                              onClick={() => {
+                                setMoveToFolder(folder)
+                                setShowNewFolderMoveInput(false)
+                                setNewMoveFolderName('')
+                                setShowMoveDropdownPanel(false)
+                              }}
+                              style={{ paddingLeft: `${14 + depth * 12}px` }}
+                              className={`w-full flex items-center gap-2.5 py-2 px-3.5 text-xs font-medium text-left hover:bg-surface-soft ${moveToFolder === folder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
+                            >
+                              <Folder className={`w-3.5 h-3.5 shrink-0 ${depth > 0 ? 'text-amber-400' : 'text-amber-500'}`} />
+                              <span className="truncate">{displayName}</span>
+                            </button>
+                          )
+                        })}
 
                         <button
                           type="button"
