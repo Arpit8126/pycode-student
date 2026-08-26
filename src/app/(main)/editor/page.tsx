@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
@@ -631,6 +631,7 @@ export default function CodeEditorPage() {
   const [folderInputName, setFolderInputName] = useState('')
   const [showNewFileInput, setShowNewFileInput] = useState(false)
   const [fileInputName, setFileInputName] = useState('')
+  const [newFileType, setNewFileType] = useState<'py' | 'ipynb' | null>(null)
   const [saveToFolder, setSaveToFolder] = useState<string>('')
   const [newSaveFolderName, setNewSaveFolderName] = useState<string>('')
   const [showNewFolderSaveInput, setShowNewFolderSaveInput] = useState<boolean>(false)
@@ -2545,28 +2546,30 @@ export default function CodeEditorPage() {
                     <FileCode className="w-3.5 h-3.5 text-primary shrink-0" />
                     <span className="truncate">Saved Scripts</span>
                   </h3>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => {
-                        setShowNewFileInput(prev => !prev)
-                        setShowNewFolderInput(false)
-                      }}
-                      className="p-1.5 rounded-xl border border-hairline hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-all bg-canvas flex items-center justify-center shrink-0"
-                      title="Create New File"
-                    >
-                      <Plus className="w-4 h-4 text-primary" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowNewFolderInput(prev => !prev)
-                        setShowNewFileInput(false)
-                      }}
-                      className="p-1.5 rounded-xl border border-hairline hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-all bg-canvas flex items-center justify-center shrink-0"
-                      title="Create New Folder"
-                    >
-                      <FolderPlus className="w-4 h-4 text-amber-500" />
-                    </button>
-                  </div>
+                  {currentExplorerFolder === null && (
+                    <div className="flex items-center gap-1 shrink-0 animate-fade-in">
+                      <button
+                        onClick={() => {
+                          setShowNewFileInput(prev => !prev)
+                          setShowNewFolderInput(false)
+                        }}
+                        className="p-1.5 rounded-xl border border-hairline hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-all bg-canvas flex items-center justify-center shrink-0"
+                        title="Create New File"
+                      >
+                        <Plus className="w-4 h-4 text-primary" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowNewFolderInput(prev => !prev)
+                          setShowNewFileInput(false)
+                        }}
+                        className="p-1.5 rounded-xl border border-hairline hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-all bg-canvas flex items-center justify-center shrink-0"
+                        title="Create New Folder"
+                      >
+                        <FolderPlus className="w-4 h-4 text-amber-500" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-start gap-1.5 p-2 rounded-xl bg-primary/[0.04] dark:bg-primary/[0.07] border border-primary/10 w-full">
@@ -2610,29 +2613,91 @@ export default function CodeEditorPage() {
                 )}
 
                 {showNewFileInput && (
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      handleCreateFileExplorer(fileInputName)
-                    }}
-                    className="flex items-center gap-2 animate-fade-in"
-                  >
-                    <input
-                      type="text"
-                      value={fileInputName}
-                      onChange={e => setFileInputName(e.target.value)}
-                      placeholder="e.g. script.py or code.ipynb..."
-                      className="flex-1 px-3 py-1.5 text-[11px] font-mono rounded-xl border border-hairline bg-surface-soft text-ink outline-none focus:border-primary/50 transition-colors"
-                      autoFocus
-                    />
-                    <button
-                      type="submit"
-                      disabled={!fileInputName.trim()}
-                      className="px-3 py-1.5 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-[11px] font-bold transition-all cursor-pointer shrink-0"
-                    >
-                      Create
-                    </button>
-                  </form>
+                  <div className="p-3.5 border border-hairline rounded-2xl bg-surface-soft space-y-3 animate-fade-in font-sans">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-gray-450 uppercase tracking-wider font-mono">Create New File</span>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setShowNewFileInput(false)
+                          setNewFileType(null)
+                          setFileInputName('')
+                        }}
+                        className="text-gray-400 hover:text-ink cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {newFileType === null ? (
+                      <div className="grid grid-cols-2 gap-2 animate-fade-in">
+                        <button
+                          type="button"
+                          onClick={() => setNewFileType('py')}
+                          className="flex flex-col items-center justify-center p-3 rounded-xl border border-hairline bg-canvas hover:border-primary hover:bg-primary/[0.03] transition-all cursor-pointer group"
+                        >
+                          <FileCode className="w-6 h-6 text-primary group-hover:scale-110 transition-transform mb-1" />
+                          <span className="text-[10px] font-bold text-ink text-center">Python Script</span>
+                          <span className="text-[8px] text-gray-500 font-mono">.py</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewFileType('ipynb')}
+                          className="flex flex-col items-center justify-center p-3 rounded-xl border border-hairline bg-canvas hover:border-amber-500 hover:bg-amber-500/[0.03] transition-all cursor-pointer group"
+                        >
+                          <BookOpen className="w-6 h-6 text-amber-500 group-hover:scale-110 transition-transform mb-1" />
+                          <span className="text-[10px] font-bold text-ink text-center">Notebook</span>
+                          <span className="text-[8px] text-gray-500 font-mono">.ipynb</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault()
+                          const name = fileInputName.trim()
+                          if (name) {
+                            let cleanName = name.replace(/\.(py|ipynb)$/i, '')
+                            handleCreateFileExplorer(`${cleanName}.${newFileType}`)
+                            setNewFileType(null)
+                          }
+                        }}
+                        className="space-y-3 animate-fade-in"
+                      >
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={fileInputName}
+                            onChange={e => setFileInputName(e.target.value)}
+                            placeholder="Enter name..."
+                            className="w-full pr-14 px-3 py-1.5 text-xs font-mono rounded-xl border border-hairline bg-canvas text-ink outline-none focus:border-primary/50 transition-colors"
+                            autoFocus
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 font-mono">
+                            .{newFileType}
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNewFileType(null)
+                              setFileInputName('')
+                            }}
+                            className="flex-1 py-1.5 rounded-xl border border-hairline bg-canvas hover:bg-surface-card text-[10px] font-bold text-gray-500 hover:text-ink transition-colors cursor-pointer"
+                          >
+                            Back
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={!fileInputName.trim()}
+                            className="flex-1 py-1.5 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-[10px] font-bold transition-all cursor-pointer shrink-0"
+                          >
+                            Create
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
                 )}
 
                 {/* Search bar section */}
@@ -2775,16 +2840,38 @@ export default function CodeEditorPage() {
                               <ChevronLeft className="w-3.5 h-3.5" />
                               Back
                             </button>
-                            <span className="text-xs font-extrabold text-ink font-mono truncate bg-primary/10 text-primary px-2.5 py-1 rounded-lg max-w-[150px]" title={currentExplorerFolder}>
+                            <span className="text-xs font-extrabold text-ink font-mono truncate bg-primary/10 text-primary px-2.5 py-1 rounded-lg max-w-[120px]" title={currentExplorerFolder}>
                               {currentExplorerFolder.split('/').pop()}
                             </span>
-                            <button
-                              onClick={() => handleDownloadFolder(currentExplorerFolder)}
-                              className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-gray-500 hover:text-emerald-600 hover:border-emerald-200 cursor-pointer transition-colors flex items-center justify-center shrink-0 ml-1"
-                              title="Download entire folder as ZIP"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                            </button>
+                            <div className="flex items-center gap-1 shrink-0 ml-auto">
+                              <button
+                                onClick={() => {
+                                  setShowNewFileInput(prev => !prev)
+                                  setShowNewFolderInput(false)
+                                }}
+                                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-gray-500 hover:text-primary hover:bg-surface-card cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                                title="Create File inside this Folder"
+                              >
+                                <Plus className="w-3.5 h-3.5 text-primary" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setShowNewFolderInput(prev => !prev)
+                                  setShowNewFileInput(false)
+                                }}
+                                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-gray-500 hover:text-amber-600 hover:bg-surface-card cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                                title="Create Subfolder inside this Folder"
+                              >
+                                <FolderPlus className="w-3.5 h-3.5 text-amber-500" />
+                              </button>
+                              <button
+                                onClick={() => handleDownloadFolder(currentExplorerFolder)}
+                                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-gray-500 hover:text-emerald-600 hover:border-emerald-200 cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                                title="Download entire folder as ZIP"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
                           
                           {/* Subfolders inside this folder */}
@@ -3556,7 +3643,7 @@ export default function CodeEditorPage() {
 
           {/* Breadcrumbs Bar */}
           {activeFileName && (
-            <div className="px-4 py-1.5 border-b border-hairline/40 bg-surface-soft/40 text-[9px] text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5 select-none shrink-0 tracking-wider">
+            <div className="px-4 py-2 border-b border-hairline/40 bg-surface-soft/40 text-[11px] text-gray-600 dark:text-gray-300 font-mono flex items-center gap-1.5 select-none shrink-0 tracking-wider">
               <span className="opacity-60 uppercase font-bold">WORKSPACE</span>
               <span className="opacity-45">&gt;</span>
               {activeFileName.split('/').map((part, index, arr) => (
