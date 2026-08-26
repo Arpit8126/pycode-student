@@ -3639,16 +3639,16 @@ export default function CodeEditorPage() {
           {/* Breadcrumbs Bar */}
           {activeFileName && (
             <div className="px-4 py-2 border-b border-hairline/40 bg-surface-soft/40 text-[11px] font-mono flex items-center gap-1.5 select-none shrink-0 tracking-wider">
-              <span className="uppercase font-bold text-gray-500 dark:text-gray-400">WORKSPACE</span>
-              <span className="text-gray-400 dark:text-gray-600 font-bold">&gt;</span>
+              <span className="uppercase font-bold text-gray-600 dark:text-gray-300">WORKSPACE</span>
+              <span className="text-gray-500 dark:text-gray-500 font-bold">&gt;</span>
               {activeFileName.split('/').map((part, index, arr) => {
                 const isLast = index === arr.length - 1
                 return (
                   <React.Fragment key={index}>
-                    <span className={isLast ? 'font-extrabold text-ink' : 'font-semibold text-gray-600 dark:text-gray-300'}>
+                    <span className={isLast ? 'font-extrabold text-ink' : 'font-semibold text-gray-800 dark:text-gray-200'}>
                       {part}
                     </span>
-                    {!isLast && <span className="text-gray-400 dark:text-gray-600 font-bold">&gt;</span>}
+                    {!isLast && <span className="text-gray-500 dark:text-gray-500 font-bold">&gt;</span>}
                   </React.Fragment>
                 )
               })}
