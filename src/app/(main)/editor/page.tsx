@@ -8,6 +8,14 @@ import { Monaco, useMonaco } from '@monaco-editor/react'
 import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
+
+// Custom file type icon components using public SVGs
+const PythonIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+  <img src="/python-svgrepo-com.svg" alt="Python" className={className} style={{ display: 'inline-block' }} />
+)
+const JupyterIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+  <img src="/Jupyter.svg" alt="Jupyter Notebook" className={className} style={{ display: 'inline-block' }} />
+)
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
 import { initDB, getDatasets, saveDataset, deleteDataset, CustomDataset } from '@/lib/indexedDb'
 import JSZip from 'jszip'
@@ -2631,7 +2639,7 @@ export default function CodeEditorPage() {
                           onClick={() => setNewFileType('py')}
                           className="flex flex-col items-center justify-center p-3 rounded-xl border border-hairline bg-canvas hover:border-primary hover:bg-primary/[0.03] transition-all cursor-pointer group"
                         >
-                          <FileCode className="w-6 h-6 text-primary group-hover:scale-110 transition-transform mb-1" />
+                          <PythonIcon className="w-6 h-6 group-hover:scale-110 transition-transform mb-1" />
                           <span className="text-[10px] font-bold text-ink text-center">Python Script</span>
                           <span className="text-[8px] text-gray-500 font-mono">.py</span>
                         </button>
@@ -2640,7 +2648,7 @@ export default function CodeEditorPage() {
                           onClick={() => setNewFileType('ipynb')}
                           className="flex flex-col items-center justify-center p-3 rounded-xl border border-hairline bg-canvas hover:border-amber-500 hover:bg-amber-500/[0.03] transition-all cursor-pointer group"
                         >
-                          <BookOpen className="w-6 h-6 text-amber-500 group-hover:scale-110 transition-transform mb-1" />
+                          <JupyterIcon className="w-6 h-6 group-hover:scale-110 transition-transform mb-1" />
                           <span className="text-[10px] font-bold text-ink text-center">Notebook</span>
                           <span className="text-[8px] text-gray-500 font-mono">.ipynb</span>
                         </button>
@@ -2997,7 +3005,7 @@ export default function CodeEditorPage() {
                                         }`}
                                       >
                                         <div className="flex items-center gap-2.5 overflow-hidden w-full">
-                                          <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
+                                          {file.name.endsWith('.ipynb') ? <JupyterIcon className="w-4 h-4 shrink-0" /> : <PythonIcon className="w-4 h-4 shrink-0" />}
                                           <div className="flex flex-col overflow-hidden">
                                             <span className={`text-xs font-extrabold font-mono truncate ${isActive ? 'text-ink' : 'text-gray-800 dark:text-gray-200'}`}>{displayName}</span>
                                             <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
@@ -3173,7 +3181,7 @@ export default function CodeEditorPage() {
                                     }`}
                                   >
                                     <div className="flex items-center gap-2.5 overflow-hidden w-full">
-                                      <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
+                                      {file.name.endsWith('.ipynb') ? <JupyterIcon className="w-4 h-4 shrink-0" /> : <PythonIcon className="w-4 h-4 shrink-0" />}
                                       <div className="flex flex-col overflow-hidden">
                                         <span className={`text-xs font-extrabold font-mono truncate ${isActive ? 'text-ink' : 'text-gray-800 dark:text-gray-200'}`}>{file.name}</span>
                                         <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
@@ -3530,7 +3538,7 @@ export default function CodeEditorPage() {
                   className="px-3.5 py-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 shadow-sm"
                   title="Shift to Jupyter Notebook format"
                 >
-                  <Database className="w-3.5 h-3.5 text-primary rotate-90" />
+                  <JupyterIcon className="w-3.5 h-3.5" />
                   <span>Notebook</span>
                 </button>
               )}
@@ -3593,9 +3601,9 @@ export default function CodeEditorPage() {
                     {/* File Type Icon */}
                     <span className="flex items-center shrink-0">
                       {isIpynb ? (
-                        <Database className="w-3.5 h-3.5 text-primary rotate-90" />
+                        <JupyterIcon className="w-4 h-4" />
                       ) : isPy ? (
-                        <FileCode className="w-3.5 h-3.5 text-primary/70" />
+                        <PythonIcon className="w-4 h-4" />
                       ) : (
                         <FileCode className="w-3.5 h-3.5 text-gray-400" />
                       )}
