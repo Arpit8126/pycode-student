@@ -611,6 +611,7 @@ export default function CodeEditorPage() {
   const [folderSearch, setFolderSearch] = useState('')
   const [rootFileSearch, setRootFileSearch] = useState('')
   const [innerFileSearch, setInnerFileSearch] = useState('')
+  const [innerFolderSearch, setInnerFolderSearch] = useState('')
   const [showAllPreInstalled, setShowAllPreInstalled] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [deletingFileName, setDeletingFileName] = useState<string | null>(null)
@@ -2766,25 +2767,47 @@ export default function CodeEditorPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="relative mb-1">
-                      <input
-                        type="text"
-                        value={innerFileSearch}
-                        onChange={e => setInnerFileSearch(e.target.value)}
-                        placeholder={`Search in ${currentExplorerFolder}...`}
-                        className="w-full pl-7 pr-7 py-1.5 text-[11px] font-mono rounded-xl border border-hairline bg-surface-soft text-ink placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-colors font-light"
-                      />
-                      <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-450 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                      </svg>
-                      {innerFileSearch && (
-                        <button
-                          onClick={() => setInnerFileSearch('')}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink cursor-pointer transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
+                    <div className="space-y-2 mb-1">
+                      {/* Search Subfolders inside folder */}
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={innerFolderSearch}
+                          onChange={e => setInnerFolderSearch(e.target.value)}
+                          placeholder="Search subfolders..."
+                          className="w-full pl-7 pr-7 py-1.5 text-[11px] font-mono rounded-xl border border-hairline bg-surface-soft text-ink placeholder-gray-400 focus:outline-none focus:border-amber-400/50 transition-colors font-light"
+                        />
+                        <Folder className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-amber-400 pointer-events-none" />
+                        {innerFolderSearch && (
+                          <button
+                            onClick={() => setInnerFolderSearch('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink cursor-pointer transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                      {/* Search Files inside folder */}
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={innerFileSearch}
+                          onChange={e => setInnerFileSearch(e.target.value)}
+                          placeholder={`Search files in ${currentExplorerFolder?.split('/').pop()}...`}
+                          className="w-full pl-7 pr-7 py-1.5 text-[11px] font-mono rounded-xl border border-hairline bg-surface-soft text-ink placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-colors font-light"
+                        />
+                        <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-450 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        {innerFileSearch && (
+                          <button
+                            onClick={() => setInnerFileSearch('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink cursor-pointer transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )
                 )}
@@ -2812,6 +2835,11 @@ export default function CodeEditorPage() {
                             return `${currentExplorerFolder}/${firstSeg}`
                           })
                       )).sort()
+
+                      // Immediate subfolders — filtered by innerFolderSearch
+                      const filteredImmediateSubfolders = immediateSubfolders.filter(f =>
+                        f.split('/').pop()!.toLowerCase().includes(innerFolderSearch.toLowerCase())
+                      )
 
                       // Immediate files in this folder
                       const folderFiles = savedFiles.filter(f => 
@@ -2894,10 +2922,17 @@ export default function CodeEditorPage() {
                           </div>
                           
                           {/* Subfolders inside this folder */}
-                          {immediateSubfolders.length > 0 && (
+                          {(immediateSubfolders.length > 0) && (
                             <div className="space-y-1.5">
-                              <div className="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider font-mono">Folders</div>
-                              {immediateSubfolders.map(folderName => (
+                              <div className="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider font-mono">
+                                Folders {innerFolderSearch && filteredImmediateSubfolders.length !== immediateSubfolders.length && `(${filteredImmediateSubfolders.length}/${immediateSubfolders.length})`}
+                              </div>
+                              {filteredImmediateSubfolders.length === 0 ? (
+                                <p className="text-[10px] text-gray-400 italic px-1 py-1">
+                                  No subfolders match &ldquo;{innerFolderSearch}&rdquo;
+                                </p>
+                              ) : (
+                                filteredImmediateSubfolders.map(folderName => (
                                 <div key={folderName} className="group/folder relative flex items-center gap-1.5">
                                   {renamingFolder === folderName ? (
                                     <form
@@ -2982,7 +3017,8 @@ export default function CodeEditorPage() {
                                     </>
                                   )}
                                 </div>
-                              ))}
+                                ))
+                              )}
                             </div>
                           )}
 
