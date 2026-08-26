@@ -419,6 +419,8 @@ export default function CodeEditorPage() {
 
   // Ref for active Monaco Editor instance (used for formatting Markdown)
   const activeEditorRef = useRef<any>(null)
+  const tabBarRef = useRef<HTMLDivElement>(null)
+  const [isReordering, setIsReordering] = useState(false)
 
   const applyFormat = (formatType: 'bold' | 'italic' | 'code' | 'header' | 'list') => {
     const editor = activeEditorRef.current
@@ -1269,7 +1271,11 @@ export default function CodeEditorPage() {
         editorRef.current.setValue(newTab.code)
       }
     }
+    // Scroll tab bar to end so the new tab is visible
     setTimeout(() => {
+      if (tabBarRef.current) {
+        tabBarRef.current.scrollLeft = tabBarRef.current.scrollWidth
+      }
       ignoreChangeRef.current = false
     }, 50)
   }
@@ -1493,12 +1499,9 @@ export default function CodeEditorPage() {
 
   const moveCellUp = (index: number) => {
     if (index === 0) return
-    // Blur any active Monaco editor before reordering to prevent unmount crash
-    if (activeEditorRef.current) {
-      try { activeEditorRef.current.blur() } catch {}
-    }
-    ;(document.activeElement as HTMLElement)?.blur?.()
+    // Set isReordering=true so Monaco editors unmount cleanly (no cancellation errors)
     setActiveCellId(null)
+    setIsReordering(true)
     ;(window as any).isSwappingCells = true
     setTimeout(() => {
       updateCells(prev => {
@@ -1508,17 +1511,18 @@ export default function CodeEditorPage() {
         next[index - 1] = temp
         return next
       })
-      setTimeout(() => { (window as any).isSwappingCells = false }, 300)
-    }, 50)
+      // Restore Monaco editors after React finishes reordering
+      setTimeout(() => {
+        setIsReordering(false)
+        ;(window as any).isSwappingCells = false
+      }, 80)
+    }, 30)
   }
 
   const moveCellDown = (index: number) => {
-    // Blur any active Monaco editor before reordering to prevent unmount crash
-    if (activeEditorRef.current) {
-      try { activeEditorRef.current.blur() } catch {}
-    }
-    ;(document.activeElement as HTMLElement)?.blur?.()
+    // Set isReordering=true so Monaco editors unmount cleanly (no cancellation errors)
     setActiveCellId(null)
+    setIsReordering(true)
     ;(window as any).isSwappingCells = true
     setTimeout(() => {
       updateCells(prev => {
@@ -1529,8 +1533,12 @@ export default function CodeEditorPage() {
         next[index + 1] = temp
         return next
       })
-      setTimeout(() => { (window as any).isSwappingCells = false }, 300)
-    }, 50)
+      // Restore Monaco editors after React finishes reordering
+      setTimeout(() => {
+        setIsReordering(false)
+        ;(window as any).isSwappingCells = false
+      }, 80)
+    }, 30)
   }
 
   const clearCellOutput = (cellId: string) => {
@@ -3138,7 +3146,7 @@ export default function CodeEditorPage() {
 
           {/* Tabs Bar */}
           <div className="flex items-center justify-between border-b border-hairline bg-canvas dark:bg-[#181715] select-none shrink-0 h-10 overflow-hidden">
-            <div className="flex items-center overflow-x-auto h-full scrollbar-none flex-1">
+            <div ref={tabBarRef} className="flex items-center overflow-x-auto h-full scrollbar-none flex-1">
               {tabs
                 .filter((tab) => {
                   if (editorFormat === 'cell') {
@@ -3566,7 +3574,7 @@ export default function CodeEditorPage() {
                                 />
                               )
                             ) : (
-                              isClient ? (
+                              isClient && !isReordering ? (
                                 <Editor
                                   height={`${cellHeights[cell.id] || Math.max(52, (cell.code || '').split('\n').length * 22 + 24)}px`}
                                   language="python"
@@ -3626,7 +3634,10 @@ export default function CodeEditorPage() {
                                   }}
                                 />
                               ) : (
-                                <div className="h-[52px] bg-slate-50 dark:bg-zinc-900 rounded-lg animate-pulse" />
+                                <div
+                                  className="bg-slate-50 dark:bg-zinc-900 rounded-lg"
+                                  style={{ height: `${cellHeights[cell.id] || Math.max(52, (cell.code || '').split('\n').length * 22 + 24)}px` }}
+                                />
                               )
                             )}
                           </div>
