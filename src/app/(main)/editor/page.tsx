@@ -607,6 +607,25 @@ export default function CodeEditorPage() {
   const [isRestored, setIsRestored] = useState(false)
 
   const [customFolders, setCustomFolders] = useState<string[]>([])
+
+  const getAllFolders = () => {
+    const folders = new Set<string>()
+    customFolders.forEach(f => {
+      if (f) folders.add(f)
+    })
+    savedFiles.forEach(file => {
+      if (file.name.includes('/')) {
+        const folderPath = file.name.substring(0, file.name.lastIndexOf('/'))
+        const parts = folderPath.split('/')
+        let current = ''
+        parts.forEach((part) => {
+          current = current ? `${current}/${part}` : part
+          folders.add(current)
+        })
+      }
+    })
+    return Array.from(folders).sort()
+  }
   const [currentExplorerFolder, setCurrentExplorerFolder] = useState<string | null>(null)
   const [showNewFolderInput, setShowNewFolderInput] = useState(false)
   const [folderInputName, setFolderInputName] = useState('')
@@ -1898,7 +1917,7 @@ export default function CodeEditorPage() {
 
     // Remove folder from custom folders list
     setCustomFolders(prev => {
-      const updated = prev.filter(f => f !== folderName)
+      const updated = prev.filter(f => f !== folderName && !f.startsWith(folderName + '/'))
       localStorage.setItem('pycode_custom_folders', JSON.stringify(updated))
       return updated
     })
@@ -1977,7 +1996,13 @@ export default function CodeEditorPage() {
     setIsSaving(true)
 
     setCustomFolders(prev => {
-      const updated = prev.map(f => f === oldF ? newF : f)
+      const updated = prev.map(f => {
+        if (f === oldF) return newF
+        if (f.startsWith(oldF + '/')) {
+          return newF + f.substring(oldF.length)
+        }
+        return f
+      })
       localStorage.setItem('pycode_custom_folders', JSON.stringify(updated))
       return updated
     })
@@ -2433,7 +2458,8 @@ export default function CodeEditorPage() {
                       e.preventDefault()
                       const name = folderInputName.trim()
                       if (name) {
-                        addCustomFolder(name)
+                        const fullFolderName = currentExplorerFolder ? `${currentExplorerFolder}/${name}` : name
+                        addCustomFolder(fullFolderName)
                         setFolderInputName('')
                         setShowNewFolderInput(false)
                         triggerToast("Folder created successfully.", "success")
@@ -2536,37 +2562,62 @@ export default function CodeEditorPage() {
                       <p className="text-[10px] text-gray-500 dark:text-gray-400 font-light mt-1">Click &quot;Save&quot; in toolbar to store progress!</p>
                     </div>
                   ) : (() => {
-                    const allFolders = Array.from(new Set([
-                      ...customFolders,
-                      ...savedFiles
-                        .filter(f => f.name.includes('/'))
-                        .map(f => f.name.split('/')[0])
-                    ])).sort()
+                    const allFolders = getAllFolders()
                     const rootFiles = savedFiles.filter(f => !f.name.includes('/'))
 
                     if (currentExplorerFolder !== null) {
-                      const folderFiles = savedFiles.filter(f => f.name.startsWith(`${currentExplorerFolder}/`))
+                      const prefix = `${currentExplorerFolder}/`
+                      
+                      // Immediate subfolders
+                      const immediateSubfolders = Array.from(new Set(
+                        allFolders
+                          .filter(f => f.startsWith(prefix) && f !== currentExplorerFolder)
+                          .map(f => {
+                            const rel = f.substring(prefix.length)
+                            const firstSeg = rel.split('/')[0]
+                            return `${currentExplorerFolder}/${firstSeg}`
+                          })
+                      )).sort()
+
+                      // Immediate files in this folder
+                      const folderFiles = savedFiles.filter(f => 
+                        f.name.startsWith(prefix) && !f.name.substring(prefix.length).includes('/')
+                      )
                       const filteredFolderFiles = folderFiles.filter(f => {
-                        const displayName = f.name.substring(currentExplorerFolder.length + 1)
+                        const displayName = f.name.substring(prefix.length)
                         return displayName.toLowerCase().includes(innerFileSearch.toLowerCase())
                       })
 
                       return (
-                        <div className="space-y-3">
+                        <div className="space-y-3 font-sans">
                           <div className="flex items-center gap-2 mb-3 shrink-0">
                             <button
-                              onClick={() => setCurrentExplorerFolder(null)}
+                              onClick={() => {
+                                if (currentExplorerFolder.includes('/')) {
+                                  setCurrentExplorerFolder(currentExplorerFolder.substring(0, currentExplorerFolder.lastIndexOf('/')))
+                                } else {
+                                  setCurrentExplorerFolder(null)
+                                }
+                              }}
                               onDragOver={(e) => e.preventDefault()}
-                              onDragEnter={() => setActiveDragFolder('__root__')}
+                              onDragEnter={() => {
+                                const parent = currentExplorerFolder.includes('/') 
+                                  ? currentExplorerFolder.substring(0, currentExplorerFolder.lastIndexOf('/')) 
+                                  : '__root__'
+                                setActiveDragFolder(parent)
+                              }}
                               onDragLeave={() => setActiveDragFolder(null)}
                               onDrop={(e) => {
                                 e.preventDefault()
                                 setActiveDragFolder(null)
                                 const filename = e.dataTransfer.getData('text/plain')
-                                handleMoveFile(filename, null)
+                                const parent = currentExplorerFolder.includes('/') 
+                                  ? currentExplorerFolder.substring(0, currentExplorerFolder.lastIndexOf('/')) 
+                                  : null
+                                handleMoveFile(filename, parent)
                               }}
                               className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                                activeDragFolder === '__root__'
+                                activeDragFolder === (currentExplorerFolder.includes('/') ? currentExplorerFolder.substring(0, currentExplorerFolder.lastIndexOf('/')) : '__root__')
                                   ? 'border-dashed border-primary bg-primary/5 text-primary scale-[0.98]'
                                   : 'border-hairline bg-surface-soft text-gray-600 hover:text-ink hover:bg-surface-card'
                               }`}
@@ -2574,8 +2625,8 @@ export default function CodeEditorPage() {
                               <ChevronLeft className="w-3.5 h-3.5" />
                               Back
                             </button>
-                            <span className="text-xs font-extrabold text-ink font-mono truncate bg-primary/10 text-primary px-2.5 py-1 rounded-lg">
-                              {currentExplorerFolder}
+                            <span className="text-xs font-extrabold text-ink font-mono truncate bg-primary/10 text-primary px-2.5 py-1 rounded-lg max-w-[150px]" title={currentExplorerFolder}>
+                              {currentExplorerFolder.split('/').pop()}
                             </span>
                             <button
                               onClick={() => handleDownloadFolder(currentExplorerFolder)}
@@ -2585,65 +2636,165 @@ export default function CodeEditorPage() {
                               <Download className="w-3.5 h-3.5" />
                             </button>
                           </div>
+                          
+                          {/* Subfolders inside this folder */}
+                          {immediateSubfolders.length > 0 && (
+                            <div className="space-y-1.5">
+                              <div className="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider font-mono">Folders</div>
+                              {immediateSubfolders.map(folderName => (
+                                <div key={folderName} className="group/folder relative flex items-center gap-1.5">
+                                  {renamingFolder === folderName ? (
+                                    <form
+                                      onSubmit={(e) => {
+                                        e.preventDefault()
+                                        handleRenameFolder(folderName, renameFolderInput)
+                                        setRenamingFolder(null)
+                                        setRenameFolderInput('')
+                                      }}
+                                      className="flex-1 flex items-center gap-1.5 animate-fade-in"
+                                    >
+                                      <input
+                                        type="text"
+                                        value={renameFolderInput}
+                                        onChange={e => setRenameFolderInput(e.target.value)}
+                                        className="flex-1 px-3 py-1.5 text-xs font-mono rounded-xl border border-hairline bg-surface-soft text-ink outline-none focus:border-primary/50 transition-colors"
+                                        autoFocus
+                                      />
+                                      <button
+                                        type="submit"
+                                        disabled={!renameFolderInput.trim() || renameFolderInput.trim() === folderName}
+                                        className="px-2.5 py-1.5 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-[10px] font-bold transition-all cursor-pointer shrink-0"
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setRenamingFolder(null)}
+                                        className="px-2.5 py-1.5 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card text-[10px] font-semibold transition-colors cursor-pointer shrink-0"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </form>
+                                  ) : (
+                                    <>
+                                      <button
+                                        onClick={() => setCurrentExplorerFolder(folderName)}
+                                        onDragOver={(e) => e.preventDefault()}
+                                        onDragEnter={() => setActiveDragFolder(folderName)}
+                                        onDragLeave={() => setActiveDragFolder(null)}
+                                        onDrop={(e) => {
+                                          e.preventDefault()
+                                          setActiveDragFolder(null)
+                                          const filename = e.dataTransfer.getData('text/plain')
+                                          handleMoveFile(filename, folderName)
+                                        }}
+                                        className={`flex-1 p-2.5 rounded-xl border text-left flex items-center gap-2 hover:border-primary/50 hover:bg-surface-soft cursor-pointer transition-all duration-150 animate-fade-in ${
+                                          activeDragFolder === folderName
+                                            ? 'border-dashed border-primary bg-primary/5 shadow-xs ring-1 ring-primary/20 scale-[0.98]'
+                                            : 'bg-canvas border-hairline'
+                                        }`}
+                                      >
+                                        <Folder className="w-4 h-4 text-amber-500 shrink-0" />
+                                        <span className="text-xs font-bold text-ink truncate">{folderName.split('/').pop()}</span>
+                                      </button>
+                                      <div className="flex items-center gap-0.5 opacity-80 md:opacity-0 md:group-hover/folder:opacity-100 transition-opacity">
+                                        <button
+                                          onClick={() => {
+                                            setRenamingFolder(folderName)
+                                            setRenameFolderInput(folderName)
+                                          }}
+                                          className="p-2 text-gray-400 hover:text-primary hover:bg-surface-soft rounded-xl cursor-pointer shrink-0"
+                                          title="Rename folder"
+                                        >
+                                          <Edit2 className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button
+                                          onClick={() => handleDownloadFolder(folderName)}
+                                          className="p-2 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-xl cursor-pointer shrink-0"
+                                          title="Download folder as ZIP"
+                                        >
+                                          <Download className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button
+                                          onClick={() => handleDeleteFolder(folderName)}
+                                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl cursor-pointer shrink-0"
+                                          title="Delete folder"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Files list inside this folder */}
                           <div className="space-y-1.5">
-                            {filteredFolderFiles.length === 0 ? (
+                            {filteredFolderFiles.length === 0 && immediateSubfolders.length === 0 ? (
                               <div className="text-center py-8 px-2 border border-dashed border-hairline rounded-2xl bg-surface-soft">
                                 <p className="text-[11px] text-gray-500 font-mono">
                                   {innerFileSearch ? `No files match "${innerFileSearch}"` : 'No files in this folder.'}
                                 </p>
                               </div>
                             ) : (
-                              filteredFolderFiles.map((file) => {
-                                const isActive = activeFileName === file.name
-                                const isDropdownOpen = activeDropdownFile === file.name
-                                const displayName = file.name.substring(currentExplorerFolder.length + 1)
-                                return (
-                                  <div
-                                    key={file.name}
-                                    draggable={true}
-                                    onDragStart={(e) => {
-                                      e.dataTransfer.setData('text/plain', file.name)
-                                    }}
-                                    className="relative group animate-fade-in"
-                                  >
-                                    <button
-                                      onClick={() => handleLoadFile(file)}
-                                      className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 ${
-                                        isActive
-                                          ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
-                                          : 'bg-canvas border-hairline text-gray-500 hover:text-ink hover:border-gray-400'
-                                      }`}
+                              <>
+                                {filteredFolderFiles.length > 0 && (
+                                  <div className="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider font-mono mt-2">Files</div>
+                                )}
+                                {filteredFolderFiles.map((file) => {
+                                  const isActive = activeFileName === file.name
+                                  const isDropdownOpen = activeDropdownFile === file.name
+                                  const displayName = file.name.substring(prefix.length)
+                                  return (
+                                    <div
+                                      key={file.name}
+                                      draggable={true}
+                                      onDragStart={(e) => {
+                                        e.dataTransfer.setData('text/plain', file.name)
+                                      }}
+                                      className="relative group animate-fade-in"
                                     >
-                                      <div className="flex items-center gap-2.5 overflow-hidden w-full">
-                                        <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
-                                        <div className="flex flex-col overflow-hidden">
-                                          <span className="text-xs font-bold font-mono truncate">{displayName}</span>
-                                          <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
-                                        </div>
-                                      </div>
-                                    </button>
-
-                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20 opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                       <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          if (isDropdownOpen) {
-                                            setActiveDropdownFile(null)
-                                            setDropdownPos(null)
-                                          } else {
-                                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-                                            setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
-                                            setActiveDropdownFile(file.name)
-                                          }
-                                        }}
-                                        className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                                        onClick={() => handleLoadFile(file)}
+                                        className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 ${
+                                          isActive
+                                            ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
+                                            : 'bg-canvas border-hairline text-gray-500 hover:text-ink hover:border-gray-400'
+                                        }`}
                                       >
-                                        <MoreVertical className="w-3.5 h-3.5" />
+                                        <div className="flex items-center gap-2.5 overflow-hidden w-full">
+                                          <FileCode className="w-4 h-4 shrink-0 text-primary animate-pulse" />
+                                          <div className="flex flex-col overflow-hidden">
+                                            <span className="text-xs font-bold font-mono truncate">{displayName}</span>
+                                            <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
+                                          </div>
+                                        </div>
                                       </button>
+
+                                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20 opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            if (isDropdownOpen) {
+                                              setActiveDropdownFile(null)
+                                              setDropdownPos(null)
+                                            } else {
+                                              const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                                              setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                                              setActiveDropdownFile(file.name)
+                                            }
+                                          }}
+                                          className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                                        >
+                                          <MoreVertical className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
                                     </div>
-                                  </div>
-                                )
-                              })
+                                  )
+                                })}
+                              </>
                             )}
                           </div>
                         </div>
@@ -2651,7 +2802,9 @@ export default function CodeEditorPage() {
                     }
 
                     // Main explorer view (folders & root files)
-                    const filteredFolders = allFolders.filter(folder =>
+                    const filteredFolders = Array.from(new Set(
+                      allFolders.map(path => path.split('/')[0])
+                    )).sort().filter(folder =>
                       folder.toLowerCase().includes(folderSearch.toLowerCase())
                     )
                     const filteredRootFiles = rootFiles.filter(file =>
@@ -3202,7 +3355,7 @@ export default function CodeEditorPage() {
                     className={`group relative flex items-center gap-2 px-4 h-full border-r border-hairline/50 cursor-pointer transition-all duration-150 ${
                       isActive 
                         ? 'bg-surface-soft text-ink font-bold border-b border-b-primary' 
-                        : 'text-gray-400 hover:text-ink hover:bg-surface-soft/40'
+                        : 'text-gray-500 dark:text-gray-300 hover:text-ink hover:bg-surface-soft/40'
                     }`}
                   >
                     {/* File Type Icon */}
@@ -3232,9 +3385,9 @@ export default function CodeEditorPage() {
                         e.stopPropagation()
                         closeTab(tab.name)
                       }}
-                      className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-hairline/65 text-gray-400 hover:text-red-500 hover:scale-115 cursor-pointer transition-all flex items-center justify-center shrink-0"
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded-full hover:bg-hairline/65 text-gray-400 hover:text-red-500 hover:scale-125 cursor-pointer transition-all flex items-center justify-center shrink-0"
                     >
-                      <X className="w-2.5 h-2.5 transition-transform" />
+                      <X className="w-3.5 h-3.5 transition-transform" />
                     </button>
                   </div>
                 )
@@ -4004,12 +4157,7 @@ export default function CodeEditorPage() {
 
       {/* Save File Modal Dialog */}
       {showSaveModal && (() => {
-        const allFolders = Array.from(new Set([
-          ...customFolders,
-          ...savedFiles
-            .filter(f => f.name.includes('/'))
-            .map(f => f.name.split('/')[0])
-        ])).sort()
+        const allFolders = getAllFolders()
         return (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-6 shadow-2xl space-y-4 animate-scale-in">
@@ -4151,12 +4299,7 @@ export default function CodeEditorPage() {
 
       {/* Move File Modal Dialog */}
       {showMoveModal && fileToMove && (() => {
-        const allFolders = Array.from(new Set([
-          ...customFolders,
-          ...savedFiles
-            .filter(f => f.name.includes('/'))
-            .map(f => f.name.split('/')[0])
-        ])).sort()
+        const allFolders = getAllFolders()
         return (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-6 shadow-2xl space-y-4 animate-scale-in">
