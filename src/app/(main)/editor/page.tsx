@@ -284,21 +284,7 @@ const MarkdownCellEditor = ({
           }
         }
       }}
-      onMouseUp={() => {
-        onCheckStyles()
-        const selection = window.getSelection()
-        if (selection && !selection.isCollapsed) {
-          try {
-            const range = selection.getRangeAt(0)
-            const rect = range.getBoundingClientRect()
-            onSelect(rect.top + window.scrollY - 42, rect.left + window.scrollX + rect.width / 2, true)
-          } catch (err) {
-            onSelect(0, 0, false)
-          }
-        } else {
-          onSelect(0, 0, false)
-        }
-      }}
+      onMouseUp={onCheckStyles}
     />
   )
 }
@@ -376,7 +362,7 @@ export default function CodeEditorPage() {
       
       let h1 = false, h2 = false, h3 = false, h4 = false, h5 = false, h6 = false
       let node: Node | null = selection.anchorNode
-      while (node && node.nodeName !== 'DIV' && !((node as HTMLElement).classList && (node as HTMLElement).classList.contains('cell-contenteditable-editor'))) {
+      while (node && !((node as HTMLElement).classList && (node as HTMLElement).classList.contains('cell-contenteditable-editor'))) {
         const name = node.nodeName.toLowerCase()
         if (name === 'h1') h1 = true
         if (name === 'h2') h2 = true
@@ -462,6 +448,47 @@ export default function CodeEditorPage() {
 
   const [selectionBubble, setSelectionBubble] = useState<{ visible: boolean; top: number; left: number; cellId: string }>({ visible: false, top: 0, left: 0, cellId: '' })
 
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      // Proactively check active styles for toolbar
+      checkActiveStyles()
+
+      const selection = window.getSelection()
+      if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+        setSelectionBubble(prev => prev.visible ? { ...prev, visible: false } : prev)
+        return
+      }
+
+      // Check if selection is inside the active contenteditable editor
+      const activeEl = document.querySelector('.cell-contenteditable-editor:focus') as HTMLDivElement
+      if (activeEl && activeEl.contains(selection.anchorNode)) {
+        try {
+          const range = selection.getRangeAt(0)
+          const rect = range.getBoundingClientRect()
+          if (rect.width > 0 && rect.height > 0) {
+            setSelectionBubble({
+              visible: true,
+              top: rect.top - 45, // Viewport-relative because bubble is fixed
+              left: rect.left + rect.width / 2, // Viewport-relative
+              cellId: activeCellId || ''
+            })
+          }
+        } catch (err) {
+          // ignore
+        }
+      } else {
+        setSelectionBubble(prev => prev.visible ? { ...prev, visible: false } : prev)
+      }
+    }
+
+    document.addEventListener('selectionchange', handleSelectionChange)
+    window.addEventListener('scroll', handleSelectionChange, true) // capture scrolls on containers too
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange)
+      window.removeEventListener('scroll', handleSelectionChange, true)
+    }
+  }, [activeCellId])
+
   const applyFormatHeading = (level: number) => {
     const editor = activeEditorRef.current
     if (!editor) return
@@ -500,9 +527,11 @@ export default function CodeEditorPage() {
     const selection = window.getSelection()
     if (!selection) return
     
-    // If nothing is selected, select the entire content of the active cell's editable container
     const isSelectionEmpty = selection.isCollapsed
-    if (isSelectionEmpty && activeEl) {
+    const hasText = activeEl.textContent && activeEl.textContent.trim().length > 0
+
+    if (isSelectionEmpty && hasText) {
+      // Programmatically select all content in that cell to format existing text
       const range = document.createRange()
       range.selectNodeContents(activeEl)
       selection.removeAllRanges()
@@ -529,17 +558,23 @@ export default function CodeEditorPage() {
         break
     }
     
-    // If we programmatically selected all text, collapse the selection back to the end
-    if (isSelectionEmpty && activeEl) {
+    // If we programmatically selected all text, collapse cursor inside the style tag at the end
+    if (isSelectionEmpty && hasText) {
       const range = document.createRange()
-      range.selectNodeContents(activeEl)
-      range.collapse(false) // collapse to end
+      if (activeEl.lastChild) {
+        range.selectNodeContents(activeEl.lastChild)
+      } else {
+        range.selectNodeContents(activeEl)
+      }
+      range.collapse(false) // collapse to end (inside style block)
       selection.removeAllRanges()
       selection.addRange(range)
     }
     
     // Clear selection bubble
     setSelectionBubble(prev => ({ ...prev, visible: false }))
+    // Update active styles
+    checkActiveStyles()
   }
 
   const [leftSidebarTab, setLeftSidebarTab] = useState<'savedFiles' | 'datasets'>('savedFiles')
@@ -3277,7 +3312,8 @@ export default function CodeEditorPage() {
                 {/* Cells */}
                 <div className="space-y-4 select-text animate-fade-in">
                   <style>{`
-                    .cell-markdown-container h1, [contenteditable="true"] h1 { font-size: 2.25em !important; font-weight: 800 !important; margin-top: 0.6em !important; margin-bottom: 0.35em !important; color: var(--ink) !important; line-height: 1.35 !important; }
+                    [contenteditable="true"] h1 { font-size: 2.25em !important; font-weight: 800 !important; margin-top: 0.6em !important; margin-bottom: 0.35em !important; color: var(--ink) !important; line-height: 1.35 !important; }
+                    .cell-markdown-container h1 { font-size: 1.5em !important; font-weight: 800 !important; margin-top: 0.5em !important; margin-bottom: 0.3em !important; color: var(--ink) !important; line-height: 1.35 !important; }
                     .cell-markdown-container h2, [contenteditable="true"] h2 { font-size: 1.75em !important; font-weight: 700 !important; margin-top: 0.5em !important; margin-bottom: 0.3em !important; color: var(--ink) !important; line-height: 1.35 !important; }
                     .cell-markdown-container h3, [contenteditable="true"] h3 { font-size: 1.4em !important; font-weight: 700 !important; margin-top: 0.4em !important; margin-bottom: 0.25em !important; color: var(--ink) !important; line-height: 1.35 !important; }
                     .cell-markdown-container h4, [contenteditable="true"] h4 { font-size: 1.2em !important; font-weight: 700 !important; margin-top: 0.35em !important; margin-bottom: 0.2em !important; color: var(--ink) !important; line-height: 1.35 !important; }
@@ -3364,8 +3400,8 @@ export default function CodeEditorPage() {
                               disabled={index === 0}
                               className={`p-1 rounded cursor-pointer transition-colors ${
                                 theme === 'dark'
-                                  ? 'hover:bg-white/10 text-gray-300 hover:text-white disabled:opacity-20'
-                                  : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900 disabled:opacity-20'
+                                  ? 'hover:bg-white/10 text-white disabled:opacity-20'
+                                  : 'hover:bg-slate-100 text-slate-900 disabled:opacity-20'
                               }`}
                               title="Move cell up"
                             >
@@ -3377,8 +3413,8 @@ export default function CodeEditorPage() {
                               disabled={index === cells.length - 1}
                               className={`p-1 rounded cursor-pointer transition-colors ${
                                 theme === 'dark'
-                                  ? 'hover:bg-white/10 text-gray-300 hover:text-white disabled:opacity-20'
-                                  : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900 disabled:opacity-20'
+                                  ? 'hover:bg-white/10 text-white disabled:opacity-20'
+                                  : 'hover:bg-slate-100 text-slate-900 disabled:opacity-20'
                               }`}
                               title="Move cell down"
                             >
@@ -3399,8 +3435,8 @@ export default function CodeEditorPage() {
                               }}
                               className={`p-1 rounded cursor-pointer transition-colors ${
                                 theme === 'dark'
-                                  ? 'hover:bg-white/10 text-gray-300 hover:text-white'
-                                  : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+                                  ? 'hover:bg-white/10 text-white'
+                                  : 'hover:bg-slate-100 text-slate-900'
                               }`}
                               title="Delete cell"
                             >
