@@ -393,7 +393,6 @@ imgs[0] if imgs else ""
       }
 
       // Recursively scan Pyodide's virtual filesystem for user files/folders
-      const systemDirs = new Set(['tmp', 'dev', 'proc', 'sys', 'home', 'lib', 'usr', 'var', 'mnt', 'etc', 'package.json', 'node_modules', '.']);
       const datasetNames = new Set(filenames);
       
       const scanUserFiles = (dir) => {
@@ -401,7 +400,7 @@ imgs[0] if imgs else ""
         try {
           const files = pyodide.FS.readdir(dir);
           files.forEach(name => {
-            if (name === '.' || name === '..' || systemDirs.has(name) || datasetNames.has(name)) return;
+            if (name === '.' || name === '..') return;
             const fullPath = dir === '/' ? name : `${dir}/${name}`;
             try {
               const stat = pyodide.FS.stat(fullPath);
@@ -409,10 +408,19 @@ imgs[0] if imgs else ""
               if (isDir) {
                 list.push(...scanUserFiles(fullPath));
               } else {
-                const isBinary = fullPath.endsWith('.xlsx') || fullPath.endsWith('.png') || fullPath.endsWith('.jpg') || fullPath.endsWith('.pdf');
+                let relativePath = fullPath;
+                if (relativePath.startsWith('/home/pyodide/')) {
+                  relativePath = relativePath.slice('/home/pyodide/'.length);
+                } else if (relativePath.startsWith('home/pyodide/')) {
+                  relativePath = relativePath.slice('home/pyodide/'.length);
+                }
+                
+                if (datasetNames.has(relativePath)) return;
+                
+                const isBinary = relativePath.endsWith('.xlsx') || relativePath.endsWith('.png') || relativePath.endsWith('.jpg') || relativePath.endsWith('.pdf');
                 if (!isBinary) {
                   const code = pyodide.FS.readFile(fullPath, { encoding: 'utf8' });
-                  list.push({ name: fullPath, code });
+                  list.push({ name: relativePath, code });
                 }
               }
             } catch (e) {}
@@ -421,7 +429,7 @@ imgs[0] if imgs else ""
         return list;
       };
 
-      const userFiles = scanUserFiles('/');
+      const userFiles = scanUserFiles('/home/pyodide');
 
       postMessage({ type: 'RUN_SUCCESS', plotData: plotData || null, updatedFiles, cellId: currentCellId, userFiles });
     } catch (err) {
@@ -479,7 +487,6 @@ imgs[0] if imgs else ""
       }
 
       // Recursively scan Pyodide's virtual filesystem for user files/folders
-      const systemDirs = new Set(['tmp', 'dev', 'proc', 'sys', 'home', 'lib', 'usr', 'var', 'mnt', 'etc', 'package.json', 'node_modules', '.']);
       const datasetNames = new Set(filenames);
       
       const scanUserFiles = (dir) => {
@@ -487,7 +494,7 @@ imgs[0] if imgs else ""
         try {
           const files = pyodide.FS.readdir(dir);
           files.forEach(name => {
-            if (name === '.' || name === '..' || systemDirs.has(name) || datasetNames.has(name)) return;
+            if (name === '.' || name === '..') return;
             const fullPath = dir === '/' ? name : `${dir}/${name}`;
             try {
               const stat = pyodide.FS.stat(fullPath);
@@ -495,10 +502,19 @@ imgs[0] if imgs else ""
               if (isDir) {
                 list.push(...scanUserFiles(fullPath));
               } else {
-                const isBinary = fullPath.endsWith('.xlsx') || fullPath.endsWith('.png') || fullPath.endsWith('.jpg') || fullPath.endsWith('.pdf');
+                let relativePath = fullPath;
+                if (relativePath.startsWith('/home/pyodide/')) {
+                  relativePath = relativePath.slice('/home/pyodide/'.length);
+                } else if (relativePath.startsWith('home/pyodide/')) {
+                  relativePath = relativePath.slice('home/pyodide/'.length);
+                }
+                
+                if (datasetNames.has(relativePath)) return;
+                
+                const isBinary = relativePath.endsWith('.xlsx') || relativePath.endsWith('.png') || relativePath.endsWith('.jpg') || relativePath.endsWith('.pdf');
                 if (!isBinary) {
                   const code = pyodide.FS.readFile(fullPath, { encoding: 'utf8' });
-                  list.push({ name: fullPath, code });
+                  list.push({ name: relativePath, code });
                 }
               }
             } catch (e) {}
@@ -507,7 +523,7 @@ imgs[0] if imgs else ""
         return list;
       };
 
-      const userFiles = scanUserFiles('/');
+      const userFiles = scanUserFiles('/home/pyodide');
 
       postMessage({ type: 'RUN_ERROR', message: err.message || String(err), updatedFiles, cellId: currentCellId, userFiles });
     }
