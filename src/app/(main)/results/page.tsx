@@ -472,7 +472,7 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
         <div className="flex items-center justify-between border-b border-hairline pb-5">
           <div>
             <h1 className="text-2xl font-black text-ink tracking-tight">@{viewedUser.username || 'username'}'s Profile</h1>
-            <p className="text-gray-500 text-xs mt-1 font-light">Viewing student performance analytics and submission logs</p>
+            <p className="text-gray-500 text-xs mt-1 font-normal">Viewing student performance analytics and submission logs</p>
           </div>
           <button
             onClick={() => setViewedUser(null)}
@@ -1125,7 +1125,7 @@ export default function ResultsPage() {
         {/* Header */}
         <div className="border-b border-hairline pb-5">
           <h1 className="text-2xl font-extrabold tracking-tight text-ink">My Results</h1>
-          <p className="text-gray-500 text-xs mt-1 font-light">View your scores and rankings for completed codeathons</p>
+          <p className="text-gray-500 text-xs mt-1 font-normal">View your scores and rankings for completed codeathons</p>
         </div>
 
         {/* Stats Grid - only for logged-in users */}
@@ -1212,7 +1212,7 @@ export default function ResultsPage() {
           <div className="py-20 text-center rounded-2xl border border-dashed border-hairline bg-surface-soft text-gray-500">
             <BarChart2 className="w-10 h-10 mx-auto mb-3 text-gray-400" />
             <h3 className="text-ink font-bold text-sm mb-1">No Results Yet</h3>
-            <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed font-light">
+            <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed font-normal">
               Results appear here after a codeathon ends and you have submitted an attempt. Check the Codeathons tab for upcoming exams.
             </p>
           </div>

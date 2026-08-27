@@ -2816,7 +2816,7 @@ export default function CodeEditorPage() {
                   {savedFiles.length === 0 ? (
                     <div className="text-center py-8 px-2 border border-dashed border-hairline rounded-2xl bg-surface-soft">
                       <p className="text-[11px] text-gray-700 dark:text-gray-300 font-semibold">No saved files yet.</p>
-                      <p className="text-[10px] text-gray-500 dark:text-gray-400 font-light mt-1">Click &quot;Save&quot; in toolbar to store progress!</p>
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 font-normal mt-1">Click &quot;Save&quot; in toolbar to store progress!</p>
                     </div>
                   ) : (() => {
                     const allFolders = getAllFolders()
@@ -4279,7 +4279,7 @@ export default function CodeEditorPage() {
                 {consoleOutput ? (
                   <pre className="whitespace-pre-wrap">{consoleOutput}</pre>
                 ) : (
-                  <p className="text-gray-400 font-light italic">Write Python code and click Run Code to execute and print outputs here...</p>
+                  <p className="text-gray-400 font-normal italic">Write Python code and click Run Code to execute and print outputs here...</p>
                 )}
               </div>
             </div>
@@ -4298,7 +4298,7 @@ export default function CodeEditorPage() {
                 <Database className="w-5 h-5 text-primary" />
                 <div>
                   <h2 className="text-base font-extrabold text-ink font-mono">{selectedFile}</h2>
-                  <p className="text-xs text-gray-500 font-light leading-relaxed mt-0.5">
+                  <p className="text-xs text-gray-500 font-normal leading-relaxed mt-0.5">
                     {DATASETS[selectedFile as keyof typeof DATASETS]?.description || "User-imported dataset file stored in IndexedDB persistent local cache."}
                   </p>
                 </div>
@@ -4335,7 +4335,7 @@ export default function CodeEditorPage() {
               {previewRows.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-8 space-y-3">
                   <RefreshCw className="w-8 h-8 text-primary animate-spin" />
-                  <p className="text-xs text-gray-500 font-light">Initializing dataset preview...</p>
+                  <p className="text-xs text-gray-500 font-normal">Initializing dataset preview...</p>
                 </div>
               ) : (
                 <table className="min-w-full text-left border-collapse text-xs table-auto select-text">
@@ -4751,7 +4751,7 @@ export default function CodeEditorPage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-bold text-ink">Sign In to Save</h3>
-              <p className="text-xs text-gray-600 dark:text-gray-400 font-light leading-relaxed">
+              <p className="text-xs text-gray-600 dark:text-gray-400 font-normal leading-relaxed">
                 Please log in or create an account to save your code scripts. Your files will be securely synced to the cloud so you can resume anytime.
               </p>
             </div>

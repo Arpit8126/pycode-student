@@ -283,7 +283,7 @@ export default function PracticeListPage() {
         <div className="p-8 rounded-3xl bg-surface-soft border border-hairline text-center max-w-md mx-auto space-y-4 shadow-sm animate-scale-in">
           <WifiOff className="w-12 h-12 text-error mx-auto animate-pulse" />
           <h2 className="text-xl font-bold text-ink">No Internet Connection</h2>
-          <p className="text-xs text-muted font-light leading-relaxed">
+          <p className="text-xs text-muted font-normal leading-relaxed">
             You are currently offline. Please check your internet connection to access practice problems and submit test solutions.
           </p>
           <button
@@ -672,7 +672,7 @@ export default function PracticeListPage() {
                 >
                   <div className="space-y-1 pr-4">
                     <span className="text-sm font-bold text-ink tracking-tight">{cat.name}</span>
-                    <p className="text-[11px] text-gray-500 font-light leading-relaxed">{cat.desc}</p>
+                    <p className="text-[11px] text-gray-500 font-normal leading-relaxed">{cat.desc}</p>
                   </div>
 
                   <div className="flex items-center gap-6">
@@ -699,7 +699,7 @@ export default function PracticeListPage() {
                 {isExpanded && (
                   <div className="border-t border-hairline bg-canvas overflow-x-auto animate-fade-in text-xs">
                     {list.length === 0 ? (
-                      <div className="p-8 text-center text-gray-500 font-light">
+                      <div className="p-8 text-center text-gray-500 font-normal">
                         No active problems match the current filter criteria.
                       </div>
                     ) : (

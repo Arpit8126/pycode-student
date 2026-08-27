@@ -488,7 +488,7 @@ export default function PracticeWorkspacePage() {
                   </div>
                   <div className="space-y-2">
                     <h3 className="text-sm font-extrabold text-ink">Active Dataset File</h3>
-                    <p className="text-xs text-gray-500 font-light leading-relaxed">
+                    <p className="text-xs text-gray-500 font-normal leading-relaxed">
                       This challenge executes inside a Python sandbox loaded with:
                     </p>
                     <div className="mt-1">
@@ -498,7 +498,7 @@ export default function PracticeWorkspacePage() {
                     </div>
                   </div>
                   
-                  <p className="text-xs text-gray-500 max-w-xs font-light leading-relaxed">
+                  <p className="text-xs text-gray-500 max-w-xs font-normal leading-relaxed">
                     Click the button below to view the complete CSV dataset with full horizontal and vertical scrolling.
                   </p>
                   
@@ -701,7 +701,7 @@ export default function PracticeWorkspacePage() {
                       {output}
                     </pre>
                   ) : (
-                    <p className="text-gray-500 text-xs font-light">Run code to see standard console print outputs...</p>
+                    <p className="text-gray-500 text-xs font-normal">Run code to see standard console print outputs...</p>
                   )}
                 </div>
               )}
@@ -710,7 +710,7 @@ export default function PracticeWorkspacePage() {
               {rightTab === 'cases' && (
                 <div className="space-y-4">
                   {evalStatus === 'idle' ? (
-                    <p className="text-gray-500 text-xs font-light">Run code to evaluate hidden assertions.</p>
+                    <p className="text-gray-500 text-xs font-normal">Run code to evaluate hidden assertions.</p>
                   ) : (
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
@@ -759,7 +759,7 @@ export default function PracticeWorkspacePage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-bold text-ink">Sign In Required</h3>
-              <p className="text-xs text-muted font-light leading-relaxed">
+              <p className="text-xs text-muted font-normal leading-relaxed">
                 Please login or create account to submit your coding solution and record your progress.
               </p>
             </div>
@@ -796,7 +796,7 @@ export default function PracticeWorkspacePage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-bold text-ink">Verification Failed</h3>
-              <p className="text-xs text-muted font-light leading-relaxed">
+              <p className="text-xs text-muted font-normal leading-relaxed">
                 All test cases not passed so you cant submit your solution.
               </p>
             </div>
@@ -824,7 +824,7 @@ export default function PracticeWorkspacePage() {
 
             <div className="space-y-2">
               <h3 className="text-2xl font-extrabold text-ink tracking-tight">Congratulations! 🎉</h3>
-              <p className="text-sm text-muted font-light leading-relaxed">
+              <p className="text-sm text-muted font-normal leading-relaxed">
                 Your solution has been submitted and your progress has been recorded.
               </p>
               {question?.points && (
@@ -861,7 +861,7 @@ export default function PracticeWorkspacePage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-bold">Reset Editor Code?</h3>
-              <p className="text-xs text-muted font-light leading-relaxed">
+              <p className="text-xs text-muted font-normal leading-relaxed">
                 Are you sure you want to reset the editor to the starter template? All of your unsaved progress on this problem will be lost.
               </p>
             </div>
@@ -919,7 +919,7 @@ export default function PracticeWorkspacePage() {
               {csvPreviewRows.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center space-y-3">
                   <RefreshCw className="w-8 h-8 text-primary animate-spin" />
-                  <p className="text-xs text-gray-500 font-light">Loading dataset contents...</p>
+                  <p className="text-xs text-gray-500 font-normal">Loading dataset contents...</p>
                 </div>
               ) : (
                 <div className="flex-1 border border-hairline rounded-2xl overflow-auto bg-canvas relative flex flex-col min-h-0">

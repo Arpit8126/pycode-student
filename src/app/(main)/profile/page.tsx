@@ -763,7 +763,7 @@ export default function ProfilePage() {
             <h1 className="text-2xl font-extrabold tracking-tight text-ink">
               {viewedProfile ? `${viewedProfile.full_name || viewedProfile.username}'s Profile` : 'My Coding Profile'}
             </h1>
-            <p className="text-gray-500 text-xs font-light">
+            <p className="text-gray-500 text-xs font-normal">
               {viewedProfile ? 'Viewing student performance analytics and submission logs' : 'Track your practice telemetry, solved problems, and submission heatmap'}
             </p>
           </div>
@@ -1059,7 +1059,7 @@ export default function ProfilePage() {
                   >
                     <div className="space-y-1">
                       <h3 className="text-sm font-semibold text-ink">{cleanQuestionTitle(sub.coding_questions?.title || `Question #${sub.question_id}`)}</h3>
-                      <p className="text-[10px] text-gray-500 font-light">Submitted {dateStr}</p>
+                      <p className="text-[10px] text-gray-500 font-normal">Submitted {dateStr}</p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -1173,7 +1173,7 @@ export default function ProfilePage() {
                 <div className="absolute inset-0 rounded-full border border-white/20 pointer-events-none" />
               </div>
 
-              <p className="text-[10px] text-gray-500 font-light text-center">
+              <p className="text-[10px] text-gray-500 font-normal text-center">
                 Drag the image inside the circle to reposition, or use the slider below to zoom.
               </p>
 

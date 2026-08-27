@@ -295,7 +295,7 @@ export default function Sidebar() {
         {isGuest ? (
           !isCollapsed ? (
             <div className="p-4 rounded-2xl bg-surface-soft text-center space-y-3">
-              <p className="text-xs text-body leading-normal font-light">
+              <p className="text-xs text-body leading-normal font-normal">
                 You are exploring as a <strong className="font-semibold text-ink">Guest</strong>. Create an account to save test scores and progress!
               </p>
               <div className="flex gap-2">

@@ -215,7 +215,7 @@ export default function SearchUsersPage() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
             Search Users
           </h1>
-          <p className="text-gray-400 text-sm mt-1 font-light">Lookup peer submissions, scores, and practice activity logs</p>
+          <p className="text-gray-400 text-sm mt-1 font-normal">Lookup peer submissions, scores, and practice activity logs</p>
         </div>
 
         {/* Input Bar */}
