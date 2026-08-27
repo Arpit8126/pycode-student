@@ -282,6 +282,13 @@ class JSStreamWriter:
 sys.stdout = JSStreamWriter()
 sys.stderr = JSStreamWriter()
 
+import warnings
+def pycode_showwarning(message, category, filename, lineno, file=None, line=None):
+    warn_text = warnings.formatwarning(message, category, filename, lineno, line)
+    for l in warn_text.splitlines():
+        sys.stderr.write(f"__PYCODE_WARNING__:{l}\\n")
+warnings.showwarning = pycode_showwarning
+
 def input_mock(prompt=""):
     if prompt:
         print(prompt, end="")

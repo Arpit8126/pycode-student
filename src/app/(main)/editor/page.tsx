@@ -966,36 +966,48 @@ export default function CodeEditorPage() {
     let currentBlock: 'none' | 'warning' | 'error' = 'none'
 
     return lines.map((line, index) => {
+      let isWarningLine = false
+      let cleanLine = line
+
+      if (line.startsWith('__PYCODE_WARNING__:')) {
+        isWarningLine = true
+        cleanLine = line.slice('__PYCODE_WARNING__:'.length)
+      }
+
       const startsError = 
-        line.startsWith('[Worker System Error]') ||
-        line.startsWith('Traceback (most recent call last):') ||
-        /^\s*File\s+".*",\s+line\s+\d+/i.test(line) ||
-        /^\w*(?:Error|Exception|KeyboardInterrupt|SystemExit)(?:\b|:)/.test(line);
+        cleanLine.startsWith('[Worker System Error]') ||
+        cleanLine.startsWith('Traceback (most recent call last):') ||
+        /^\s*File\s+".*",\s+line\s+\d+/i.test(cleanLine) ||
+        /^\w*(?:Error|Exception|KeyboardInterrupt|SystemExit)(?:\b|:)/.test(cleanLine);
 
       const startsWarning = 
-        /warning/i.test(line) ||
-        /\b(?:Future|Deprecation|User|Runtime|PendingDeprecation|Import|Unicode|Bytes|Resource)Warning\b/.test(line);
+        isWarningLine ||
+        /warning/i.test(cleanLine) ||
+        /\b(?:Future|Deprecation|User|Runtime|PendingDeprecation|Import|Unicode|Bytes|Resource)Warning\b/.test(cleanLine);
 
       if (startsError) {
         currentBlock = 'error'
       } else if (startsWarning) {
         currentBlock = 'warning'
-      } else if (line.trim() === '' || line.startsWith('[System Message]')) {
-        currentBlock = 'none'
+      } else if (cleanLine.trim() === '' || cleanLine.startsWith('[System Message]')) {
+        // Only clear current block if we're not inside a tagged warning block
+        if (!isWarningLine) {
+          currentBlock = 'none'
+        }
       }
 
       let textColorClass = 'text-ink dark:text-gray-200'
       let customStyle = {}
       if (currentBlock === 'error' || startsError) {
         textColorClass = 'text-red-500 dark:text-red-400 font-semibold'
-      } else if (currentBlock === 'warning' || startsWarning) {
+      } else if (currentBlock === 'warning' || startsWarning || isWarningLine) {
         textColorClass = 'font-medium'
         customStyle = { color: '#e2c08d' }
       }
 
       return (
         <div key={index} className={textColorClass} style={customStyle}>
-          {line || ' '}
+          {cleanLine || ' '}
         </div>
       )
     })
