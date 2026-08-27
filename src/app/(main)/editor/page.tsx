@@ -4368,16 +4368,26 @@ export default function CodeEditorPage() {
       {showPlotModal && plotUrl && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-canvas border border-hairline p-6 rounded-3xl max-w-4xl w-full flex flex-col items-center justify-center relative shadow-2xl animate-scale-in">
-            <button
-              onClick={() => {
-                setShowPlotModal(false)
-                setPlotUrl('')
-              }}
-              title="Close Plot"
-              className="absolute top-4 right-4 p-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-colors flex items-center justify-center"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {/* Top-right button group: Fullscreen + Close */}
+            <div className="absolute top-4 right-4 flex items-center gap-1.5">
+              <button
+                onClick={() => setFullscreenPlotUrl(plotUrl)}
+                title="Show in Full Screen"
+                className="p-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-colors flex items-center justify-center"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => {
+                  setShowPlotModal(false)
+                  setPlotUrl('')
+                }}
+                title="Close Plot"
+                className="p-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-colors flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
             
             <div className="w-full text-center space-y-4">
               <h3 className="text-sm font-extrabold text-ink flex items-center justify-center gap-2">
@@ -4387,15 +4397,6 @@ export default function CodeEditorPage() {
               <div className="border border-hairline rounded-2xl overflow-hidden bg-white p-2">
                 <img src={plotUrl} alt="Matplotlib Plot Output" className="w-full max-h-[520px] object-contain rounded-lg mx-auto" />
               </div>
-              {/* Full Screen Button */}
-              <button
-                onClick={() => setFullscreenPlotUrl(plotUrl)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-soft border border-hairline hover:bg-surface-card text-xs font-bold text-ink cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
-                title="View in Full Screen"
-              >
-                <Maximize2 className="w-3.5 h-3.5" />
-                Show in Full Screen
-              </button>
             </div>
           </div>
         </div>
@@ -5039,24 +5040,23 @@ export default function CodeEditorPage() {
 
       {/* Fullscreen Plot Zoom Modal Overlay */}
       {fullscreenPlotUrl && (
-        <div 
-          className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[110] flex items-center justify-center p-6 animate-fade-in cursor-zoom-out"
+        <div
+          className="fixed inset-0 z-[110] flex items-center justify-center animate-fade-in bg-white dark:bg-zinc-950"
           onClick={() => setFullscreenPlotUrl(null)}
         >
-          <div className="relative max-w-5xl max-h-[90vh] bg-canvas p-4 rounded-2xl border border-hairline shadow-2xl flex flex-col items-center">
-            <button
-              onClick={() => setFullscreenPlotUrl(null)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-surface-soft hover:bg-surface-card text-gray-500 hover:text-ink transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <img
-              src={fullscreenPlotUrl}
-              alt="Fullscreen matplotlib plot"
-              className="max-w-full max-h-[80vh] object-contain rounded-xl select-none"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
+          <button
+            onClick={() => setFullscreenPlotUrl(null)}
+            className="absolute top-5 right-5 p-2 rounded-full bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-gray-700 dark:text-gray-300 hover:text-ink transition-colors cursor-pointer z-10"
+            title="Close Fullscreen"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <img
+            src={fullscreenPlotUrl}
+            alt="Fullscreen matplotlib plot"
+            className="w-full h-full object-contain select-none p-4"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
 
