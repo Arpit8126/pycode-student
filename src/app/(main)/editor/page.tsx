@@ -924,6 +924,47 @@ export default function CodeEditorPage() {
     activeFileNameRef.current = activeFileName
   }, [activeFileName])
 
+  const renderFormattedConsoleOutput = (output: string) => {
+    if (!output) return null
+    const lines = output.split('\n')
+    let currentBlock: 'none' | 'warning' | 'error' = 'none'
+
+    return lines.map((line, index) => {
+      const startsError = 
+        line.startsWith('[Worker System Error]') ||
+        line.startsWith('Traceback (most recent call last):') ||
+        /^\s*File\s+".*",\s+line\s+\d+/i.test(line) ||
+        /^\w*(?:Error|Exception|KeyboardInterrupt|SystemExit)(?:\b|:)/.test(line);
+
+      const startsWarning = 
+        /warning/i.test(line) ||
+        /\b(?:Future|Deprecation|User|Runtime|PendingDeprecation|Import|Unicode|Bytes|Resource)Warning\b/.test(line);
+
+      if (startsError) {
+        currentBlock = 'error'
+      } else if (startsWarning) {
+        currentBlock = 'warning'
+      } else if (line.trim() === '' || line.startsWith('[System Message]')) {
+        currentBlock = 'none'
+      }
+
+      let textColorClass = 'text-ink dark:text-gray-200'
+      let customStyle = {}
+      if (currentBlock === 'error' || startsError) {
+        textColorClass = 'text-red-500 dark:text-red-400 font-semibold'
+      } else if (currentBlock === 'warning' || startsWarning) {
+        textColorClass = 'font-medium'
+        customStyle = { color: '#e2c08d' }
+      }
+
+      return (
+        <div key={index} className={textColorClass} style={customStyle}>
+          {line || ' '}
+        </div>
+      )
+    })
+  }
+
   // Operational States
   const [isRunning, setIsRunning] = useState(false)
   const [consoleOutput, setConsoleOutput] = useState('')
@@ -4242,7 +4283,7 @@ export default function CodeEditorPage() {
                             {/* Monospace output text block */}
                             <div className="font-mono text-xs space-y-2 pl-1 pr-6">
                               {cell.output && (
-                                <pre className="whitespace-pre-wrap text-ink dark:text-gray-200 leading-relaxed font-mono">{cell.output}</pre>
+                                <pre className="whitespace-pre-wrap leading-relaxed font-mono text-ink dark:text-gray-200">{renderFormattedConsoleOutput(cell.output)}</pre>
                               )}
                               {cell.error && (
                                 <pre className="whitespace-pre-wrap text-red-500 dark:text-red-400 bg-red-500/5 dark:bg-red-500/5 p-2 rounded-lg leading-relaxed font-mono">{cell.error}</pre>
@@ -4447,7 +4488,7 @@ export default function CodeEditorPage() {
 
               <div className="flex-1 overflow-y-auto p-4 font-mono text-xs text-body leading-relaxed bg-canvas select-text">
                 {consoleOutput ? (
-                  <pre className="whitespace-pre-wrap">{consoleOutput}</pre>
+                  <pre className="whitespace-pre-wrap">{renderFormattedConsoleOutput(consoleOutput)}</pre>
                 ) : (
                   <p className="text-gray-400 font-normal italic">Write Python code and click Run Code to execute and print outputs here...</p>
                 )}
