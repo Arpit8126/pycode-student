@@ -830,10 +830,12 @@ export default function CodeEditorPage() {
   }
 
   const maximizeTerminal = () => {
-    setConsoleLayout('horizontal')
-    const maxVal = Math.max(200, window.innerHeight - 300)
-    setTerminalHeight(maxVal)
-    window.dispatchEvent(new CustomEvent('pycode-sidebar-collapse', { detail: { collapsed: false } }))
+    if (consoleLayout === 'vertical') {
+      setTerminalWidth(Math.round(window.innerWidth * 0.7))
+    } else {
+      const maxVal = Math.max(200, window.innerHeight - 300)
+      setTerminalHeight(maxVal)
+    }
     setTimeout(() => {
       if (editorRef.current) editorRef.current.layout()
     }, 50)
