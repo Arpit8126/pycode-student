@@ -816,12 +816,12 @@ export default function CodeEditorPage() {
   // Resizing output terminal panel
   const [consoleLayout, setConsoleLayout] = useState<'horizontal' | 'vertical'>('horizontal')
   const [terminalHeight, setTerminalHeight] = useState(240)
-  const [terminalWidth, setTerminalWidth] = useState(360)
+  const [terminalWidth, setTerminalWidth] = useState(480)
   const isDraggingRef = useRef(false)
 
   const minimizeTerminal = () => {
     if (consoleLayout === 'vertical') {
-      setTerminalWidth(360)
+      setTerminalWidth(480)
     } else {
       setTerminalHeight(40)
     }
@@ -854,8 +854,8 @@ export default function CodeEditorPage() {
     if (!isDraggingRef.current) return
     if (consoleLayout === 'vertical') {
       const newWidth = window.innerWidth - e.clientX
-      // Minimum width is 360px (default), maximum is 70% of innerWidth
-      const clampedWidth = Math.max(360, Math.min(newWidth, window.innerWidth * 0.7))
+      // Minimum width is 480px (default), maximum is 70% of innerWidth
+      const clampedWidth = Math.max(480, Math.min(newWidth, window.innerWidth * 0.7))
       setTerminalWidth(clampedWidth)
     } else {
       const newHeight = window.innerHeight - e.clientY
@@ -893,7 +893,7 @@ export default function CodeEditorPage() {
       if (customEvent.detail && customEvent.detail.layout) {
         setConsoleLayout(customEvent.detail.layout)
         setTerminalHeight(240)
-        setTerminalWidth(360)
+        setTerminalWidth(480)
         setTimeout(() => {
           if (editorRef.current) editorRef.current.layout()
         }, 100)
@@ -4378,7 +4378,7 @@ export default function CodeEditorPage() {
                   <button
                     onClick={() => {
                       setTerminalHeight(240)
-                      setTerminalWidth(360)
+                      setTerminalWidth(480)
                       if (consoleLayout === 'horizontal') {
                         setConsoleLayout('vertical')
                         window.dispatchEvent(new CustomEvent('pycode-sidebar-collapse', { detail: { collapsed: true } }))
