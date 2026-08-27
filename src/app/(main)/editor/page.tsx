@@ -4334,22 +4334,22 @@ export default function CodeEditorPage() {
                   {/* Minimize button */}
                   <button
                     onClick={minimizeTerminal}
-                    title="Minimize Console"
-                    className="p-1 rounded bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-gray-500 hover:text-ink cursor-pointer transition-colors"
+                    className="px-2.5 py-1 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-[10px] font-extrabold cursor-pointer transition-all flex items-center gap-1 shadow-xs"
                   >
-                    <Minimize2 className="w-3 h-3" />
+                    <Minimize2 className="w-3 h-3 text-primary" />
+                    <span>Minimize</span>
                   </button>
                   
                   {/* Maximize button */}
                   <button
                     onClick={maximizeTerminal}
-                    title="Maximize Console"
-                    className="p-1 rounded bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-gray-500 hover:text-ink cursor-pointer transition-colors"
+                    className="px-2.5 py-1 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-[10px] font-extrabold cursor-pointer transition-all flex items-center gap-1 shadow-xs"
                   >
-                    <Maximize2 className="w-3 h-3" />
+                    <Maximize2 className="w-3 h-3 text-primary" />
+                    <span>Maximize</span>
                   </button>
                   
-                  <div className="w-[1px] h-3 bg-hairline" />
+                  <div className="w-[1px] h-3 bg-hairline mx-1" />
                   
                   {/* Format Layout Toggle Button */}
                   <button
@@ -4364,13 +4364,18 @@ export default function CodeEditorPage() {
                         if (editorRef.current) editorRef.current.layout()
                       }, 100)
                     }}
-                    title={consoleLayout === 'horizontal' ? "Switch to Vertical Layout" : "Switch to Horizontal Layout"}
-                    className="p-1 rounded bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-gray-500 hover:text-ink cursor-pointer transition-colors flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-ink text-[10px] font-extrabold cursor-pointer transition-all flex items-center gap-1 shadow-xs"
                   >
                     {consoleLayout === 'horizontal' ? (
-                      <Columns className="w-3 h-3" />
+                      <>
+                        <Columns className="w-3 h-3 text-primary" />
+                        <span>Switch to Vertical</span>
+                      </>
                     ) : (
-                      <Rows className="w-3 h-3" />
+                      <>
+                        <Rows className="w-3 h-3 text-primary" />
+                        <span>Switch to Horizontal</span>
+                      </>
                     )}
                   </button>
                 </div>
