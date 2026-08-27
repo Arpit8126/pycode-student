@@ -374,7 +374,7 @@ export default function PracticeListPage() {
             <h1 className="text-4xl font-extrabold tracking-tight text-ink font-sans">
               PyCode Practice Roadmap
             </h1>
-            <p className="text-xs text-gray-500 font-light leading-relaxed max-w-2xl">
+            <p className="text-xs text-body font-normal leading-relaxed max-w-2xl">
               This workspace provides a structured roadmap to learn Python coding, NumPy structures, Pandas cleaning routines, and Matplotlib visualizations.
             </p>
           </div>
