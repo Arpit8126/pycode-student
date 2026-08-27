@@ -5330,29 +5330,41 @@ export default function CodeEditorPage() {
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
+                  disabled={isSaving}
                   onClick={() => setTabConfirmClose(null)}
-                  className="px-4 py-2 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card text-xs font-semibold cursor-pointer transition-colors"
+                  className="px-4 py-2 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
+                  disabled={isSaving}
                   onClick={() => {
                     const targetName = tabConfirmClose
                     setTabConfirmClose(null)
                     closeTab(targetName, true)
                   }}
-                  className="px-4 py-2 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-red-500 hover:bg-red-500/5 hover:border-red-500/25 text-xs font-semibold cursor-pointer transition-all duration-200"
+                  className="px-4 py-2 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-red-500 hover:bg-red-500/5 hover:border-red-500/25 text-xs font-semibold cursor-pointer transition-all duration-200 disabled:opacity-50"
                 >
                   Close without Saving
                 </button>
                 <button
                   type="button"
+                  disabled={isSaving}
                   onClick={() => handleSaveAndClose(tabConfirmClose)}
-                  className="px-5 py-2 rounded-xl bg-primary text-on-primary hover:opacity-90 text-xs font-extrabold cursor-pointer transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex items-center gap-2"
+                  className="px-5 py-2 rounded-xl bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 text-xs font-extrabold cursor-pointer transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex items-center gap-2 justify-center min-w-[110px]"
                 >
-                  <Save className="w-3.5 h-3.5" />
-                  Save & Close
+                  {isSaving ? (
+                    <>
+                      <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save & Close</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
