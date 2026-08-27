@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen, Columns, Rows, Minimize2 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
@@ -813,8 +813,32 @@ export default function CodeEditorPage() {
   )
 
   // Resizing output terminal panel
+  const [consoleLayout, setConsoleLayout] = useState<'horizontal' | 'vertical'>('horizontal')
   const [terminalHeight, setTerminalHeight] = useState(240)
+  const [terminalWidth, setTerminalWidth] = useState(360)
   const isDraggingRef = useRef(false)
+
+  const minimizeTerminal = () => {
+    if (consoleLayout === 'vertical') {
+      setTerminalWidth(80)
+    } else {
+      setTerminalHeight(40)
+    }
+    setTimeout(() => {
+      if (editorRef.current) editorRef.current.layout()
+    }, 50)
+  }
+
+  const maximizeTerminal = () => {
+    if (consoleLayout === 'vertical') {
+      setTerminalWidth(Math.round(window.innerWidth * 0.7))
+    } else {
+      setTerminalHeight(Math.round(window.innerHeight * 0.85))
+    }
+    setTimeout(() => {
+      if (editorRef.current) editorRef.current.layout()
+    }, 50)
+  }
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -826,9 +850,15 @@ export default function CodeEditorPage() {
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDraggingRef.current) return
-    const newHeight = window.innerHeight - e.clientY
-    const clampedHeight = Math.max(40, Math.min(newHeight, window.innerHeight * 0.85))
-    setTerminalHeight(clampedHeight)
+    if (consoleLayout === 'vertical') {
+      const newWidth = window.innerWidth - e.clientX
+      const clampedWidth = Math.max(80, Math.min(newWidth, window.innerWidth * 0.7))
+      setTerminalWidth(clampedWidth)
+    } else {
+      const newHeight = window.innerHeight - e.clientY
+      const clampedHeight = Math.max(40, Math.min(newHeight, window.innerHeight * 0.85))
+      setTerminalHeight(clampedHeight)
+    }
     if (editorRef.current) {
       editorRef.current.layout()
     }
@@ -2970,6 +3000,7 @@ export default function CodeEditorPage() {
                                     <>
                                       <button
                                         onClick={() => setCurrentExplorerFolder(folderName)}
+                                        title={folderName}
                                         onDragOver={(e) => e.preventDefault()}
                                         onDragEnter={() => setActiveDragFolder(folderName)}
                                         onDragLeave={() => setActiveDragFolder(null)}
@@ -3050,6 +3081,7 @@ export default function CodeEditorPage() {
                                     >
                                       <button
                                         onClick={() => handleLoadFile(file)}
+                                        title={file.name}
                                         className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 ${
                                           isActive
                                             ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
@@ -3067,7 +3099,7 @@ export default function CodeEditorPage() {
 
                                       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
                                         <button
-                                          title={file.name}
+                                          title="File options"
                                           onClick={(e) => {
                                             e.stopPropagation()
                                             if (isDropdownOpen) {
@@ -3158,6 +3190,7 @@ export default function CodeEditorPage() {
                                   <>
                                     <button
                                       onClick={() => setCurrentExplorerFolder(folderName)}
+                                      title={folderName}
                                       onDragOver={(e) => e.preventDefault()}
                                       onDragEnter={() => setActiveDragFolder(folderName)}
                                       onDragLeave={() => setActiveDragFolder(null)}
@@ -3227,6 +3260,7 @@ export default function CodeEditorPage() {
                                 >
                                   <button
                                     onClick={() => handleLoadFile(file)}
+                                    title={file.name}
                                     className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all duration-150 pr-10 ${
                                       isActive
                                         ? 'bg-surface-card border-primary text-ink shadow-[0_4px_12px_rgba(0,0,0,0.03)]'
@@ -3244,7 +3278,7 @@ export default function CodeEditorPage() {
 
                                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
                                     <button
-                                      title={file.name}
+                                      title="File options"
                                       onClick={(e) => {
                                         e.stopPropagation()
                                         if (isDropdownOpen) {
@@ -3509,6 +3543,7 @@ export default function CodeEditorPage() {
                 <button
                   onClick={() => {
                     setLeftSidebarCollapsed(false)
+                    setConsoleLayout('horizontal')
                     setTimeout(() => {
                       if (editorRef.current) editorRef.current.layout()
                     }, 100)
@@ -3717,8 +3752,10 @@ export default function CodeEditorPage() {
             </div>
           )}
 
-          {/* Monaco Editor / Cell Canvas */}
-          <div className={`flex-1 min-h-0 relative select-text flex flex-col ${editorFormat === 'cell' ? 'bg-canvas overflow-y-auto' : 'bg-[#1e1e1e]'}`}>
+          {/* Main workspace editor & console area */}
+          <div className={`flex-1 min-h-0 flex ${consoleLayout === 'vertical' ? 'flex-row' : 'flex-col'}`}>
+            {/* Monaco Editor / Cell Canvas */}
+            <div className={`flex-1 min-h-0 min-w-0 relative select-text flex flex-col ${editorFormat === 'cell' ? 'bg-canvas overflow-y-auto' : 'bg-[#1e1e1e]'}`}>
             {editorFormat === 'cell' ? (
               <div className="w-full px-6 md:px-8 py-6 space-y-6 pb-24">
                 {/* Cell List Toolbar */}
@@ -4257,24 +4294,86 @@ export default function CodeEditorPage() {
           {editorFormat !== 'cell' && (
             <div 
               onMouseDown={handleMouseDown}
-              className="h-2 bg-hairline hover:bg-primary/50 cursor-ns-resize transition-colors duration-200 select-none z-30 relative group" 
+              className={`bg-hairline hover:bg-primary/50 transition-colors duration-200 select-none z-30 relative group ${
+                consoleLayout === 'vertical' 
+                  ? 'w-2 h-full cursor-ew-resize shrink-0' 
+                  : 'h-2 w-full cursor-ns-resize shrink-0'
+              }`} 
             >
               {/* Thicker invisible hover area to make resizing extremely easy and prevent overlap issues */}
-              <div className="absolute inset-x-0 -top-1.5 -bottom-1.5 cursor-ns-resize z-40" />
+              <div className={`absolute z-40 ${
+                consoleLayout === 'vertical'
+                  ? 'inset-y-0 -left-1.5 -right-1.5 cursor-ew-resize'
+                  : 'inset-x-0 -top-1.5 -bottom-1.5 cursor-ns-resize'
+              }`} />
             </div>
           )}
 
           {/* Console Output Panel */}
           {editorFormat !== 'cell' && (
             <div 
-              style={{ height: `${terminalHeight}px` }} 
-              className="border-t border-hairline flex flex-col bg-canvas shrink-0 overflow-hidden"
+              style={
+                consoleLayout === 'vertical'
+                  ? { width: `${terminalWidth}px` }
+                  : { height: `${terminalHeight}px` }
+              } 
+              className={`flex flex-col bg-canvas shrink-0 overflow-hidden ${
+                consoleLayout === 'vertical'
+                  ? 'border-l border-t-0 border-hairline h-full'
+                  : 'border-t border-hairline w-full'
+              }`}
             >
-              <div className="flex border-b border-hairline bg-surface-soft px-4 py-2">
+              <div className="flex border-b border-hairline bg-surface-soft px-4 py-2 justify-between items-center select-none w-full">
                 <span className="text-[10px] uppercase font-mono font-extrabold text-gray-400 flex items-center gap-1.5">
                   <Terminal className="w-3.5 h-3.5 text-primary" />
                   Console Terminal
                 </span>
+                
+                {/* Control buttons */}
+                <div className="flex items-center gap-2">
+                  {/* Minimize button */}
+                  <button
+                    onClick={minimizeTerminal}
+                    title="Minimize Console"
+                    className="p-1 rounded bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-gray-500 hover:text-ink cursor-pointer transition-colors"
+                  >
+                    <Minimize2 className="w-3 h-3" />
+                  </button>
+                  
+                  {/* Maximize button */}
+                  <button
+                    onClick={maximizeTerminal}
+                    title="Maximize Console"
+                    className="p-1 rounded bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-gray-500 hover:text-ink cursor-pointer transition-colors"
+                  >
+                    <Maximize2 className="w-3 h-3" />
+                  </button>
+                  
+                  <div className="w-[1px] h-3 bg-hairline" />
+                  
+                  {/* Format Layout Toggle Button */}
+                  <button
+                    onClick={() => {
+                      if (consoleLayout === 'horizontal') {
+                        setConsoleLayout('vertical')
+                        setLeftSidebarCollapsed(true) // Automatically shrink the menu sidebar
+                      } else {
+                        setConsoleLayout('horizontal')
+                      }
+                      setTimeout(() => {
+                        if (editorRef.current) editorRef.current.layout()
+                      }, 100)
+                    }}
+                    title={consoleLayout === 'horizontal' ? "Switch to Vertical Layout" : "Switch to Horizontal Layout"}
+                    className="p-1 rounded bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-gray-500 hover:text-ink cursor-pointer transition-colors flex items-center gap-1"
+                  >
+                    {consoleLayout === 'horizontal' ? (
+                      <Columns className="w-3 h-3" />
+                    ) : (
+                      <Rows className="w-3 h-3" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 font-mono text-xs text-body leading-relaxed bg-canvas select-text">
@@ -4286,6 +4385,7 @@ export default function CodeEditorPage() {
               </div>
             </div>
           )}
+          </div>
         </section>
       </div>
 
