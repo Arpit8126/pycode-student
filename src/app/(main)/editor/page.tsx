@@ -820,7 +820,7 @@ export default function CodeEditorPage() {
 
   const minimizeTerminal = () => {
     if (consoleLayout === 'vertical') {
-      setTerminalWidth(80)
+      setTerminalWidth(360)
     } else {
       setTerminalHeight(40)
     }
@@ -830,11 +830,10 @@ export default function CodeEditorPage() {
   }
 
   const maximizeTerminal = () => {
-    if (consoleLayout === 'vertical') {
-      setTerminalWidth(Math.round(window.innerWidth * 0.7))
-    } else {
-      setTerminalHeight(Math.round(window.innerHeight * 0.85))
-    }
+    setConsoleLayout('horizontal')
+    const maxVal = Math.max(200, window.innerHeight - 300)
+    setTerminalHeight(maxVal)
+    window.dispatchEvent(new CustomEvent('pycode-sidebar-collapse', { detail: { collapsed: false } }))
     setTimeout(() => {
       if (editorRef.current) editorRef.current.layout()
     }, 50)
@@ -852,11 +851,14 @@ export default function CodeEditorPage() {
     if (!isDraggingRef.current) return
     if (consoleLayout === 'vertical') {
       const newWidth = window.innerWidth - e.clientX
-      const clampedWidth = Math.max(80, Math.min(newWidth, window.innerWidth * 0.7))
+      // Minimum width is 360px (default), maximum is 70% of innerWidth
+      const clampedWidth = Math.max(360, Math.min(newWidth, window.innerWidth * 0.7))
       setTerminalWidth(clampedWidth)
     } else {
       const newHeight = window.innerHeight - e.clientY
-      const clampedHeight = Math.max(40, Math.min(newHeight, window.innerHeight * 0.85))
+      // Maximum height leaves at least 300px space for editor code area
+      const maxVal = Math.max(200, window.innerHeight - 300)
+      const clampedHeight = Math.max(40, Math.min(newHeight, maxVal))
       setTerminalHeight(clampedHeight)
     }
     if (editorRef.current) {
