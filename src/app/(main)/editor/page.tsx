@@ -4781,63 +4781,65 @@ export default function CodeEditorPage() {
                     <>
                       {/* Transparent page layer to close panel */}
                       <div className="fixed inset-0 z-10 bg-transparent" onClick={() => setShowSaveDropdownPanel(false)} />
-                      <div className="absolute left-0 right-0 mt-1.5 bg-canvas border border-hairline rounded-xl shadow-xl z-20 py-1 max-h-48 overflow-y-auto animate-scale-in">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSaveToFolder('')
-                            setShowNewFolderSaveInput(false)
-                            setNewSaveFolderName('')
-                            setShowSaveDropdownPanel(false)
-                          }}
-                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-left hover:bg-surface-soft ${!saveToFolder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
-                        >
-                          <Folder className="w-3.5 h-3.5 text-gray-400" />
-                          <span>Without Folder (Save in Root)</span>
-                        </button>
-                        
-                        {allFolders.filter(isFolderVisible).map(folder => {
-                          const depth = folder.split('/').length - 1
-                          const displayName = folder.split('/').pop()
-                          const isExpanded = !!expandedFolders[folder]
-                          const hasSubs = folderHasSubfolders(folder, allFolders)
-                          return (
-                            <div key={folder} className="w-full flex items-center justify-between hover:bg-surface-soft transition-colors px-3.5 group/folder">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSaveToFolder(folder)
-                                  setShowNewFolderSaveInput(false)
-                                  setNewSaveFolderName('')
-                                  setShowSaveDropdownPanel(false)
-                                }}
-                                style={{ paddingLeft: `${depth * 12}px` }}
-                                className={`flex-1 flex items-center gap-2.5 py-2 px-1 text-xs font-medium text-left ${saveToFolder === folder ? 'text-primary bg-primary/5 font-semibold' : 'text-ink'} transition-colors cursor-pointer`}
-                              >
-                                <Folder className={`w-3.5 h-3.5 shrink-0 ${depth > 0 ? 'text-amber-400' : 'text-amber-500'}`} />
-                                <span className="truncate">{displayName}</span>
-                              </button>
-                              
-                              {hasSubs && (
+                      <div className="absolute left-0 right-0 mt-1.5 bg-canvas border border-hairline rounded-xl shadow-xl z-20 flex flex-col max-h-64 overflow-hidden animate-scale-in">
+                        <div className="overflow-y-auto max-h-48 py-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSaveToFolder('')
+                              setShowNewFolderSaveInput(false)
+                              setNewSaveFolderName('')
+                              setShowSaveDropdownPanel(false)
+                            }}
+                            className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-left hover:bg-surface-soft ${!saveToFolder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
+                          >
+                            <Folder className="w-3.5 h-3.5 text-gray-400" />
+                            <span>Without Folder (Save in Root)</span>
+                          </button>
+                          
+                          {allFolders.filter(isFolderVisible).map(folder => {
+                            const depth = folder.split('/').length - 1
+                            const displayName = folder.split('/').pop()
+                            const isExpanded = !!expandedFolders[folder]
+                            const hasSubs = folderHasSubfolders(folder, allFolders)
+                            return (
+                              <div key={folder} className="w-full flex items-center justify-between hover:bg-surface-soft transition-colors px-3.5 group/folder">
                                 <button
                                   type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }))
+                                  onClick={() => {
+                                    setSaveToFolder(folder)
+                                    setShowNewFolderSaveInput(false)
+                                    setNewSaveFolderName('')
+                                    setShowSaveDropdownPanel(false)
                                   }}
-                                  className={`px-2 py-0.5 rounded-full border text-[8px] uppercase font-mono font-extrabold tracking-wider transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
-                                    isExpanded 
-                                      ? 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/25' 
-                                      : 'bg-surface-soft border-hairline text-gray-400 hover:text-ink hover:bg-surface-card'
-                                  }`}
+                                  style={{ paddingLeft: `${depth * 12}px` }}
+                                  className={`flex-1 flex items-center gap-2.5 py-2 px-1 text-xs font-medium text-left ${saveToFolder === folder ? 'text-primary bg-primary/5 font-semibold' : 'text-ink'} transition-colors cursor-pointer`}
                                 >
-                                  <span>{isExpanded ? 'Hide' : 'Show'}</span>
-                                  <ChevronDown className={`w-2 h-2 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                                  <Folder className={`w-3.5 h-3.5 shrink-0 ${depth > 0 ? 'text-amber-400' : 'text-amber-500'}`} />
+                                  <span className="truncate">{displayName}</span>
                                 </button>
-                              )}
-                            </div>
-                          )
-                        })}
+                                
+                                {hasSubs && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }))
+                                    }}
+                                    className={`px-2 py-0.5 rounded-full border text-[8px] uppercase font-mono font-extrabold tracking-wider transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+                                      isExpanded 
+                                        ? 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/25' 
+                                        : 'bg-surface-soft border-hairline text-gray-400 hover:text-ink hover:bg-surface-card'
+                                    }`}
+                                  >
+                                    <span>{isExpanded ? 'Hide' : 'Show'}</span>
+                                    <ChevronDown className={`w-2 h-2 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                                  </button>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
 
                         <button
                           type="button"
@@ -4846,7 +4848,7 @@ export default function CodeEditorPage() {
                             setShowNewFolderSaveInput(true)
                             setShowSaveDropdownPanel(false)
                           }}
-                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-left hover:bg-surface-soft ${saveToFolder === '__new__' ? 'text-primary bg-primary/5' : 'text-gray-500'} border-t border-hairline transition-colors cursor-pointer`}
+                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-left hover:bg-surface-soft ${saveToFolder === '__new__' ? 'text-primary bg-primary/5' : 'text-gray-500'} border-t border-hairline bg-canvas transition-colors cursor-pointer`}
                         >
                           <Plus className="w-3.5 h-3.5 text-primary" />
                           <span>+ Create New Folder...</span>
@@ -4941,62 +4943,65 @@ export default function CodeEditorPage() {
                     <>
                       {/* Transparent panel closer background */}
                       <div className="fixed inset-0 z-10 bg-transparent" onClick={() => setShowMoveDropdownPanel(false)} />
-                      <div className="absolute left-0 right-0 mt-1.5 bg-canvas border border-hairline rounded-xl shadow-xl z-20 py-1 max-h-48 overflow-y-auto animate-scale-in">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setMoveToFolder('')
-                            setShowNewFolderMoveInput(false)
-                            setNewMoveFolderName('')
-                            setShowMoveDropdownPanel(false)
-                          }}
-                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-left hover:bg-surface-soft ${!moveToFolder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
-                        >
-                          <Folder className="w-3.5 h-3.5 text-gray-400" />
-                          <span>Root Directory</span>
-                        </button>
+                      <div className="absolute left-0 right-0 mt-1.5 bg-canvas border border-hairline rounded-xl shadow-xl z-20 flex flex-col max-h-64 overflow-hidden animate-scale-in">
+                        <div className="overflow-y-auto max-h-48 py-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMoveToFolder('')
+                              setShowNewFolderMoveInput(false)
+                              setNewMoveFolderName('')
+                              setShowMoveDropdownPanel(false)
+                            }}
+                            className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-left hover:bg-surface-soft ${!moveToFolder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
+                          >
+                            <Folder className="w-3.5 h-3.5 text-gray-400" />
+                            <span>Root Directory</span>
+                          </button>
+                          
                           {allFolders.filter(isFolderVisible).map(folder => {
-                          const depth = folder.split('/').length - 1
-                          const displayName = folder.split('/').pop()
-                          const isExpanded = !!expandedFolders[folder]
-                          const hasSubs = folderHasSubfolders(folder, allFolders)
-                          return (
-                            <div key={folder} className="w-full flex items-center justify-between hover:bg-surface-soft transition-colors px-3.5 group/folder">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setMoveToFolder(folder)
-                                  setShowNewFolderMoveInput(false)
-                                  setNewMoveFolderName('')
-                                  setShowMoveDropdownPanel(false)
-                                }}
-                                style={{ paddingLeft: `${depth * 12}px` }}
-                                className={`flex-1 flex items-center gap-2.5 py-2 px-1 text-xs font-medium text-left ${moveToFolder === folder ? 'text-primary bg-primary/5 font-semibold' : 'text-ink'} transition-colors cursor-pointer`}
-                              >
-                                <Folder className={`w-3.5 h-3.5 shrink-0 ${depth > 0 ? 'text-amber-400' : 'text-amber-500'}`} />
-                                <span className="truncate">{displayName}</span>
-                              </button>
-                              
-                              {hasSubs && (
+                            const depth = folder.split('/').length - 1
+                            const displayName = folder.split('/').pop()
+                            const isExpanded = !!expandedFolders[folder]
+                            const hasSubs = folderHasSubfolders(folder, allFolders)
+                            return (
+                              <div key={folder} className="w-full flex items-center justify-between hover:bg-surface-soft transition-colors px-3.5 group/folder">
                                 <button
                                   type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }))
+                                  onClick={() => {
+                                    setMoveToFolder(folder)
+                                    setShowNewFolderMoveInput(false)
+                                    setNewMoveFolderName('')
+                                    setShowMoveDropdownPanel(false)
                                   }}
-                                  className={`px-2 py-0.5 rounded-full border text-[8px] uppercase font-mono font-extrabold tracking-wider transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
-                                    isExpanded 
-                                      ? 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/25' 
-                                      : 'bg-surface-soft border-hairline text-gray-400 hover:text-ink hover:bg-surface-card'
-                                  }`}
+                                  style={{ paddingLeft: `${depth * 12}px` }}
+                                  className={`flex-1 flex items-center gap-2.5 py-2 px-1 text-xs font-medium text-left ${moveToFolder === folder ? 'text-primary bg-primary/5 font-semibold' : 'text-ink'} transition-colors cursor-pointer`}
                                 >
-                                  <span>{isExpanded ? 'Hide' : 'Show'}</span>
-                                  <ChevronDown className={`w-2 h-2 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                                  <Folder className={`w-3.5 h-3.5 shrink-0 ${depth > 0 ? 'text-amber-400' : 'text-amber-500'}`} />
+                                  <span className="truncate">{displayName}</span>
                                 </button>
-                              )}
-                            </div>
-                          )
-                        })}
+                                
+                                {hasSubs && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }))
+                                    }}
+                                    className={`px-2 py-0.5 rounded-full border text-[8px] uppercase font-mono font-extrabold tracking-wider transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+                                      isExpanded 
+                                        ? 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/25' 
+                                        : 'bg-surface-soft border-hairline text-gray-400 hover:text-ink hover:bg-surface-card'
+                                    }`}
+                                  >
+                                    <span>{isExpanded ? 'Hide' : 'Show'}</span>
+                                    <ChevronDown className={`w-2 h-2 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                                  </button>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
 
                         <button
                           type="button"
@@ -5005,7 +5010,7 @@ export default function CodeEditorPage() {
                             setShowNewFolderMoveInput(true)
                             setShowMoveDropdownPanel(false)
                           }}
-                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-left hover:bg-surface-soft ${moveToFolder === '__new__' ? 'text-primary bg-primary/5' : 'text-gray-500'} border-t border-hairline transition-colors cursor-pointer`}
+                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-left hover:bg-surface-soft ${moveToFolder === '__new__' ? 'text-primary bg-primary/5' : 'text-gray-500'} border-t border-hairline bg-canvas transition-colors cursor-pointer`}
                         >
                           <Plus className="w-3.5 h-3.5 text-primary" />
                           <span>+ Create New Folder...</span>
