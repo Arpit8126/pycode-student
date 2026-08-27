@@ -606,6 +606,7 @@ export default function CodeEditorPage() {
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [showGuestSaveModal, setShowGuestSaveModal] = useState(false)
   const [tabConfirmClose, setTabConfirmClose] = useState<string | null>(null)
+  const [pendingCloseTabAfterSave, setPendingCloseTabAfterSave] = useState<string | null>(null)
   const [saveFileName, setSaveFileName] = useState('')
   const [activeDropdownFile, setActiveDropdownFile] = useState<string | null>(null)
   const [activeFileName, setActiveFileName] = useState<string | null>(globalActiveFileName)
@@ -1380,6 +1381,24 @@ export default function CodeEditorPage() {
     })
   }
 
+  const handleSaveAndClose = async (tabName: string) => {
+    const tab = tabs.find(t => t.name === tabName)
+    if (!tab) return
+
+    if (tab.isNew) {
+      setPendingCloseTabAfterSave(tabName)
+      setSaveFileName(tabName.replace(/\.ipynb$/, '').replace(/\.py$/, ''))
+      setShowSaveModal(true)
+      setTabConfirmClose(null)
+    } else {
+      setPendingCloseTabAfterSave(tabName)
+      await handleSaveFileDirectly(tabName)
+      closeTab(tabName, true)
+      setPendingCloseTabAfterSave(null)
+      setTabConfirmClose(null)
+    }
+  }
+
   const addNewTab = () => {
     let index = 1
     const ext = editorFormat === 'cell' ? '.ipynb' : '.py'
@@ -1757,6 +1776,10 @@ export default function CodeEditorPage() {
           setShowNewFolderSaveInput(false)
           setIsSaving(false)
           triggerToast("File saved successfully.", "success")
+          if (pendingCloseTabAfterSave) {
+            closeTab(name, true)
+            setPendingCloseTabAfterSave(null)
+          }
           return
         } else {
           console.error("Supabase save error:", error)
@@ -1797,6 +1820,10 @@ export default function CodeEditorPage() {
     setShowNewFolderSaveInput(false)
     setIsSaving(false)
     triggerToast("File saved successfully.", "success")
+    if (pendingCloseTabAfterSave) {
+      closeTab(name, true)
+      setPendingCloseTabAfterSave(null)
+    }
   }
 
   const handleSaveFileDirectly = async (fileName: string) => {
@@ -4716,6 +4743,10 @@ export default function CodeEditorPage() {
                       setSaveToFolder('')
                       setNewSaveFolderName('')
                       setShowNewFolderSaveInput(false)
+                      if (pendingCloseTabAfterSave) {
+                        setTabConfirmClose(pendingCloseTabAfterSave)
+                        setPendingCloseTabAfterSave(null)
+                      }
                     }}
                     className="px-4 py-2 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-card text-xs font-semibold cursor-pointer transition-colors"
                   >
@@ -5172,35 +5203,52 @@ export default function CodeEditorPage() {
       {/* Unsaved Changes Close Tab Confirmation Modal Dialog */}
       {tabConfirmClose && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-sm bg-canvas border border-hairline rounded-3xl p-6 shadow-2xl space-y-4 animate-scale-in text-center">
+          <div className="w-full max-w-md bg-canvas border border-hairline rounded-3xl p-6 shadow-2xl space-y-5 animate-scale-in text-center">
             <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 mx-auto">
               <Info className="w-5 h-5 animate-pulse" />
             </div>
             <div className="space-y-2">
               <h3 className="text-sm font-extrabold text-ink">Unsaved Changes</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                You have unsaved changes in <span className="font-mono text-primary font-bold">{tabConfirmClose}</span>. Are you sure you want to close it?
+                You have unsaved changes in:
+                <span className="font-mono text-primary font-bold break-all block px-1.5 py-1 my-2 bg-surface-soft border border-hairline rounded-xl select-all">{tabConfirmClose}</span>
+                Are you sure you want to close it?
               </p>
             </div>
-            <div className="flex items-center gap-3 pt-2">
+            
+            <div className="flex flex-col gap-2.5 pt-2">
+              {/* Save & Close button */}
               <button
                 type="button"
-                onClick={() => setTabConfirmClose(null)}
-                className="flex-1 py-2 rounded-full border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-soft text-xs font-semibold cursor-pointer transition-colors"
+                onClick={() => handleSaveAndClose(tabConfirmClose)}
+                className="w-full py-2.5 rounded-full bg-primary text-on-primary hover:opacity-90 text-xs font-extrabold cursor-pointer transition-all shadow-[0_4px_12px_rgba(245,158,11,0.2)] flex items-center justify-center gap-1.5"
               >
-                Cancel
+                <Save className="w-3.5 h-3.5" />
+                <span>Save & Close</span>
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const targetName = tabConfirmClose
-                  setTabConfirmClose(null)
-                  closeTab(targetName, true)
-                }}
-                className="flex-1 py-2 rounded-full bg-amber-550 hover:bg-amber-650 text-white text-xs font-extrabold cursor-pointer transition-all shadow-[0_4px_12px_rgba(245,158,11,0.2)]"
-              >
-                Close Tab
-              </button>
+
+              <div className="flex items-center gap-3">
+                {/* Cancel button */}
+                <button
+                  type="button"
+                  onClick={() => setTabConfirmClose(null)}
+                  className="flex-1 py-2 rounded-full border border-hairline bg-canvas text-gray-500 hover:text-ink hover:bg-surface-soft text-xs font-semibold cursor-pointer transition-colors"
+                >
+                  Cancel
+                </button>
+                {/* Close without Saving button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const targetName = tabConfirmClose
+                    setTabConfirmClose(null)
+                    closeTab(targetName, true)
+                  }}
+                  className="flex-1 py-2 rounded-full border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-xs font-bold cursor-pointer transition-all"
+                >
+                  Close without Saving
+                </button>
+              </div>
             </div>
           </div>
         </div>
