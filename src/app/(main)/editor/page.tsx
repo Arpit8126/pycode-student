@@ -3065,8 +3065,9 @@ export default function CodeEditorPage() {
                                         </div>
                                       </button>
 
-                                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20 opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
                                         <button
+                                          title={file.name}
                                           onClick={(e) => {
                                             e.stopPropagation()
                                             if (isDropdownOpen) {
@@ -3078,7 +3079,7 @@ export default function CodeEditorPage() {
                                               setActiveDropdownFile(file.name)
                                             }
                                           }}
-                                          className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                                          className="p-1 rounded-full text-gray-500 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
                                         >
                                           <MoreVertical className="w-3.5 h-3.5" />
                                         </button>
@@ -3241,8 +3242,9 @@ export default function CodeEditorPage() {
                                     </div>
                                   </button>
 
-                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20 opacity-80 md:opacity-0 md:group-hover/folder:opacity-100 transition-opacity">
+                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-20">
                                     <button
+                                      title={file.name}
                                       onClick={(e) => {
                                         e.stopPropagation()
                                         if (isDropdownOpen) {
@@ -3254,7 +3256,7 @@ export default function CodeEditorPage() {
                                           setActiveDropdownFile(file.name)
                                         }
                                       }}
-                                      className="p-1 rounded-full text-gray-400 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
+                                      className="p-1 rounded-full text-gray-500 hover:text-ink hover:bg-surface-soft cursor-pointer transition-colors"
                                     >
                                       <MoreVertical className="w-3.5 h-3.5" />
                                     </button>
@@ -4820,7 +4822,7 @@ export default function CodeEditorPage() {
                       setActiveDropdownFile(null)
                       setDropdownPos(null)
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-gray-600 dark:text-gray-300 hover:bg-surface-soft hover:text-ink rounded-xl transition-colors cursor-pointer text-left"
+                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-ink hover:bg-surface-soft rounded-xl transition-colors cursor-pointer text-left"
                   >
                     <Download className="w-3 h-3" />
                     Download
@@ -4834,7 +4836,7 @@ export default function CodeEditorPage() {
                       setActiveDropdownFile(null)
                       setDropdownPos(null)
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-gray-600 dark:text-gray-300 hover:bg-surface-soft hover:text-ink rounded-xl transition-colors cursor-pointer text-left"
+                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-ink hover:bg-surface-soft rounded-xl transition-colors cursor-pointer text-left"
                   >
                     <Folder className="w-3 h-3 text-amber-500" />
                     Move to...
@@ -4847,7 +4849,7 @@ export default function CodeEditorPage() {
                       setActiveDropdownFile(null)
                       setDropdownPos(null)
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-gray-600 dark:text-gray-300 hover:bg-surface-soft hover:text-ink rounded-xl transition-colors cursor-pointer text-left"
+                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-ink hover:bg-surface-soft rounded-xl transition-colors cursor-pointer text-left"
                   >
                     <Edit2 className="w-3 h-3 text-primary" />
                     Rename
