@@ -919,6 +919,11 @@ export default function CodeEditorPage() {
     }
   }, [])
 
+  const activeFileNameRef = useRef<string | null>(null)
+  useEffect(() => {
+    activeFileNameRef.current = activeFileName
+  }, [activeFileName])
+
   // Operational States
   const [isRunning, setIsRunning] = useState(false)
   const [consoleOutput, setConsoleOutput] = useState('')
@@ -1963,6 +1968,8 @@ export default function CodeEditorPage() {
       }
     }
     
+    const existingTab = tabs.find(t => t.name === file.name)
+    
     setTabs(prev => {
       const exists = prev.find(t => t.name === file.name)
       if (exists) {
@@ -1979,13 +1986,14 @@ export default function CodeEditorPage() {
     })
     
     if (isNotebook) {
-      setCells(parsedCells)
+      setCells(existingTab ? existingTab.cells : parsedCells)
       setEditorFormat('cell')
     } else {
-      setCode(file.code)
+      const codeToLoad = existingTab ? existingTab.code : file.code
+      setCode(codeToLoad)
       setEditorFormat('terminal')
       if (editorRef.current) {
-        editorRef.current.setValue(file.code)
+        editorRef.current.setValue(codeToLoad)
       }
     }
     setTimeout(() => {
@@ -4308,11 +4316,14 @@ export default function CodeEditorPage() {
                   height="100%"
                   defaultLanguage="python"
                   theme={theme === 'dark' ? 'vs-dark' : 'light'}
-                  value={code}
+                  defaultValue={code}
                   onChange={(val) => {
                     if (ignoreChangeRef.current) return
                     setCode(val || '')
-                    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, code: val || '', isDirty: true } : t))
+                    const currentActive = activeFileNameRef.current
+                    if (currentActive) {
+                      setTabs(prev => prev.map(t => t.name === currentActive ? { ...t, code: val || '', isDirty: true } : t))
+                    }
                   }}
                   onMount={handleEditorDidMount}
                   options={{
