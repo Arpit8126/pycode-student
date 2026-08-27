@@ -653,6 +653,21 @@ export default function CodeEditorPage() {
     })
     return Array.from(folders).sort()
   }
+
+  const isFolderVisible = (folder: string) => {
+    if (!folder.includes('/')) return true
+    const parts = folder.split('/')
+    let current = ''
+    for (let i = 0; i < parts.length - 1; i++) {
+      current = current ? `${current}/${parts[i]}` : parts[i]
+      if (!expandedFolders[current]) return false
+    }
+    return true
+  }
+
+  const folderHasSubfolders = (folder: string, all: string[]) => {
+    return all.some(f => f.startsWith(folder + '/'))
+  }
   const [currentExplorerFolder, setCurrentExplorerFolder] = useState<string | null>(null)
   const [showNewFolderInput, setShowNewFolderInput] = useState(false)
   const [folderInputName, setFolderInputName] = useState('')
@@ -670,6 +685,7 @@ export default function CodeEditorPage() {
   const [showNewFolderMoveInput, setShowNewFolderMoveInput] = useState(false)
   const [showSaveDropdownPanel, setShowSaveDropdownPanel] = useState(false)
   const [showMoveDropdownPanel, setShowMoveDropdownPanel] = useState(false)
+  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({})
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null)
   const [renameFolderInput, setRenameFolderInput] = useState('')
   const [activeDragFolder, setActiveDragFolder] = useState<string | null>(null)
@@ -4789,25 +4805,42 @@ export default function CodeEditorPage() {
                           <span>Without Folder (Save in Root)</span>
                         </button>
                         
-                        {allFolders.map(folder => {
+                        {allFolders.filter(isFolderVisible).map(folder => {
                           const depth = folder.split('/').length - 1
                           const displayName = folder.split('/').pop()
+                          const isExpanded = !!expandedFolders[folder]
+                          const hasSubs = folderHasSubfolders(folder, allFolders)
                           return (
-                            <button
-                              key={folder}
-                              type="button"
-                              onClick={() => {
-                                setSaveToFolder(folder)
-                                setShowNewFolderSaveInput(false)
-                                setNewSaveFolderName('')
-                                setShowSaveDropdownPanel(false)
-                              }}
-                              style={{ paddingLeft: `${14 + depth * 12}px` }}
-                              className={`w-full flex items-center gap-2.5 py-2 px-3.5 text-xs font-medium text-left hover:bg-surface-soft ${saveToFolder === folder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
-                            >
-                              <Folder className={`w-3.5 h-3.5 shrink-0 ${depth > 0 ? 'text-amber-400' : 'text-amber-500'}`} />
-                              <span className="truncate">{displayName}</span>
-                            </button>
+                            <div key={folder} className="w-full flex items-center justify-between hover:bg-surface-soft transition-colors px-3.5 group/folder">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSaveToFolder(folder)
+                                  setShowNewFolderSaveInput(false)
+                                  setNewSaveFolderName('')
+                                  setShowSaveDropdownPanel(false)
+                                }}
+                                style={{ paddingLeft: `${depth * 12}px` }}
+                                className={`flex-1 flex items-center gap-2.5 py-2 px-1 text-xs font-medium text-left ${saveToFolder === folder ? 'text-primary bg-primary/5 font-semibold' : 'text-ink'} transition-colors cursor-pointer`}
+                              >
+                                <Folder className={`w-3.5 h-3.5 shrink-0 ${depth > 0 ? 'text-amber-400' : 'text-amber-500'}`} />
+                                <span className="truncate">{displayName}</span>
+                              </button>
+                              
+                              {hasSubs && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }))
+                                  }}
+                                  className="py-1 px-2 rounded bg-surface-soft hover:bg-hairline text-gray-400 hover:text-ink cursor-pointer flex items-center gap-1 text-[8px] uppercase font-bold tracking-wider transition-colors shrink-0"
+                                >
+                                  <span>{isExpanded ? 'Hide' : 'Show'}</span>
+                                  <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-primary' : 'text-gray-400'}`} />
+                                </button>
+                              )}
+                            </div>
                           )
                         })}
 
@@ -4927,26 +4960,42 @@ export default function CodeEditorPage() {
                           <Folder className="w-3.5 h-3.5 text-gray-400" />
                           <span>Root Directory</span>
                         </button>
-                        
-                        {allFolders.map(folder => {
+                          {allFolders.filter(isFolderVisible).map(folder => {
                           const depth = folder.split('/').length - 1
                           const displayName = folder.split('/').pop()
+                          const isExpanded = !!expandedFolders[folder]
+                          const hasSubs = folderHasSubfolders(folder, allFolders)
                           return (
-                            <button
-                              key={folder}
-                              type="button"
-                              onClick={() => {
-                                setMoveToFolder(folder)
-                                setShowNewFolderMoveInput(false)
-                                setNewMoveFolderName('')
-                                setShowMoveDropdownPanel(false)
-                              }}
-                              style={{ paddingLeft: `${14 + depth * 12}px` }}
-                              className={`w-full flex items-center gap-2.5 py-2 px-3.5 text-xs font-medium text-left hover:bg-surface-soft ${moveToFolder === folder ? 'text-primary bg-primary/5' : 'text-ink'} transition-colors cursor-pointer`}
-                            >
-                              <Folder className={`w-3.5 h-3.5 shrink-0 ${depth > 0 ? 'text-amber-400' : 'text-amber-500'}`} />
-                              <span className="truncate">{displayName}</span>
-                            </button>
+                            <div key={folder} className="w-full flex items-center justify-between hover:bg-surface-soft transition-colors px-3.5 group/folder">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setMoveToFolder(folder)
+                                  setShowNewFolderMoveInput(false)
+                                  setNewMoveFolderName('')
+                                  setShowMoveDropdownPanel(false)
+                                }}
+                                style={{ paddingLeft: `${depth * 12}px` }}
+                                className={`flex-1 flex items-center gap-2.5 py-2 px-1 text-xs font-medium text-left ${moveToFolder === folder ? 'text-primary bg-primary/5 font-semibold' : 'text-ink'} transition-colors cursor-pointer`}
+                              >
+                                <Folder className={`w-3.5 h-3.5 shrink-0 ${depth > 0 ? 'text-amber-400' : 'text-amber-500'}`} />
+                                <span className="truncate">{displayName}</span>
+                              </button>
+                              
+                              {hasSubs && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }))
+                                  }}
+                                  className="py-1 px-2 rounded bg-surface-soft hover:bg-hairline text-gray-400 hover:text-ink cursor-pointer flex items-center gap-1 text-[8px] uppercase font-bold tracking-wider transition-colors shrink-0"
+                                >
+                                  <span>{isExpanded ? 'Hide' : 'Show'}</span>
+                                  <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-primary' : 'text-gray-400'}`} />
+                                </button>
+                              )}
+                            </div>
                           )
                         })}
 
