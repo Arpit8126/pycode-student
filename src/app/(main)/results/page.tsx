@@ -982,6 +982,7 @@ export default function ResultsPage() {
   const [totalAttempted, setTotalAttempted] = useState(0)
   const [overallAccuracy, setOverallAccuracy] = useState(0)
   const [codeathonRank, setCodeathonRank] = useState(1)
+  const [codeathonPercentile, setCodeathonPercentile] = useState(100)
 
   const loadResults = async () => {
     setLoading(true)
@@ -1012,41 +1013,27 @@ export default function ResultsPage() {
       // Calculate dynamic global codeathon accuracy ranking
       const { data: allCompletedAttempts } = await supabase
         .from('quiz_attempts')
-        .select('user_id, student_details')
+        .select('user_id, score')
         .not('completed_at', 'is', null)
 
       if (allCompletedAttempts) {
-        const userPassed: Record<string, number> = {}
-        const userTotal: Record<string, number> = {}
+        // Aggregate total score per user across all codeathons
+        const userScores: Record<string, number> = {}
 
         allCompletedAttempts.forEach((att: any) => {
           const uid = att.user_id
-          const summary = att.student_details?.testCasesSummary || {}
-          
-          if (!userPassed[uid]) {
-            userPassed[uid] = 0
-            userTotal[uid] = 0
-          }
-
-          Object.values(summary).forEach((tc: any) => {
-            userPassed[uid] += (tc.passed || 0)
-            userTotal[uid] += (tc.total || 0)
-          })
+          const score = att.score || 0
+          userScores[uid] = (userScores[uid] || 0) + score
         })
 
-        // Calculate accuracies and sort
-        const accuracyList = Object.keys(userTotal).map(uid => {
-          const passed = userPassed[uid]
-          const total = userTotal[uid]
-          const accuracy = total > 0 ? (passed / total) : 0
-          return { uid, accuracy }
-        })
+        const myScore = userScores[user.id] ?? 0
+        const usersAbove = Object.values(userScores).filter((s) => s > myScore).length
+        const finalRank = usersAbove + 1
+        const totalUsers = Math.max(Object.keys(userScores).length, 1)
+        const topPercent = Math.min(100, Math.max(1, Math.round((finalRank / totalUsers) * 100)))
 
-        accuracyList.sort((a, b) => b.accuracy - a.accuracy)
-
-        const myIndex = accuracyList.findIndex(x => x.uid === user.id)
-        const myCodeathonRank = myIndex !== -1 ? myIndex + 1 : accuracyList.length + 1
-        setCodeathonRank(myCodeathonRank)
+        setCodeathonRank(finalRank)
+        setCodeathonPercentile(myScore === 0 ? 100 : topPercent)
       }
 
       if (!attemptData || attemptData.length === 0) { setLoading(false); return }
@@ -1183,8 +1170,11 @@ export default function ResultsPage() {
                 <BarChart className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest font-mono">Rank</p>
-                <p className="text-sm font-black text-ink mt-0.5">#{codeathonRank}</p>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest font-mono">Codeathon Rank</p>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <p className="text-sm font-black text-ink">#{codeathonRank}</p>
+                  <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">(Top {codeathonPercentile}%)</span>
+                </div>
               </div>
             </div>
           </div>
