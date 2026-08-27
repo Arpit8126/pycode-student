@@ -245,6 +245,29 @@ json.dumps(res)
     });
     
     try {
+      // Write user workspace files before execution
+      if (data.savedFiles) {
+        data.savedFiles.forEach(file => {
+          if (file.name.includes('/')) {
+            const parts = file.name.split('/');
+            let dir = '';
+            for (let i = 0; i < parts.length - 1; i++) {
+              dir = dir ? `${dir}/${parts[i]}` : parts[i];
+              try {
+                pyodide.FS.mkdir(dir);
+              } catch (e) {
+                // directory already exists or can't be created
+              }
+            }
+          }
+          try {
+            pyodide.FS.writeFile(file.name, file.code || '');
+          } catch (e) {
+            console.error("Failed to write to worker FS:", file.name, e);
+          }
+        });
+      }
+
       // Direct stream writer setup
       await pyodide.runPythonAsync(`
 import sys
@@ -369,7 +392,38 @@ imgs[0] if imgs else ""
         });
       }
 
-      postMessage({ type: 'RUN_SUCCESS', plotData: plotData || null, updatedFiles, cellId: currentCellId });
+      // Recursively scan Pyodide's virtual filesystem for user files/folders
+      const systemDirs = new Set(['tmp', 'dev', 'proc', 'sys', 'home', 'lib', 'usr', 'var', 'mnt', 'etc', 'package.json', 'node_modules', '.']);
+      const datasetNames = new Set(filenames);
+      
+      const scanUserFiles = (dir) => {
+        const list = [];
+        try {
+          const files = pyodide.FS.readdir(dir);
+          files.forEach(name => {
+            if (name === '.' || name === '..' || systemDirs.has(name) || datasetNames.has(name)) return;
+            const fullPath = dir === '/' ? name : `${dir}/${name}`;
+            try {
+              const stat = pyodide.FS.stat(fullPath);
+              const isDir = pyodide.FS.isDir(stat.mode);
+              if (isDir) {
+                list.push(...scanUserFiles(fullPath));
+              } else {
+                const isBinary = fullPath.endsWith('.xlsx') || fullPath.endsWith('.png') || fullPath.endsWith('.jpg') || fullPath.endsWith('.pdf');
+                if (!isBinary) {
+                  const code = pyodide.FS.readFile(fullPath, { encoding: 'utf8' });
+                  list.push({ name: fullPath, code });
+                }
+              }
+            } catch (e) {}
+          });
+        } catch (e) {}
+        return list;
+      };
+
+      const userFiles = scanUserFiles('/');
+
+      postMessage({ type: 'RUN_SUCCESS', plotData: plotData || null, updatedFiles, cellId: currentCellId, userFiles });
     } catch (err) {
       // Read current contents of datasets to return to main thread even on error
       const updatedFiles = {};
@@ -424,7 +478,38 @@ imgs[0] if imgs else ""
         });
       }
 
-      postMessage({ type: 'RUN_ERROR', message: err.message || String(err), updatedFiles, cellId: currentCellId });
+      // Recursively scan Pyodide's virtual filesystem for user files/folders
+      const systemDirs = new Set(['tmp', 'dev', 'proc', 'sys', 'home', 'lib', 'usr', 'var', 'mnt', 'etc', 'package.json', 'node_modules', '.']);
+      const datasetNames = new Set(filenames);
+      
+      const scanUserFiles = (dir) => {
+        const list = [];
+        try {
+          const files = pyodide.FS.readdir(dir);
+          files.forEach(name => {
+            if (name === '.' || name === '..' || systemDirs.has(name) || datasetNames.has(name)) return;
+            const fullPath = dir === '/' ? name : `${dir}/${name}`;
+            try {
+              const stat = pyodide.FS.stat(fullPath);
+              const isDir = pyodide.FS.isDir(stat.mode);
+              if (isDir) {
+                list.push(...scanUserFiles(fullPath));
+              } else {
+                const isBinary = fullPath.endsWith('.xlsx') || fullPath.endsWith('.png') || fullPath.endsWith('.jpg') || fullPath.endsWith('.pdf');
+                if (!isBinary) {
+                  const code = pyodide.FS.readFile(fullPath, { encoding: 'utf8' });
+                  list.push({ name: fullPath, code });
+                }
+              }
+            } catch (e) {}
+          });
+        } catch (e) {}
+        return list;
+      };
+
+      const userFiles = scanUserFiles('/');
+
+      postMessage({ type: 'RUN_ERROR', message: err.message || String(err), updatedFiles, cellId: currentCellId, userFiles });
     }
   }
 };

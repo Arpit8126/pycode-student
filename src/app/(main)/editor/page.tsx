@@ -1225,6 +1225,9 @@ export default function CodeEditorPage() {
             }
           }
         }
+        if (data.userFiles) {
+          syncUserFiles(data.userFiles)
+        }
       } else if (data.type === 'RUN_ERROR') {
         setIsRunning(false)
         setIsWaitingForInput(false)
@@ -1303,6 +1306,9 @@ export default function CodeEditorPage() {
               }))
             }
           }
+        }
+        if (data.userFiles) {
+          syncUserFiles(data.userFiles)
         }
       }
     }
@@ -1561,7 +1567,8 @@ export default function CodeEditorPage() {
           code: cell.code,
           execId,
           cellId: activeCellId,
-          customDatasets: importedDatasetsRef.current.map(d => ({ name: d.name, type: d.type }))
+          customDatasets: importedDatasetsRef.current.map(d => ({ name: d.name, type: d.type })),
+          savedFiles
         })
       }
     }
@@ -1921,6 +1928,85 @@ export default function CodeEditorPage() {
     if (pendingCloseTabAfterSave) {
       closeTab(name, true)
       setPendingCloseTabAfterSave(null)
+    }
+  }
+
+  const syncUserFiles = async (userFiles: { name: string; code: string }[]) => {
+    if (!userFiles || userFiles.length === 0) return
+
+    let hasChanges = false
+    const updatedFiles = [...savedFiles]
+
+    let tabsChanged = false
+    let updatedTabs = [...tabs]
+
+    let activeFileUpdated = false
+    let activeFileNewCode = ""
+
+    const { data: { user } } = await supabase.auth.getUser()
+
+    for (const file of userFiles) {
+      const existingIndex = updatedFiles.findIndex(f => f.name.toLowerCase() === file.name.toLowerCase())
+      const isNew = existingIndex === -1
+      const isChanged = !isNew && updatedFiles[existingIndex].code !== file.code
+
+      if (isNew || isChanged) {
+        hasChanges = true
+        const newFile = {
+          name: file.name,
+          code: file.code,
+          lastModified: new Date().toLocaleString()
+        }
+
+        if (isNew) {
+          updatedFiles.push(newFile)
+        } else {
+          updatedFiles[existingIndex] = newFile
+        }
+
+        const openTabIdx = updatedTabs.findIndex(t => t.name.toLowerCase() === file.name.toLowerCase())
+        if (openTabIdx > -1) {
+          tabsChanged = true
+          updatedTabs[openTabIdx] = {
+            ...updatedTabs[openTabIdx],
+            code: file.code,
+            isDirty: false
+          }
+          if (activeFileName && activeFileName.toLowerCase() === file.name.toLowerCase()) {
+            activeFileUpdated = true
+            activeFileNewCode = file.code
+          }
+        }
+
+        if (user) {
+          try {
+            await (supabase.from('saved_scripts') as any)
+              .upsert({
+                user_id: user.id,
+                name: file.name,
+                code: file.code,
+                updated_at: new Date().toISOString()
+              })
+          } catch (e) {
+            console.error("Failed to upsert python-created file to Supabase:", e)
+          }
+        }
+      }
+    }
+
+    if (hasChanges) {
+      setSavedFiles(updatedFiles)
+      localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
+      
+      if (tabsChanged) {
+        setTabs(updatedTabs)
+      }
+      if (activeFileUpdated) {
+        setCode(activeFileNewCode)
+        setLastSavedCode(activeFileNewCode)
+      }
+      
+      triggerToast("Workspace synced with Python files.", "success")
     }
   }
 
@@ -2611,7 +2697,8 @@ export default function CodeEditorPage() {
       type: 'RUN_CODE',
       code,
       execId,
-      customDatasets: importedDatasetsRef.current.map(d => ({ name: d.name, type: d.type }))
+      customDatasets: importedDatasetsRef.current.map(d => ({ name: d.name, type: d.type })),
+      savedFiles
     })
   }
 
@@ -4826,15 +4913,15 @@ export default function CodeEditorPage() {
                                       e.stopPropagation()
                                       setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }))
                                     }}
-                                    className={`px-2 py-0.5 rounded-full border text-[8px] uppercase font-mono font-extrabold tracking-wider transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
-                                      isExpanded 
-                                        ? 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/25' 
-                                        : 'bg-surface-soft border-hairline text-gray-400 hover:text-ink hover:bg-surface-card'
-                                    }`}
-                                  >
-                                    <span>{isExpanded ? 'Hide' : 'Show'}</span>
-                                    <ChevronDown className={`w-2 h-2 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                                  </button>
+                                  className={`px-2 py-0.5 rounded-full border text-[10px] uppercase font-mono font-extrabold tracking-wider transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+                                    isExpanded 
+                                      ? 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/25' 
+                                      : 'bg-surface-soft border-hairline text-gray-700 dark:text-gray-300 hover:bg-surface-card hover:text-ink'
+                                  }`}
+                                >
+                                  <span>{isExpanded ? 'Hide' : 'Show'}</span>
+                                  <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                                </button>
                                 )}
                               </div>
                             )
@@ -4988,15 +5075,15 @@ export default function CodeEditorPage() {
                                       e.stopPropagation()
                                       setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }))
                                     }}
-                                    className={`px-2 py-0.5 rounded-full border text-[8px] uppercase font-mono font-extrabold tracking-wider transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
-                                      isExpanded 
-                                        ? 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/25' 
-                                        : 'bg-surface-soft border-hairline text-gray-400 hover:text-ink hover:bg-surface-card'
-                                    }`}
-                                  >
-                                    <span>{isExpanded ? 'Hide' : 'Show'}</span>
-                                    <ChevronDown className={`w-2 h-2 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                                  </button>
+                                  className={`px-2 py-0.5 rounded-full border text-[10px] uppercase font-mono font-extrabold tracking-wider transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+                                    isExpanded 
+                                      ? 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/25' 
+                                      : 'bg-surface-soft border-hairline text-gray-700 dark:text-gray-300 hover:bg-surface-card hover:text-ink'
+                                  }`}
+                                >
+                                  <span>{isExpanded ? 'Hide' : 'Show'}</span>
+                                  <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                                </button>
                                 )}
                               </div>
                             )
