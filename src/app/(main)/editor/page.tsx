@@ -4825,10 +4825,14 @@ export default function CodeEditorPage() {
                                     e.stopPropagation()
                                     setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }))
                                   }}
-                                  className="py-1 px-2 rounded bg-surface-soft hover:bg-hairline text-gray-400 hover:text-ink cursor-pointer flex items-center gap-1 text-[8px] uppercase font-bold tracking-wider transition-colors shrink-0"
+                                  className={`px-2 py-0.5 rounded-full border text-[8px] uppercase font-mono font-extrabold tracking-wider transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+                                    isExpanded 
+                                      ? 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/25' 
+                                      : 'bg-surface-soft border-hairline text-gray-400 hover:text-ink hover:bg-surface-card'
+                                  }`}
                                 >
                                   <span>{isExpanded ? 'Hide' : 'Show'}</span>
-                                  <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-primary' : 'text-gray-400'}`} />
+                                  <ChevronDown className={`w-2 h-2 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                                 </button>
                               )}
                             </div>
@@ -4980,10 +4984,14 @@ export default function CodeEditorPage() {
                                     e.stopPropagation()
                                     setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }))
                                   }}
-                                  className="py-1 px-2 rounded bg-surface-soft hover:bg-hairline text-gray-400 hover:text-ink cursor-pointer flex items-center gap-1 text-[8px] uppercase font-bold tracking-wider transition-colors shrink-0"
+                                  className={`px-2 py-0.5 rounded-full border text-[8px] uppercase font-mono font-extrabold tracking-wider transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+                                    isExpanded 
+                                      ? 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/25' 
+                                      : 'bg-surface-soft border-hairline text-gray-400 hover:text-ink hover:bg-surface-card'
+                                  }`}
                                 >
                                   <span>{isExpanded ? 'Hide' : 'Show'}</span>
-                                  <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-primary' : 'text-gray-400'}`} />
+                                  <ChevronDown className={`w-2 h-2 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                                 </button>
                               )}
                             </div>
