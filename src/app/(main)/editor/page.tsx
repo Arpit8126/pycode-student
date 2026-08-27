@@ -881,13 +881,14 @@ export default function CodeEditorPage() {
     }
   }, [])
 
-  // Listen to external layout change requests (e.g. expanding main sidebar reverts console to horizontal)
   useEffect(() => {
     if (typeof window === 'undefined') return
     const handleConsoleLayoutEvent = (e: Event) => {
       const customEvent = e as CustomEvent<{ layout: 'horizontal' | 'vertical' }>
       if (customEvent.detail && customEvent.detail.layout) {
         setConsoleLayout(customEvent.detail.layout)
+        setTerminalHeight(240)
+        setTerminalWidth(360)
         setTimeout(() => {
           if (editorRef.current) editorRef.current.layout()
         }, 100)
@@ -4371,6 +4372,8 @@ export default function CodeEditorPage() {
                   {/* Format Layout Toggle Button */}
                   <button
                     onClick={() => {
+                      setTerminalHeight(240)
+                      setTerminalWidth(360)
                       if (consoleLayout === 'horizontal') {
                         setConsoleLayout('vertical')
                         window.dispatchEvent(new CustomEvent('pycode-sidebar-collapse', { detail: { collapsed: true } }))
@@ -4387,12 +4390,12 @@ export default function CodeEditorPage() {
                     {consoleLayout === 'horizontal' ? (
                       <>
                         <Columns className="w-3 h-3 text-primary" />
-                        <span>Switch to Vertical</span>
+                        <span>Vertical</span>
                       </>
                     ) : (
                       <>
                         <Rows className="w-3 h-3 text-primary" />
-                        <span>Switch to Horizontal</span>
+                        <span>Horizontal</span>
                       </>
                     )}
                   </button>
