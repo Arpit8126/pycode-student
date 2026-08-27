@@ -518,7 +518,7 @@ export default function PracticeListPage() {
             <div>
               <h3 className="text-xs font-bold text-muted uppercase tracking-widest font-mono">Quick Actions</h3>
               <p className="text-sm font-semibold text-ink mt-3">Ready for a new challenge?</p>
-              <p className="text-xs text-body font-light mt-1 leading-relaxed">
+              <p className="text-xs text-body font-normal mt-1 leading-relaxed">
                 Click below to select a random unsolved programming challenge and test your current syntax skills instantly!
               </p>
             </div>
