@@ -2669,10 +2669,24 @@ export default function CodeEditorPage() {
         </div>
 
         {/* Unsaved Changes Indicator Explanation (Centered) */}
-        <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/30 text-[11px] font-semibold tracking-tight text-amber-800 dark:text-amber-300 select-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
-          <span>Dot (●) on tab indicates unsaved changes</span>
-        </div>
+        {(() => {
+          const dirtyTabs = tabs.filter(t => t.isDirty)
+          if (dirtyTabs.length > 0) {
+            const fileList = dirtyTabs.map(t => t.name.split('/').pop()).join(', ')
+            return (
+              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/30 text-[11px] font-bold tracking-tight text-amber-800 dark:text-amber-300 select-none animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 bg-primary"></span>
+                <span>Unsaved: {fileList} (●)</span>
+              </div>
+            )
+          }
+          return (
+            <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/30 text-[11px] font-semibold tracking-tight text-amber-800 dark:text-amber-300 select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+              <span>Dot (●) on tab indicates unsaved changes</span>
+            </div>
+          )
+        })()}
 
         <div>
           {pyodideState !== 'ready' ? (
