@@ -4385,6 +4385,15 @@ export default function CodeEditorPage() {
               <div className="border border-hairline rounded-2xl overflow-hidden bg-white p-2">
                 <img src={plotUrl} alt="Matplotlib Plot Output" className="w-full max-h-[520px] object-contain rounded-lg mx-auto" />
               </div>
+              {/* Full Screen Button */}
+              <button
+                onClick={() => setFullscreenPlotUrl(plotUrl)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-soft border border-hairline hover:bg-surface-card text-xs font-bold text-ink cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
+                title="View in Full Screen"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                Show in Full Screen
+              </button>
             </div>
           </div>
         </div>
