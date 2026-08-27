@@ -40,6 +40,22 @@ export default function Sidebar() {
     }
   }, [])
 
+  // Listen to external sidebar collapse requests
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const handleCollapseEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{ collapsed: boolean }>
+      if (customEvent.detail && typeof customEvent.detail.collapsed === 'boolean') {
+        setIsCollapsed(customEvent.detail.collapsed)
+        localStorage.setItem('pycode_sidebar_collapsed', String(customEvent.detail.collapsed))
+      }
+    }
+    window.addEventListener('pycode-sidebar-collapse', handleCollapseEvent)
+    return () => {
+      window.removeEventListener('pycode-sidebar-collapse', handleCollapseEvent)
+    }
+  }, [])
+
   // Global theme observer hook to keep theme button state synchronized
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -60,6 +76,11 @@ export default function Sidebar() {
     const nextVal = !isCollapsed
     setIsCollapsed(nextVal)
     localStorage.setItem('pycode_sidebar_collapsed', String(nextVal))
+    
+    // If expanding the main sidebar, automatically restore console to horizontal format
+    if (!nextVal) {
+      window.dispatchEvent(new CustomEvent('pycode-console-layout', { detail: { layout: 'horizontal' } }))
+    }
   }
 
   useEffect(() => {
