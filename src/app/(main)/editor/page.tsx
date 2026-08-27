@@ -888,11 +888,31 @@ export default function CodeEditorPage() {
   }, [])
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedLayout = localStorage.getItem('pycode_console_layout') as 'horizontal' | 'vertical' | null
+      if (savedLayout && (savedLayout === 'horizontal' || savedLayout === 'vertical')) {
+        setConsoleLayout(savedLayout)
+        if (savedLayout === 'vertical') {
+          setTerminalWidth(480)
+          window.dispatchEvent(new CustomEvent('pycode-sidebar-collapse', { detail: { collapsed: true } }))
+        } else {
+          setTerminalHeight(240)
+          window.dispatchEvent(new CustomEvent('pycode-sidebar-collapse', { detail: { collapsed: false } }))
+        }
+        setTimeout(() => {
+          if (editorRef.current) editorRef.current.layout()
+        }, 200)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     if (typeof window === 'undefined') return
     const handleConsoleLayoutEvent = (e: Event) => {
       const customEvent = e as CustomEvent<{ layout: 'horizontal' | 'vertical' }>
       if (customEvent.detail && customEvent.detail.layout) {
         setConsoleLayout(customEvent.detail.layout)
+        localStorage.setItem('pycode_console_layout', customEvent.detail.layout)
         setTerminalHeight(240)
         setTerminalWidth(480)
         setTimeout(() => {
@@ -2649,8 +2669,8 @@ export default function CodeEditorPage() {
         </div>
 
         {/* Unsaved Changes Indicator Explanation (Centered) */}
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/5 border border-amber-500/10 text-[10px] text-amber-600/80 font-mono select-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+        <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/30 text-[11px] font-semibold tracking-tight text-amber-800 dark:text-amber-300 select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
           <span>Dot (●) on tab indicates unsaved changes</span>
         </div>
 
@@ -4479,9 +4499,11 @@ export default function CodeEditorPage() {
                       setTerminalWidth(480)
                       if (consoleLayout === 'horizontal') {
                         setConsoleLayout('vertical')
+                        localStorage.setItem('pycode_console_layout', 'vertical')
                         window.dispatchEvent(new CustomEvent('pycode-sidebar-collapse', { detail: { collapsed: true } }))
                       } else {
                         setConsoleLayout('horizontal')
+                        localStorage.setItem('pycode_console_layout', 'horizontal')
                         window.dispatchEvent(new CustomEvent('pycode-sidebar-collapse', { detail: { collapsed: false } }))
                       }
                       setTimeout(() => {
