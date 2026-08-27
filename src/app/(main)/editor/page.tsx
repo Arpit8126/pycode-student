@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen, Columns, Rows, Minimize2 } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen, Columns, Rows, Minimize2, Copy } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
@@ -5250,6 +5250,19 @@ export default function CodeEditorPage() {
                   >
                     <Folder className="w-3 h-3 text-amber-500" />
                     Move to...
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigator.clipboard.writeText(file.name)
+                      triggerToast("Path copied to clipboard.", "success")
+                      setActiveDropdownFile(null)
+                      setDropdownPos(null)
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-ink hover:bg-surface-soft rounded-xl transition-colors cursor-pointer text-left"
+                  >
+                    <Copy className="w-3 h-3 text-emerald-500" />
+                    Copy Path
                   </button>
                   <button
                     onClick={(e) => {
