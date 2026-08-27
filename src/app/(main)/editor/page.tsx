@@ -965,6 +965,21 @@ export default function CodeEditorPage() {
     })
   }
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const hasUnsavedChanges = tabs.some(t => t.isDirty)
+      if (hasUnsavedChanges) {
+        e.preventDefault()
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?'
+        return e.returnValue
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [tabs])
+
   // Operational States
   const [isRunning, setIsRunning] = useState(false)
   const [consoleOutput, setConsoleOutput] = useState('')
@@ -2630,10 +2645,13 @@ export default function CodeEditorPage() {
           </Link>
           <div className="flex items-center gap-2">
             <span className="text-sm font-extrabold tracking-tight">Code Editor</span>
-            <span className="text-[9px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-mono">
-              Sandbox IDE
-            </span>
           </div>
+        </div>
+
+        {/* Unsaved Changes Indicator Explanation (Centered) */}
+        <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/5 border border-amber-500/10 text-[10px] text-amber-600/80 font-mono select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+          <span>Dot (●) on tab indicates unsaved changes</span>
         </div>
 
         <div>
