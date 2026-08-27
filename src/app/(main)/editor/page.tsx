@@ -5306,7 +5306,7 @@ export default function CodeEditorPage() {
                     setTabConfirmClose(null)
                     closeTab(targetName, true)
                   }}
-                  className="px-4 py-2 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-xs font-bold cursor-pointer transition-all"
+                  className="px-4 py-2 rounded-xl border border-hairline bg-canvas text-gray-500 hover:text-red-500 hover:bg-red-500/5 hover:border-red-500/25 text-xs font-semibold cursor-pointer transition-all duration-200"
                 >
                   Close without Saving
                 </button>
