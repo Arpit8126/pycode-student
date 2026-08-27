@@ -200,15 +200,14 @@ export default function ProfilePage() {
             }
           })
 
-          const sortedScores = Object.values(userScores).sort((a, b) => b - a)
-          const targetScore = userScores[targetUserId] || 0
-          const rankIndex = sortedScores.indexOf(targetScore)
-          const finalRank = rankIndex !== -1 ? rankIndex + 1 : sortedScores.length + 1
+          const targetScore = userScores[targetUserId] ?? 0
+          const usersAbove = Object.values(userScores).filter((s) => s > targetScore).length
+          const finalRank = usersAbove + 1
           const totalUsers = Math.max(profilesCount || 1, Object.keys(userScores).length, 1)
-          const topPercent = Math.max(1, Math.min(100, Math.round((finalRank / totalUsers) * 100)))
+          const topPercent = Math.min(100, Math.max(1, Math.round((finalRank / totalUsers) * 100)))
 
           setViewedRank(finalRank)
-          setViewedPercentile(topPercent)
+          setViewedPercentile(targetScore === 0 ? 100 : topPercent)
         }
       }
     } catch (e) {
@@ -302,19 +301,17 @@ export default function ProfilePage() {
             }
           })
 
-          // Sort unique score values in descending order
-          const sortedScores = Object.values(userScores).sort((a, b) => b - a)
-          // Find our unique score
-          const myScore = userScores[user.id] || 0
-          const rankIndex = sortedScores.indexOf(myScore)
-          const finalRank = rankIndex !== -1 ? rankIndex + 1 : sortedScores.length + 1
+          // Count how many users scored strictly higher → gives accurate rank even with ties
+          const myScore = userScores[user.id] ?? 0
+          const usersAbove = Object.values(userScores).filter((s) => s > myScore).length
+          const finalRank = usersAbove + 1
           const totalUsers = Math.max(profilesCount || 1, Object.keys(userScores).length, 1)
 
-          // Calculate percentile (rounded to nearest integer)
-          const topPercent = Math.max(1, Math.min(100, Math.round((finalRank / totalUsers) * 100)))
+          // Calculate percentile — no artificial floor so 0-score users aren't falsely shown as Top 1%
+          const topPercent = Math.min(100, Math.max(1, Math.round((finalRank / totalUsers) * 100)))
 
           setGlobalRank(finalRank)
-          setGlobalPercentile(topPercent)
+          setGlobalPercentile(myScore === 0 ? 100 : topPercent)
         }
 
         // 3. Fetch Submissions

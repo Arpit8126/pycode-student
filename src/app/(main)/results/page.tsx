@@ -207,15 +207,14 @@ function ScorecardView({ result, onBack }: { result: any; onBack: () => void }) 
           }
         })
 
-        const sortedScores = Object.values(userScores).sort((a: number, b: number) => b - a)
-        const targetUserScore = userScores[user.id] || 0
-        const rankIndex = sortedScores.indexOf(targetUserScore)
-        const finalRank = rankIndex !== -1 ? rankIndex + 1 : sortedScores.length + 1
+        const targetUserScore = userScores[user.id] ?? 0
+        const usersAbove = Object.values(userScores).filter((s: number) => s > targetUserScore).length
+        const finalRank = usersAbove + 1
         const totalUsers = Math.max(profilesCount || 1, Object.keys(userScores).length, 1)
-        const topPercent = Math.max(1, Math.min(100, Math.round((finalRank / totalUsers) * 100)))
+        const topPercent = Math.min(100, Math.max(1, Math.round((finalRank / totalUsers) * 100)))
 
         setViewedRankVal(finalRank)
-        setViewedPercentileVal(topPercent)
+        setViewedPercentileVal(targetUserScore === 0 ? 100 : topPercent)
       }
     } catch (err) {
       console.error(err)
