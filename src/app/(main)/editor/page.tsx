@@ -1408,6 +1408,12 @@ export default function CodeEditorPage() {
     worker.postMessage({ type: 'INIT', datasets: datasetsToSend, customDatasets: customDbs })
   }
 
+  // Helper to test if a filename is a dataset rather than a code script
+  const isDatasetFilename = (name: string) => {
+    const lower = name.toLowerCase()
+    return lower.endsWith('.csv') || lower.endsWith('.xlsx') || lower.endsWith('.tsv') || lower.endsWith('.parquet')
+  }
+
   // Load saved files
   const loadSavedFiles = async (keepActive?: string) => {
     try {
@@ -1418,11 +1424,21 @@ export default function CodeEditorPage() {
           .order('last_modified', { ascending: false })
         
         if (!error && data) {
-          const formatted = data.map((d: any) => ({
-            name: d.name,
-            code: d.code,
-            lastModified: new Date(d.last_modified).toLocaleString()
-          }))
+          // Purge any leaked datasets from saved_scripts table
+          const datasetRows = data.filter((d: any) => isDatasetFilename(d.name))
+          if (datasetRows.length > 0) {
+            for (const row of datasetRows) {
+              ;(supabase.from('saved_scripts') as any).delete().eq('user_id', user.id).eq('name', row.name).catch(() => {})
+            }
+          }
+
+          const formatted = data
+            .filter((d: any) => !isDatasetFilename(d.name))
+            .map((d: any) => ({
+              name: d.name,
+              code: d.code,
+              lastModified: new Date(d.last_modified).toLocaleString()
+            }))
           setSavedFiles(formatted)
           // Only restore a specific file if explicitly requested (e.g. after saving)
           // On initial load (no keepActive) — stay on blank default workspace
@@ -1444,11 +1460,17 @@ export default function CodeEditorPage() {
       if (filesStr) {
         try {
           const files = JSON.parse(filesStr)
-          setSavedFiles(files)
-          if (keepActive) {
-            const target = files.find((f: any) => f.name === keepActive)
-            if (target) {
-              handleLoadFile(target)
+          if (Array.isArray(files)) {
+            const cleanedFiles = files.filter((f: any) => !isDatasetFilename(f.name))
+            if (cleanedFiles.length !== files.length) {
+              localStorage.setItem('pycode_saved_files', JSON.stringify(cleanedFiles))
+            }
+            setSavedFiles(cleanedFiles)
+            if (keepActive) {
+              const target = cleanedFiles.find((f: any) => f.name === keepActive)
+              if (target) {
+                handleLoadFile(target)
+              }
             }
           }
         } catch (e) {
@@ -2001,6 +2023,16 @@ export default function CodeEditorPage() {
   const syncUserFiles = async (userFiles: { name: string; code: string }[]) => {
     if (!userFiles || userFiles.length === 0) return
 
+    // Filter out datasets so they are never added as Python script files in the explorer
+    const scriptFiles = userFiles.filter(f => {
+      const lower = f.name.toLowerCase()
+      const isDataset = lower.endsWith('.csv') || lower.endsWith('.xlsx') || lower.endsWith('.tsv') || lower.endsWith('.parquet')
+      const isCustomDataset = importedDatasetsRef.current.some(d => d.name.toLowerCase() === lower)
+      return !isDataset && !isCustomDataset
+    })
+
+    if (scriptFiles.length === 0) return
+
     let hasChanges = false
     const updatedFiles = [...savedFiles]
 
@@ -2012,7 +2044,7 @@ export default function CodeEditorPage() {
 
     const { data: { user } } = await supabase.auth.getUser()
 
-    for (const file of userFiles) {
+    for (const file of scriptFiles) {
       const existingIndex = updatedFiles.findIndex(f => f.name.toLowerCase() === file.name.toLowerCase())
       const isNew = existingIndex === -1
       const isChanged = !isNew && updatedFiles[existingIndex].code !== file.code
@@ -3416,7 +3448,13 @@ export default function CodeEditorPage() {
                                         }`}
                                       >
                                         <div className="flex items-center gap-2.5 overflow-hidden w-full">
-                                          {file.name.endsWith('.ipynb') ? <JupyterIcon className="w-4 h-4 shrink-0" /> : <PythonIcon className="w-4 h-4 shrink-0" />}
+                                          {file.name.endsWith('.ipynb') ? (
+                                            <JupyterIcon className="w-4 h-4 shrink-0" />
+                                          ) : file.name.endsWith('.csv') || file.name.endsWith('.xlsx') ? (
+                                            <Database className="w-4 h-4 shrink-0 text-emerald-500" />
+                                          ) : (
+                                            <PythonIcon className="w-4 h-4 shrink-0" />
+                                          )}
                                           <div className="flex flex-col overflow-hidden">
                                             <span className={`text-xs font-extrabold font-mono truncate ${isActive ? 'text-ink' : 'text-gray-800 dark:text-gray-200'}`}>{displayName}</span>
                                             <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>
@@ -3595,7 +3633,13 @@ export default function CodeEditorPage() {
                                     }`}
                                   >
                                     <div className="flex items-center gap-2.5 overflow-hidden w-full">
-                                      {file.name.endsWith('.ipynb') ? <JupyterIcon className="w-4 h-4 shrink-0" /> : <PythonIcon className="w-4 h-4 shrink-0" />}
+                                      {file.name.endsWith('.ipynb') ? (
+                                        <JupyterIcon className="w-4 h-4 shrink-0" />
+                                      ) : file.name.endsWith('.csv') || file.name.endsWith('.xlsx') ? (
+                                        <Database className="w-4 h-4 shrink-0 text-emerald-500" />
+                                      ) : (
+                                        <PythonIcon className="w-4 h-4 shrink-0" />
+                                      )}
                                       <div className="flex flex-col overflow-hidden">
                                         <span className={`text-xs font-extrabold font-mono truncate ${isActive ? 'text-ink' : 'text-gray-800 dark:text-gray-200'}`}>{file.name}</span>
                                         <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate font-mono">{file.lastModified}</span>

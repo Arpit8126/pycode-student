@@ -556,6 +556,9 @@ plotly_res
 
       // Recursively scan Pyodide's virtual filesystem for user files/folders
       const datasetNames = new Set(filenames);
+      if (data.customDatasets && Array.isArray(data.customDatasets)) {
+        data.customDatasets.forEach(d => datasetNames.add(d.name));
+      }
       const scanUserFiles = (dir) => {
         const list = [];
         try {
@@ -577,8 +580,14 @@ plotly_res
                 }
                 
                 if (datasetNames.has(relativePath)) return;
+
+                // Never treat dataset files as user code scripts
+                const lower = relativePath.toLowerCase();
+                if (lower.endsWith('.csv') || lower.endsWith('.xlsx') || lower.endsWith('.tsv') || lower.endsWith('.parquet')) {
+                  return;
+                }
                 
-                const isBinary = relativePath.endsWith('.xlsx') || relativePath.endsWith('.png') || relativePath.endsWith('.jpg') || relativePath.endsWith('.pdf');
+                const isBinary = lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.pdf');
                 if (!isBinary) {
                   const fCode = pyodide.FS.readFile(fullPath, { encoding: 'utf8' });
                   list.push({ name: relativePath, code: fCode });
@@ -649,6 +658,9 @@ plotly_res
       }
 
       const datasetNames = new Set(filenames);
+      if (data.customDatasets && Array.isArray(data.customDatasets)) {
+        data.customDatasets.forEach(d => datasetNames.add(d.name));
+      }
       const scanUserFiles = (dir) => {
         const list = [];
         try {
@@ -670,8 +682,14 @@ plotly_res
                 }
                 
                 if (datasetNames.has(relativePath)) return;
+
+                // Never treat dataset files as user code scripts
+                const lower = relativePath.toLowerCase();
+                if (lower.endsWith('.csv') || lower.endsWith('.xlsx') || lower.endsWith('.tsv') || lower.endsWith('.parquet')) {
+                  return;
+                }
                 
-                const isBinary = relativePath.endsWith('.xlsx') || relativePath.endsWith('.png') || relativePath.endsWith('.jpg') || relativePath.endsWith('.pdf');
+                const isBinary = lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.pdf');
                 if (!isBinary) {
                   const fCode = pyodide.FS.readFile(fullPath, { encoding: 'utf8' });
                   list.push({ name: relativePath, code: fCode });
