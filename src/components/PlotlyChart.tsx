@@ -221,7 +221,17 @@ export function openPlotlyInNewTab(jsonStr: string, downloadFileName?: string, i
       <span>${saveName} — Visualization Canvas</span>
     </div>
     <div class="tools">
-      <button class="btn" onclick="Plotly.relayout('plot-container', { 'xaxis.autorange': true, 'yaxis.autorange': true, 'scene.camera': null })">
+      <button class="btn" onclick="(function(){
+        var gd = document.getElementById('plot-container');
+        if (gd && gd._fullLayout) {
+          var upd = {};
+          Object.keys(gd._fullLayout).forEach(function(k){
+            if (/^[xy]axis\\d*$/.test(k)) { upd[k + '.autorange'] = true; upd[k + '.range'] = null; }
+            if (/^scene\\d*$/.test(k)) { upd[k + '.camera'] = { eye: { x: 1.5, y: 1.5, z: 1.25 }, center: { x: 0, y: 0, z: 0 }, up: { x: 0, y: 0, z: 1 } }; }
+          });
+          Plotly.relayout(gd, upd);
+        }
+      })()">
         ⟲ Reset
       </button>
       <button class="btn primary" onclick="Plotly.downloadImage('plot-container', { format: 'png', filename: '${saveName}', width: 1200, height: 750 })">
@@ -273,8 +283,10 @@ export function openPlotlyInNewTab(jsonStr: string, downloadFileName?: string, i
     };
     const config = {
       responsive: true,
+      scrollZoom: true,
       displayModeBar: false,
-      displaylogo: false
+      displaylogo: false,
+      doubleClick: 'reset+autosize'
     };
     Plotly.newPlot('plot-container', parsedData, layout, config);
     window.addEventListener('resize', () => Plotly.Plots.resize('plot-container'));
@@ -319,14 +331,41 @@ export default function PlotlyChart({
     }
   }
 
-  const handleResetAxes = () => {
-    if (containerRef.current && window.Plotly?.relayout) {
-      window.Plotly.relayout(containerRef.current, {
-        'xaxis.autorange': true,
-        'yaxis.autorange': true,
-        'scene.camera': null
-      })
+  const renderChartRef = useRef<(() => void) | null>(null)
+
+  const handleResetAxes = async () => {
+    if (!containerRef.current || !window.Plotly) return
+    const gd = containerRef.current as any
+    try {
+      const fullLayout = gd._fullLayout
+      if (fullLayout) {
+        const relayoutUpdate: any = {}
+        let hasKeys = false
+        Object.keys(fullLayout).forEach(key => {
+          if (/^[xy]axis\d*$/.test(key)) {
+            relayoutUpdate[`${key}.autorange`] = true
+            relayoutUpdate[`${key}.range`] = null
+            hasKeys = true
+          } else if (/^scene\d*$/.test(key)) {
+            // Proper 3D camera default orientation
+            relayoutUpdate[`${key}.camera`] = {
+              eye: { x: 1.5, y: 1.5, z: 1.25 },
+              center: { x: 0, y: 0, z: 0 },
+              up: { x: 0, y: 0, z: 1 }
+            }
+            hasKeys = true
+          }
+        })
+        if (hasKeys) {
+          await window.Plotly.relayout(gd, relayoutUpdate)
+          return
+        }
+      }
+    } catch (err) {
+      console.warn('[PlotlyChart] Relayout reset failed, falling back to renderChart:', err)
     }
+    // Guaranteed fallback: re-run clean initial render
+    renderChartRef.current?.()
   }
 
   useEffect(() => {
@@ -372,12 +411,14 @@ export default function PlotlyChart({
           },
           xaxis: {
             ...userLayout.xaxis,
+            fixedrange: false,
             gridcolor: isDark ? '#2d2b28' : '#e6dfd8',
             zerolinecolor: isDark ? '#3d3a36' : '#d4cdc5',
             tickfont: { color: isDark ? '#8e8b82' : '#6c6a64' }
           },
           yaxis: {
             ...userLayout.yaxis,
+            fixedrange: false,
             gridcolor: isDark ? '#2d2b28' : '#e6dfd8',
             zerolinecolor: isDark ? '#3d3a36' : '#d4cdc5',
             tickfont: { color: isDark ? '#8e8b82' : '#6c6a64' }
@@ -401,8 +442,10 @@ export default function PlotlyChart({
 
         const config = {
           responsive: true,
-          displayModeBar: false, // COMPLETELY REMOVES FLOATING BLACK MODEBAR!
-          displaylogo: false
+          scrollZoom: true, // Smooth mouse-wheel & pinch zooming on ALL plots (bar, scatter, line, 3D)
+          displayModeBar: false,
+          displaylogo: false,
+          doubleClick: 'reset+autosize'
         }
 
         await Plotly.newPlot(containerRef.current, parsed.data || [], layoutTheme, config)
@@ -416,23 +459,38 @@ export default function PlotlyChart({
       }
     }
 
+    renderChartRef.current = renderChart
     renderChart()
 
-    // Handle container resize
-    const observer = new ResizeObserver(() => {
+    // Handle container resize and fullscreen transitions
+    const handleResize = () => {
       if (containerRef.current && window.Plotly && typeof window.Plotly.Plots?.resize === 'function') {
         try {
           window.Plotly.Plots.resize(containerRef.current)
         } catch (e) {}
       }
+    }
+
+    const observer = new ResizeObserver(() => {
+      handleResize()
     })
 
     if (containerRef.current) {
       observer.observe(containerRef.current)
     }
 
+    // Keep fullscreen and window resize responsive and interaction layers aligned
+    const t1 = setTimeout(handleResize, 100)
+    const t2 = setTimeout(handleResize, 350)
+    document.addEventListener('fullscreenchange', handleResize)
+    window.addEventListener('resize', handleResize)
+
     return () => {
       cancelled = true
+      clearTimeout(t1)
+      clearTimeout(t2)
+      document.removeEventListener('fullscreenchange', handleResize)
+      window.removeEventListener('resize', handleResize)
       observer.disconnect()
       if (containerRef.current && window.Plotly && typeof window.Plotly.purge === 'function') {
         try {
