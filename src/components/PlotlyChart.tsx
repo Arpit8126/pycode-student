@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Camera, ExternalLink, Maximize2, RefreshCw, X } from 'lucide-react'
+import { Camera, RotateCcw, ExternalLink, Maximize2, RefreshCw, X } from 'lucide-react'
 
 interface PlotlyChartProps {
   dataJson: string
@@ -221,6 +221,9 @@ export function openPlotlyInNewTab(jsonStr: string, downloadFileName?: string, i
       <span>${saveName} — Visualization Canvas</span>
     </div>
     <div class="tools">
+      <button class="btn" onclick="Plotly.relayout('plot-container', { 'xaxis.autorange': true, 'yaxis.autorange': true, 'scene.camera': null })">
+        ⟲ Reset
+      </button>
       <button class="btn primary" onclick="Plotly.downloadImage('plot-container', { format: 'png', filename: '${saveName}', width: 1200, height: 750 })">
         📷 Download Plot (${saveName}.png)
       </button>
@@ -312,6 +315,16 @@ export default function PlotlyChart({
         filename: resolvedFileName,
         height: 800,
         width: 1200
+      })
+    }
+  }
+
+  const handleResetAxes = () => {
+    if (containerRef.current && window.Plotly?.relayout) {
+      window.Plotly.relayout(containerRef.current, {
+        'xaxis.autorange': true,
+        'yaxis.autorange': true,
+        'scene.camera': null
       })
     }
   }
@@ -446,8 +459,18 @@ export default function PlotlyChart({
             </span>
           </div>
 
-          {/* Right Toolbar Controls: Just Download Plot, New Tab, Fullscreen, Close */}
+          {/* Right Toolbar Controls: Reset, Download Plot, New Tab, Fullscreen, Close */}
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Reset View Button */}
+            <button
+              onClick={handleResetAxes}
+              className="px-2.5 py-1.5 rounded-lg border border-hairline bg-surface-soft text-ink font-semibold transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono shadow-xs hover:border-primary/50"
+              title="Reset View / Auto-fit Axes"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span className="hidden sm:inline">Reset</span>
+            </button>
+
             {/* Download Plot Button */}
             <button
               onClick={handleDownloadPNG}
