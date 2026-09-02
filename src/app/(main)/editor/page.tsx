@@ -1002,16 +1002,14 @@ export default function CodeEditorPage() {
       }
 
       let textColorClass = 'text-ink dark:text-gray-200'
-      let customStyle = {}
       if (currentBlock === 'error' || startsError) {
-        textColorClass = 'text-red-500 dark:text-red-400 font-semibold'
+        textColorClass = 'text-red-600 dark:text-red-400 font-semibold'
       } else if (currentBlock === 'warning' || startsWarning || isWarningLine) {
-        textColorClass = 'font-medium'
-        customStyle = { color: '#e2c08d' }
+        textColorClass = 'text-amber-800 dark:text-amber-300 font-medium'
       }
 
       return (
-        <div key={index} className={textColorClass} style={customStyle}>
+        <div key={index} className={textColorClass}>
           {cleanLine || ' '}
         </div>
       )

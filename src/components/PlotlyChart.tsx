@@ -241,7 +241,7 @@ export function openPlotlyInNewTab(jsonStr: string, downloadFileName?: string, i
         l: userLayout.margin?.l ?? 60,
         r: userLayout.margin?.r ?? (hasLegend ? 180 : 50),
         t: userLayout.margin?.t ?? 50,
-        b: userLayout.margin?.b ?? 50,
+        b: Math.max(userLayout.margin?.b ?? 0, 75),
         pad: 4
       },
       xaxis: {
@@ -354,7 +354,7 @@ export default function PlotlyChart({
             l: userMargin.l ?? 60,
             r: userMargin.r ?? (hasLegend ? 180 : 45),
             t: userMargin.t ?? 50,
-            b: userMargin.b ?? 50,
+            b: Math.max(userMargin.b ?? 0, 75),
             pad: 4
           },
           xaxis: {
@@ -497,7 +497,10 @@ export default function PlotlyChart({
       )}
 
       {/* Plot Container */}
-      <div className="relative w-full h-full flex-1 bg-canvas p-2" style={{ minHeight: typeof height === 'number' ? `${height}px` : height }}>
+      <div
+        className="relative w-full flex-1 min-h-0 bg-canvas p-1 sm:p-2 overflow-hidden"
+        style={typeof height === 'number' ? { height: `${height}px`, minHeight: `${height}px` } : undefined}
+      >
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-canvas/60 backdrop-blur-xs z-10">
             <div className="flex items-center gap-2 font-mono text-xs text-muted">
