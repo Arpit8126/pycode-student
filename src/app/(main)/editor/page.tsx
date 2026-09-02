@@ -1063,9 +1063,12 @@ export default function CodeEditorPage() {
   useEffect(() => {
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement) {
-        // User exited via Esc key or browser UI
+        // User exited via Esc key or browser UI -> close plot completely, do not show minimized modal
         setFullscreenPlotUrl(null)
         setFullscreenPlotlyData(null)
+        setShowPlotModal(false)
+        setPlotUrl('')
+        setPlotlyData(null)
       }
     }
     document.addEventListener('fullscreenchange', handleFullscreenChange)
@@ -5696,7 +5699,11 @@ export default function CodeEditorPage() {
                 <span className="hidden sm:inline">Download</span>
               </button>
               <button
-                onClick={() => exitFullscreenWithBrowser(() => setFullscreenPlotUrl(null))}
+                onClick={() => exitFullscreenWithBrowser(() => {
+                  setFullscreenPlotUrl(null)
+                  setShowPlotModal(false)
+                  setPlotUrl('')
+                })}
                 className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-ink hover:bg-red-500/15 hover:border-red-500/30 hover:text-red-500 transition-colors cursor-pointer shadow-xs"
                 title="Close Fullscreen"
               >
@@ -5725,7 +5732,11 @@ export default function CodeEditorPage() {
             isDark={theme === 'dark'}
             title="Plotly Interactive Canvas — Fullscreen"
             downloadFileName={activeFileName || 'plot'}
-            onClose={() => exitFullscreenWithBrowser(() => setFullscreenPlotlyData(null))}
+            onClose={() => exitFullscreenWithBrowser(() => {
+              setFullscreenPlotlyData(null)
+              setShowPlotModal(false)
+              setPlotlyData(null)
+            })}
           />
         </div>
       )}
