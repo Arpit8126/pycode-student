@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen, Columns, Rows, Minimize2, Copy } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen, Columns, Rows, Minimize2, Copy, ExternalLink } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
 import { initDB, getDatasets, saveDataset, deleteDataset, CustomDataset } from '@/lib/indexedDb'
 import JSZip from 'jszip'
+import PlotlyChart, { openPlotlyInNewTab } from '@/components/PlotlyChart'
 
 // Custom file type icon components — inline SVGs for guaranteed rendering
 const PythonIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
@@ -44,6 +45,7 @@ interface CellType {
   code: string;
   output: string;
   plot: string;
+  plotly?: string;
   error: string;
   isRunning?: boolean;
   hasRun?: boolean;
@@ -424,6 +426,9 @@ export default function CodeEditorPage() {
   const [cells, setCells] = useState<CellType[]>(globalDraftCells)
   const [runningCellQueue, setRunningCellQueue] = useState<string[]>([])
   const [fullscreenPlotUrl, setFullscreenPlotUrl] = useState<string | null>(null)
+  const [plotlyData, setPlotlyData] = useState<string | null>(null)
+  const [fullscreenPlotlyData, setFullscreenPlotlyData] = useState<string | null>(null)
+  const [pkgStatus, setPkgStatus] = useState<{ status: string; label?: string; stage?: number; total?: number; done?: boolean }>({ status: 'loading', label: 'Initializing Python...' })
   const [activeCellId, setActiveCellId] = useState<string | null>(null)
   const [tabs, setTabs] = useState<Tab[]>([])
 
@@ -1127,12 +1132,11 @@ export default function CodeEditorPage() {
       const data = e.data
       if (data.type === 'INIT_READY') {
         setPyodideState('ready')
-        setProgressMsg('Environment ready!')
+        setProgressMsg('Python core ready!')
         // If a dataset was selected while loading, fetch its content now!
         const activeFile = selectedFileRef.current
         if (activeFile && workerRef.current) {
           const custom = importedDatasetsRef.current.find(d => d.name === activeFile)
-          // Use GET_EXCEL_PREVIEW for any .xlsx file (custom or default built-in)
           if (activeFile.endsWith('.xlsx')) {
             workerRef.current.postMessage({ type: 'GET_EXCEL_PREVIEW', filename: activeFile })
           } else if (custom) {
@@ -1140,6 +1144,11 @@ export default function CodeEditorPage() {
           } else {
             workerRef.current.postMessage({ type: 'GET_FILE', filename: activeFile })
           }
+        }
+      } else if (data.type === 'PKG_STATUS') {
+        setPkgStatus(data)
+        if (data.label && pyodideState === 'ready') {
+          setProgressMsg(data.label)
         }
       } else if (data.type === 'INIT_ERROR') {
         setPyodideState('error')
@@ -1172,6 +1181,9 @@ export default function CodeEditorPage() {
             plot: (data.plotData && typeof data.plotData === 'string' && data.plotData.length > 100)
               ? `data:image/png;base64,${data.plotData}`
               : c.plot,
+            plotly: (data.plotlyData && typeof data.plotlyData === 'string' && data.plotlyData.length > 10)
+              ? data.plotlyData
+              : c.plotly,
             isRunning: false,
             hasRun: true
           } : c), false)
@@ -1183,8 +1195,13 @@ export default function CodeEditorPage() {
             }
           }, 80)
         } else {
-          if (data.plotData && typeof data.plotData === 'string' && data.plotData.length > 100) {
+          if (data.plotlyData && typeof data.plotlyData === 'string' && data.plotlyData.length > 10) {
+            setPlotlyData(data.plotlyData)
+            setPlotUrl('')
+            setShowPlotModal(true)
+          } else if (data.plotData && typeof data.plotData === 'string' && data.plotData.length > 100) {
             setPlotUrl(`data:image/png;base64,${data.plotData}`)
+            setPlotlyData(null)
             setShowPlotModal(true)
           }
         }
@@ -2796,15 +2813,28 @@ export default function CodeEditorPage() {
 
         <div>
           {pyodideState !== 'ready' ? (
-            <span className="text-xs text-amber-600 flex items-center gap-2 animate-pulse font-light">
+            <span className="text-xs text-amber-600 flex items-center gap-2 animate-pulse font-light font-mono">
               <span className="w-2 h-2 rounded-full bg-amber-500"></span>
               {progressMsg}
             </span>
           ) : (
-            <span className="text-[9px] text-emerald-800 bg-success/10 px-2.5 py-1 rounded-full border border-success/20 flex items-center gap-1.5 font-bold tracking-widest font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
-              SANDBOX ONLINE
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] text-emerald-700 dark:text-emerald-400 bg-success/10 px-2.5 py-1 rounded-full border border-success/20 flex items-center gap-1.5 font-bold tracking-widest font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
+                PYTHON ONLINE
+              </span>
+              {pkgStatus.status === 'loading' && (
+                <span className="hidden sm:flex text-[10px] text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20 items-center gap-1.5 font-mono">
+                  <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                  <span>Loading {pkgStatus.label} ({pkgStatus.stage}/{pkgStatus.total})...</span>
+                </span>
+              )}
+              {pkgStatus.status === 'ready' && (
+                <span className="hidden md:flex text-[10px] text-gray-500 dark:text-gray-400 bg-surface-soft px-2 py-0.5 rounded-full border border-hairline items-center gap-1 font-mono">
+                  <span>DS & Plotly Ready</span>
+                </span>
+              )}
+            </div>
           )}
         </div>
       </header>
@@ -4425,7 +4455,7 @@ export default function CodeEditorPage() {
                         </div>
 
                         {/* Cell Outputs - Rendered flat on the canvas background directly below cell box */}
-                        {cell.type !== 'markdown' && (cell.output || cell.error || cell.plot) && (
+                        {cell.type !== 'markdown' && (cell.output || cell.error || cell.plot || cell.plotly) && (
                           <div
                             id={`cell_output_${cell.id}`}
                             className="relative py-2 mt-1 select-text group/output"
@@ -4446,6 +4476,16 @@ export default function CodeEditorPage() {
                               )}
                               {cell.error && (
                                 <pre className="whitespace-pre-wrap text-red-500 dark:text-red-400 bg-red-500/5 dark:bg-red-500/5 p-2 rounded-lg leading-relaxed font-mono">{cell.error}</pre>
+                              )}
+                              {cell.plotly && (
+                                <div className="mt-2 w-full max-w-3xl">
+                                  <PlotlyChart
+                                    dataJson={cell.plotly}
+                                    height={380}
+                                    isDark={theme === 'dark'}
+                                    onExpandFullscreen={() => setFullscreenPlotlyData(cell.plotly || null)}
+                                  />
+                                </div>
                               )}
                               {cell.plot && (
                                 <div className="relative inline-block group/plot mt-1">
@@ -4735,14 +4775,29 @@ export default function CodeEditorPage() {
         </div>
       )}
 
-      {/* Matplotlib Visualization Overlay Modal */}
-      {showPlotModal && plotUrl && (
+      {/* Visualization Overlay Modal */}
+      {showPlotModal && (plotUrl || plotlyData) && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-canvas border border-hairline p-6 rounded-3xl max-w-4xl w-full flex flex-col items-center justify-center relative shadow-2xl animate-scale-in">
-            {/* Top-right button group: Fullscreen + Close */}
-            <div className="absolute top-4 right-4 flex items-center gap-1.5">
+            {/* Top-right button group: New Tab + Fullscreen + Close */}
+            <div className="absolute top-4 right-4 flex items-center gap-1.5 z-20">
+              {plotlyData && (
+                <button
+                  onClick={() => openPlotlyInNewTab(plotlyData)}
+                  title="Open Interactive Plot in New Tab"
+                  className="p-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 cursor-pointer transition-colors flex items-center justify-center"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+              )}
               <button
-                onClick={() => setFullscreenPlotUrl(plotUrl)}
+                onClick={() => {
+                  if (plotlyData) {
+                    setFullscreenPlotlyData(plotlyData)
+                  } else {
+                    setFullscreenPlotUrl(plotUrl)
+                  }
+                }}
                 title="Show in Full Screen"
                 className="p-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-colors flex items-center justify-center"
               >
@@ -4752,6 +4807,7 @@ export default function CodeEditorPage() {
                 onClick={() => {
                   setShowPlotModal(false)
                   setPlotUrl('')
+                  setPlotlyData(null)
                 }}
                 title="Close Plot"
                 className="p-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-colors flex items-center justify-center"
@@ -4763,11 +4819,22 @@ export default function CodeEditorPage() {
             <div className="w-full text-center space-y-4">
               <h3 className="text-sm font-extrabold text-ink flex items-center justify-center gap-2">
                 <CheckCircle className="w-4 h-4 text-success" />
-                Visualization Output
+                {plotlyData ? 'Interactive Plotly Visualization' : 'Visualization Output'}
               </h3>
-              <div className="border border-hairline rounded-2xl overflow-hidden bg-white p-2">
-                <img src={plotUrl} alt="Matplotlib Plot Output" className="w-full max-h-[520px] object-contain rounded-lg mx-auto" />
-              </div>
+              {plotlyData ? (
+                <div className="w-full">
+                  <PlotlyChart
+                    dataJson={plotlyData}
+                    height={500}
+                    isDark={theme === 'dark'}
+                    onExpandFullscreen={() => setFullscreenPlotlyData(plotlyData)}
+                  />
+                </div>
+              ) : (
+                <div className="border border-hairline rounded-2xl overflow-hidden bg-white p-2">
+                  <img src={plotUrl} alt="Matplotlib Plot Output" className="w-full max-h-[520px] object-contain rounded-lg mx-auto" />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -5556,6 +5623,40 @@ export default function CodeEditorPage() {
             className="w-full h-full object-contain select-none p-4"
             onClick={(e) => e.stopPropagation()}
           />
+        </div>
+      )}
+
+      {/* Fullscreen Plotly Interactive Modal Overlay */}
+      {fullscreenPlotlyData && (
+        <div
+          className="fixed inset-0 z-[110] flex flex-col animate-fade-in bg-[#0e1117]"
+        >
+          <div className="h-12 border-b border-white/10 flex items-center justify-between px-6 bg-[#161b22] shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-white font-mono">Plotly Interactive Canvas — Fullscreen</span>
+              <span className="text-[10px] text-cyan-400 bg-cyan-400/10 px-2 py-0.5 rounded-full font-mono">Interactive</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => openPlotlyInNewTab(fullscreenPlotlyData)}
+                className="px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Open in Standalone New Tab"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open in New Tab</span>
+              </button>
+              <button
+                onClick={() => setFullscreenPlotlyData(null)}
+                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                title="Close Fullscreen"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 w-full h-full p-4 overflow-hidden">
+            <PlotlyChart dataJson={fullscreenPlotlyData} height="100%" isDark={true} />
+          </div>
         </div>
       )}
 

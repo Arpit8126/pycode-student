@@ -92,19 +92,29 @@ export function usePyodide() {
 
         pyodideRef.current = pyodide
 
-        setState('loading_packages')
-        setProgressMsg('Downloading Pandas, NumPy, Matplotlib & Seaborn packages...')
-
-        // 3. Pre-load standard libraries (NumPy, Pandas, Matplotlib, Scikit-learn, Micropip)
-        await pyodide.loadPackage(['pandas', 'numpy', 'matplotlib', 'scikit-learn', 'micropip'])
-
-        // 4. Install pure Python Seaborn library using micropip
-        await pyodide.runPythonAsync('import micropip; await micropip.install("seaborn")')
+        // Load micropip runtime
+        await pyodide.loadPackage('micropip')
 
         if (!active) return
-        
+
+        // Instant ready! Python core is available immediately (< 1.5s)
         setState('ready')
-        setProgressMsg('Environment ready!')
+        setProgressMsg('Python ready!')
+
+        // Background progressive loading of data science libraries
+        ;(async () => {
+          try {
+            await pyodide.loadPackage(['pandas', 'numpy', 'matplotlib'])
+            try {
+              await pyodide.runPythonAsync('import micropip; await micropip.install("seaborn")')
+            } catch (e) {}
+            if (active) {
+              setProgressMsg('Environment ready!')
+            }
+          } catch (bgErr) {
+            console.warn("Background package loading:", bgErr)
+          }
+        })()
       } catch (err: any) {
         console.error("Pyodide loading failed:", err)
         if (active) {
@@ -137,6 +147,13 @@ export function usePyodide() {
       }
     })
 
+    // Dynamic JIT dependency resolution if code imports libraries before background loading finishes
+    if (py.loadPackagesFromImports) {
+      try {
+        await py.loadPackagesFromImports(code + '\n' + verificationScript)
+      } catch (e) {}
+    }
+
     // Set up headless canvas interceptor and output streams in virtual filesystem
     const wrapperCode = `
 import sys
@@ -144,13 +161,27 @@ import io
 import json
 import base64
 
-# Enforce Agg headless plots
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-plt.show = lambda *args, **kwargs: None
-import pandas as pd
-import numpy as np
+plt = None
+pd = None
+np = None
+
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    plt.show = lambda *args, **kwargs: None
+except Exception:
+    pass
+
+try:
+    import pandas as pd
+except Exception:
+    pass
+
+try:
+    import numpy as np
+except Exception:
+    pass
 
 # Intercept output
 sys.stdout = io.StringIO()
@@ -357,7 +388,11 @@ finally:
                 result["visualization"] = base64.b64encode(buf.read()).decode('utf-8')
     except Exception:
         pass
-    plt.close('all')
+    if plt is not None:
+        try:
+            plt.close('all')
+        except Exception:
+            pass
     result["output"] = sys.stdout.getvalue() + sys.stderr.getvalue()
     
 # Return json parsed results
