@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen, Columns, Rows, Minimize2, Copy, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Camera, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen, Columns, Rows, Minimize2, Copy, ExternalLink } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
@@ -4484,6 +4484,7 @@ export default function CodeEditorPage() {
                                     height={400}
                                     isDark={theme === 'dark'}
                                     title="Notebook Plot Output"
+                                    downloadFileName={activeFileName || 'plot'}
                                     onExpandFullscreen={() => setFullscreenPlotlyData(cell.plotly || null)}
                                   />
                                 </div>
@@ -4496,13 +4497,31 @@ export default function CodeEditorPage() {
                                     onClick={() => setFullscreenPlotUrl(cell.plot)}
                                     className="max-h-[360px] object-contain rounded-lg border border-hairline/80 dark:border-[#2a2927] cursor-zoom-in bg-white p-2 hover:opacity-98 shadow-sm transition-all"
                                   />
-                                  <button
-                                    onClick={() => setFullscreenPlotUrl(cell.plot)}
-                                    className="absolute top-3 right-3 p-1.5 rounded-lg bg-black/60 hover:bg-black/85 text-white opacity-0 group-hover/plot:opacity-100 transition-opacity cursor-pointer shadow-md"
-                                    title="Fullscreen View"
-                                  >
-                                    <Maximize2 className="w-3 h-3" />
-                                  </button>
+                                  <div className="absolute top-3 right-3 flex items-center gap-1.5 opacity-0 group-hover/plot:opacity-100 transition-opacity">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        const a = document.createElement('a')
+                                        a.href = cell.plot
+                                        const base = activeFileName ? activeFileName.replace(/\.[^/.]+$/, '') : 'plot'
+                                        a.download = `${base}.png`
+                                        document.body.appendChild(a)
+                                        a.click()
+                                        document.body.removeChild(a)
+                                      }}
+                                      className="p-1.5 rounded-lg bg-black/60 hover:bg-black/85 text-white transition-colors cursor-pointer shadow-md"
+                                      title={`Download Plot (${activeFileName ? activeFileName.replace(/\.[^/.]+$/, '') : 'plot'}.png)`}
+                                    >
+                                      <Camera className="w-3 h-3 text-primary" />
+                                    </button>
+                                    <button
+                                      onClick={() => setFullscreenPlotUrl(cell.plot)}
+                                      className="p-1.5 rounded-lg bg-black/60 hover:bg-black/85 text-white transition-colors cursor-pointer shadow-md"
+                                      title="Fullscreen View"
+                                    >
+                                      <Maximize2 className="w-3 h-3" />
+                                    </button>
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -4779,13 +4798,14 @@ export default function CodeEditorPage() {
       {/* Visualization Overlay Modal */}
       {showPlotModal && (plotUrl || plotlyData) && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-6 animate-fade-in">
-          <div className="bg-canvas dark:bg-[#181715] border border-hairline dark:border-[#2d2b28] rounded-2xl max-w-5xl lg:max-w-6xl w-full h-[88vh] max-h-[880px] flex flex-col shadow-2xl overflow-hidden animate-scale-in">
+          <div className="bg-canvas border border-hairline rounded-2xl max-w-5xl lg:max-w-6xl w-full h-[88vh] max-h-[880px] flex flex-col shadow-2xl overflow-hidden animate-scale-in">
             {plotlyData ? (
               <PlotlyChart
                 dataJson={plotlyData}
                 height="100%"
                 isDark={theme === 'dark'}
                 title="Interactive Visualization Canvas"
+                downloadFileName={activeFileName || 'plot'}
                 onClose={() => {
                   setShowPlotModal(false)
                   setPlotUrl('')
@@ -4795,16 +4815,34 @@ export default function CodeEditorPage() {
               />
             ) : (
               <div className="flex flex-col w-full h-full">
-                <div className="h-12 px-5 border-b border-hairline dark:border-[#2d2b28] bg-surface-card dark:bg-[#1f1e1b] flex items-center justify-between shrink-0">
+                <div className="h-12 px-5 border-b border-hairline bg-surface-card flex items-center justify-between shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    <span className="text-xs font-bold text-ink dark:text-[#faf9f5] font-mono">Visualization Output</span>
+                    <span className="text-xs font-bold text-ink font-mono">
+                      {activeFileName ? `${activeFileName} — Visualization Output` : 'Visualization Output'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
+                      onClick={() => {
+                        const a = document.createElement('a')
+                        a.href = plotUrl
+                        const base = activeFileName ? activeFileName.replace(/\.[^/.]+$/, '') : 'plot'
+                        a.download = `${base}.png`
+                        document.body.appendChild(a)
+                        a.click()
+                        document.body.removeChild(a)
+                      }}
+                      title={`Download Plot (${activeFileName ? activeFileName.replace(/\.[^/.]+$/, '') : 'plot'}.png)`}
+                      className="px-2.5 py-1.5 rounded-lg border border-hairline bg-canvas hover:bg-surface-soft text-muted hover:text-ink transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono"
+                    >
+                      <Camera className="w-3.5 h-3.5 text-primary" />
+                      <span className="hidden sm:inline">Download</span>
+                    </button>
+                    <button
                       onClick={() => setFullscreenPlotUrl(plotUrl)}
                       title="Show in Full Screen"
-                      className="p-1.5 rounded-lg border border-hairline dark:border-[#2d2b28] text-muted hover:text-ink transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg border border-hairline bg-canvas hover:bg-surface-soft text-muted hover:text-ink transition-colors cursor-pointer"
                     >
                       <Maximize2 className="w-3.5 h-3.5" />
                     </button>
@@ -4814,13 +4852,13 @@ export default function CodeEditorPage() {
                         setPlotUrl('')
                       }}
                       title="Close Plot"
-                      className="p-1.5 rounded-lg border border-hairline dark:border-[#2d2b28] text-muted hover:text-red-500 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg border border-hairline bg-canvas hover:bg-red-500/15 text-muted hover:text-red-500 transition-colors cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
-                <div className="flex-1 w-full h-full flex items-center justify-center p-4 bg-canvas dark:bg-[#181715]">
+                <div className="flex-1 w-full h-full flex items-center justify-center p-4 bg-canvas">
                   <img src={plotUrl} alt="Matplotlib Plot Output" className="max-w-full max-h-full object-contain rounded-lg shadow-sm" />
                 </div>
               </div>
@@ -5596,35 +5634,62 @@ export default function CodeEditorPage() {
       {/* Fullscreen Plot Zoom Modal Overlay */}
       {fullscreenPlotUrl && (
         <div
-          className="fixed inset-0 z-[110] flex items-center justify-center animate-fade-in bg-white dark:bg-zinc-950"
-          onClick={() => setFullscreenPlotUrl(null)}
+          className="fixed inset-0 z-[110] flex flex-col animate-fade-in bg-canvas text-ink"
         >
-          <button
-            onClick={() => setFullscreenPlotUrl(null)}
-            className="absolute top-5 right-5 p-2 rounded-full bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-gray-700 dark:text-gray-300 hover:text-ink transition-colors cursor-pointer z-10"
-            title="Close Fullscreen"
-          >
-            <X className="w-5 h-5" />
-          </button>
-          <img
-            src={fullscreenPlotUrl}
-            alt="Fullscreen matplotlib plot"
-            className="w-full h-full object-contain select-none p-4"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div className="h-12 px-5 border-b border-hairline bg-surface-card flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              <span className="text-xs font-bold text-ink font-mono">
+                {activeFileName ? `${activeFileName} — Visualization Output` : 'Visualization Output'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const a = document.createElement('a')
+                  a.href = fullscreenPlotUrl
+                  const base = activeFileName ? activeFileName.replace(/\.[^/.]+$/, '') : 'plot'
+                  a.download = `${base}.png`
+                  document.body.appendChild(a)
+                  a.click()
+                  document.body.removeChild(a)
+                }}
+                title={`Download Plot (${activeFileName ? activeFileName.replace(/\.[^/.]+$/, '') : 'plot'}.png)`}
+                className="px-2.5 py-1.5 rounded-lg border border-hairline bg-canvas hover:bg-surface-soft text-muted hover:text-ink transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono"
+              >
+                <Camera className="w-3.5 h-3.5 text-primary" />
+                <span className="hidden sm:inline">Download</span>
+              </button>
+              <button
+                onClick={() => setFullscreenPlotUrl(null)}
+                className="p-1.5 rounded-lg border border-hairline bg-canvas hover:bg-red-500/15 text-muted hover:text-red-500 transition-colors cursor-pointer"
+                title="Close Fullscreen"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 w-full h-full flex items-center justify-center p-4 overflow-hidden bg-canvas">
+            <img
+              src={fullscreenPlotUrl}
+              alt="Fullscreen plot"
+              className="max-w-full max-h-full object-contain select-none shadow-sm rounded-lg"
+            />
+          </div>
         </div>
       )}
 
       {/* Fullscreen Plotly Interactive Modal Overlay */}
       {fullscreenPlotlyData && (
         <div
-          className="fixed inset-0 z-[110] flex flex-col animate-fade-in bg-canvas dark:bg-[#181715]"
+          className="fixed inset-0 z-[110] flex flex-col animate-fade-in bg-canvas"
         >
           <PlotlyChart
             dataJson={fullscreenPlotlyData}
             height="100%"
-            isDark={true}
+            isDark={theme === 'dark'}
             title="Plotly Interactive Canvas — Fullscreen"
+            downloadFileName={activeFileName || 'plot'}
             onClose={() => setFullscreenPlotlyData(null)}
           />
         </div>

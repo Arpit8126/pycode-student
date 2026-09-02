@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Camera, ZoomIn, Move, RotateCcw, ExternalLink, Maximize2, RefreshCw, X } from 'lucide-react'
+import { Camera, ExternalLink, Maximize2, RefreshCw, X } from 'lucide-react'
 
 interface PlotlyChartProps {
   dataJson: string
@@ -10,6 +10,7 @@ interface PlotlyChartProps {
   isDark?: boolean
   hideHeader?: boolean
   title?: string
+  downloadFileName?: string
   onClose?: () => void
   onExpandFullscreen?: () => void
 }
@@ -121,15 +122,25 @@ export function loadPlotlyLibrary(): Promise<any> {
   return plotlyLoadPromise
 }
 
-export function openPlotlyInNewTab(jsonStr: string) {
+export function openPlotlyInNewTab(jsonStr: string, downloadFileName?: string, isDark: boolean = true) {
   try {
     const parsed = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr
+    const saveName = downloadFileName ? downloadFileName.replace(/\.[^/.]+$/, '') : 'plot'
+
+    const bgCanvas = isDark ? '#181715' : '#faf9f5'
+    const bgHeader = isDark ? '#1f1e1b' : '#f5f0e8'
+    const borderCol = isDark ? '#2d2b28' : '#e6dfd8'
+    const textInk = isDark ? '#faf9f5' : '#141413'
+    const textMuted = isDark ? '#a09d96' : '#6c6a64'
+    const plotBg = isDark ? '#1f1e1b' : '#f5f0e8'
+    const gridCol = isDark ? '#2d2b28' : '#e6dfd8'
+
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PyCode — Interactive Visualization</title>
+  <title>${saveName} — PyCode Visualization</title>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -139,8 +150,8 @@ export function openPlotlyInNewTab(jsonStr: string) {
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #181715;
-      color: #faf9f5;
+      background: ${bgCanvas};
+      color: ${textInk};
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     #plot-header {
@@ -149,8 +160,8 @@ export function openPlotlyInNewTab(jsonStr: string) {
       align-items: center;
       justify-content: space-between;
       padding: 0 20px;
-      border-bottom: 1px solid #2d2b28;
-      background: #1f1e1b;
+      border-bottom: 1px solid ${borderCol};
+      background: ${bgHeader};
     }
     .brand {
       display: flex;
@@ -158,7 +169,7 @@ export function openPlotlyInNewTab(jsonStr: string) {
       gap: 10px;
       font-weight: 700;
       font-size: 13px;
-      color: #faf9f5;
+      color: ${textInk};
     }
     .dot {
       width: 8px;
@@ -172,22 +183,22 @@ export function openPlotlyInNewTab(jsonStr: string) {
       gap: 8px;
     }
     .btn {
-      background: #252320;
-      border: 1px solid #2d2b28;
-      color: #a09d96;
-      padding: 6px 12px;
+      background: ${isDark ? '#252320' : '#efe9de'};
+      border: 1px solid ${borderCol};
+      color: ${textMuted};
+      padding: 6px 14px;
       border-radius: 8px;
       font-size: 11px;
       font-family: inherit;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       transition: all 0.15s;
     }
     .btn:hover {
-      background: #2d2b28;
-      color: #faf9f5;
+      background: ${isDark ? '#2d2b28' : '#e6dfd8'};
+      color: ${textInk};
     }
     .btn.primary {
       background: rgba(204, 120, 92, 0.15);
@@ -207,13 +218,12 @@ export function openPlotlyInNewTab(jsonStr: string) {
   <div id="plot-header">
     <div class="brand">
       <span class="dot"></span>
-      <span>PyCode Visualization Canvas</span>
+      <span>${saveName} — Visualization Canvas</span>
     </div>
     <div class="tools">
-      <button class="btn" onclick="Plotly.relayout('plot-container', { dragmode: 'zoom' })">Box Zoom</button>
-      <button class="btn" onclick="Plotly.relayout('plot-container', { dragmode: 'pan' })">Pan</button>
-      <button class="btn" onclick="Plotly.relayout('plot-container', { 'xaxis.autorange': true, 'yaxis.autorange': true })">Reset View</button>
-      <button class="btn primary" onclick="Plotly.downloadImage('plot-container', { format: 'png', filename: 'plot', width: 1200, height: 750 })">Download PNG</button>
+      <button class="btn primary" onclick="Plotly.downloadImage('plot-container', { format: 'png', filename: '${saveName}', width: 1200, height: 750 })">
+        📷 Download Plot (${saveName}.png)
+      </button>
     </div>
   </div>
   <div id="plot-container"></div>
@@ -224,9 +234,9 @@ export function openPlotlyInNewTab(jsonStr: string) {
     const layout = {
       ...userLayout,
       autosize: true,
-      paper_bgcolor: '#181715',
-      plot_bgcolor: '#1f1e1b',
-      font: { color: '#faf9f5', family: 'Inter, system-ui, sans-serif', size: 11 },
+      paper_bgcolor: '${bgCanvas}',
+      plot_bgcolor: '${plotBg}',
+      font: { color: '${textInk}', family: 'Inter, system-ui, sans-serif', size: 11 },
       margin: {
         l: userLayout.margin?.l ?? 60,
         r: userLayout.margin?.r ?? (hasLegend ? 180 : 50),
@@ -236,15 +246,15 @@ export function openPlotlyInNewTab(jsonStr: string) {
       },
       xaxis: {
         ...userLayout.xaxis,
-        gridcolor: '#2d2b28',
-        zerolinecolor: '#3d3a36',
-        tickfont: { color: '#8e8b82' }
+        gridcolor: '${gridCol}',
+        zerolinecolor: '${isDark ? '#3d3a36' : '#d4cdc5'}',
+        tickfont: { color: '${textMuted}' }
       },
       yaxis: {
         ...userLayout.yaxis,
-        gridcolor: '#2d2b28',
-        zerolinecolor: '#3d3a36',
-        tickfont: { color: '#8e8b82' }
+        gridcolor: '${gridCol}',
+        zerolinecolor: '${isDark ? '#3d3a36' : '#d4cdc5'}',
+        tickfont: { color: '${textMuted}' }
       },
       legend: {
         ...userLayout.legend,
@@ -252,10 +262,10 @@ export function openPlotlyInNewTab(jsonStr: string) {
         xanchor: 'left',
         y: 0.98,
         yanchor: 'top',
-        bgcolor: 'rgba(31, 30, 27, 0.85)',
-        bordercolor: '#2d2b28',
+        bgcolor: '${isDark ? 'rgba(31, 30, 27, 0.85)' : 'rgba(245, 240, 232, 0.85)'}',
+        bordercolor: '${borderCol}',
         borderwidth: 1,
-        font: { size: 11, color: '#a09d96' }
+        font: { size: 11, color: '${textMuted}' }
       }
     };
     const config = {
@@ -283,39 +293,26 @@ export default function PlotlyChart({
   isDark = true,
   hideHeader = false,
   title = 'Interactive Visualization',
+  downloadFileName,
   onClose,
   onExpandFullscreen
 }: PlotlyChartProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [dragMode, setDragMode] = useState<'zoom' | 'pan'>('zoom')
+
+  const resolvedFileName = downloadFileName
+    ? downloadFileName.replace(/\.[^/.]+$/, '')
+    : 'plot'
 
   const handleDownloadPNG = () => {
     if (containerRef.current && window.Plotly?.downloadImage) {
       window.Plotly.downloadImage(containerRef.current, {
         format: 'png',
-        filename: 'pycode_visualization',
+        filename: resolvedFileName,
         height: 800,
         width: 1200
       })
-    }
-  }
-
-  const handleResetAxes = () => {
-    if (containerRef.current && window.Plotly?.relayout) {
-      window.Plotly.relayout(containerRef.current, {
-        'xaxis.autorange': true,
-        'yaxis.autorange': true,
-        'scene.camera': null
-      })
-    }
-  }
-
-  const handleSetDragMode = (mode: 'zoom' | 'pan') => {
-    setDragMode(mode)
-    if (containerRef.current && window.Plotly?.relayout) {
-      window.Plotly.relayout(containerRef.current, { dragmode: mode })
     }
   }
 
@@ -378,7 +375,7 @@ export default function PlotlyChart({
             xanchor: 'left',
             y: 0.98,
             yanchor: 'top',
-            bgcolor: isDark ? 'rgba(31, 30, 27, 0.85)' : 'rgba(245, 240, 232, 0.85)',
+            bgcolor: isDark ? 'rgba(31, 30, 27, 0.9)' : 'rgba(245, 240, 232, 0.9)',
             bordercolor: isDark ? '#2d2b28' : '#e6dfd8',
             borderwidth: 1,
             font: {
@@ -434,75 +431,41 @@ export default function PlotlyChart({
 
   const rootClass = hideHeader
     ? `relative w-full h-full flex flex-col ${className}`
-    : `relative flex flex-col w-full h-full rounded-2xl overflow-hidden border border-hairline dark:border-[#2d2b28] bg-canvas dark:bg-[#181715] shadow-xl ${className}`
+    : `relative flex flex-col w-full h-full rounded-2xl overflow-hidden border border-hairline bg-canvas shadow-xl ${className}`
 
   return (
     <div className={rootClass}>
       {/* Unified Header Action Bar */}
       {!hideHeader && (
-        <div className="h-12 px-4 border-b border-hairline dark:border-[#2d2b28] bg-surface-card dark:bg-[#1f1e1b] flex items-center justify-between shrink-0 select-none">
+        <div className="h-12 px-4 border-b border-hairline bg-surface-card flex items-center justify-between shrink-0 select-none">
           {/* Left Title & Status */}
           <div className="flex items-center gap-2.5">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs font-bold text-ink dark:text-[#faf9f5] font-mono tracking-tight">
+            <span className="text-xs font-bold text-ink font-mono tracking-tight">
               {title}
             </span>
           </div>
 
-          {/* Right Toolbar Controls (All options beside Fullscreen & New Tab) */}
-          <div className="flex items-center gap-1 sm:gap-1.5">
-            {/* Box Zoom Button */}
-            <button
-              onClick={() => handleSetDragMode('zoom')}
-              className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer flex items-center gap-1 ${
-                dragMode === 'zoom'
-                  ? 'bg-primary/15 border-primary/30 text-primary font-semibold'
-                  : 'border-hairline dark:border-[#2d2b28] text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-[#252320]'
-              }`}
-              title="Box Zoom (drag rectangle on chart to zoom in)"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Pan Button */}
-            <button
-              onClick={() => handleSetDragMode('pan')}
-              className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer flex items-center gap-1 ${
-                dragMode === 'pan'
-                  ? 'bg-primary/15 border-primary/30 text-primary font-semibold'
-                  : 'border-hairline dark:border-[#2d2b28] text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-[#252320]'
-              }`}
-              title="Pan Tool (drag to slide axes)"
-            >
-              <Move className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Reset Axes Button */}
-            <button
-              onClick={handleResetAxes}
-              className="p-1.5 rounded-lg border border-hairline dark:border-[#2d2b28] text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-[#252320] text-xs transition-colors cursor-pointer"
-              title="Reset View / Auto-fit Axes"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Download PNG Button */}
+          {/* Right Toolbar Controls: Just Download Plot, New Tab, Fullscreen, Close */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Download Plot Button */}
             <button
               onClick={handleDownloadPNG}
-              className="p-1.5 rounded-lg border border-hairline dark:border-[#2d2b28] text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-[#252320] text-xs transition-colors cursor-pointer"
-              title="Download Plot as High-Res PNG"
+              className="px-2.5 py-1.5 rounded-lg border border-hairline bg-canvas hover:bg-surface-soft text-muted hover:text-ink transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono"
+              title={`Download Plot (${resolvedFileName}.png)`}
             >
-              <Camera className="w-3.5 h-3.5" />
+              <Camera className="w-3.5 h-3.5 text-primary" />
+              <span className="hidden sm:inline">Download</span>
             </button>
 
             {/* Vertical Divider */}
-            <div className="w-[1px] h-4 bg-hairline dark:bg-[#2d2b28] mx-0.5" />
+            <div className="w-[1px] h-4 bg-hairline mx-0.5" />
 
             {/* New Tab Button */}
             <button
-              onClick={() => openPlotlyInNewTab(dataJson)}
+              onClick={() => openPlotlyInNewTab(dataJson, resolvedFileName, isDark)}
               className="px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/25 text-primary text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Open Interactive Plot in Standalone New Tab"
+              title="Open in Standalone New Tab"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">New Tab</span>
@@ -512,7 +475,7 @@ export default function PlotlyChart({
             {onExpandFullscreen && (
               <button
                 onClick={onExpandFullscreen}
-                className="p-1.5 rounded-lg border border-hairline dark:border-[#2d2b28] text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-[#252320] text-xs transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg border border-hairline bg-canvas hover:bg-surface-soft text-muted hover:text-ink transition-colors cursor-pointer"
                 title="Fullscreen View"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
@@ -523,7 +486,7 @@ export default function PlotlyChart({
             {onClose && (
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg border border-hairline dark:border-[#2d2b28] text-muted hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/5 text-xs transition-colors cursor-pointer ml-1"
+                className="p-1.5 rounded-lg border border-hairline bg-canvas hover:bg-red-500/15 hover:border-red-500/30 text-muted hover:text-red-500 transition-colors cursor-pointer ml-1"
                 title="Close"
               >
                 <X className="w-3.5 h-3.5" />
@@ -534,9 +497,9 @@ export default function PlotlyChart({
       )}
 
       {/* Plot Container */}
-      <div className="relative w-full h-full flex-1 bg-canvas dark:bg-[#181715] p-2" style={{ minHeight: typeof height === 'number' ? `${height}px` : height }}>
+      <div className="relative w-full h-full flex-1 bg-canvas p-2" style={{ minHeight: typeof height === 'number' ? `${height}px` : height }}>
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-canvas/60 dark:bg-[#181715]/60 backdrop-blur-xs z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-canvas/60 backdrop-blur-xs z-10">
             <div className="flex items-center gap-2 font-mono text-xs text-muted">
               <RefreshCw className="w-4 h-4 animate-spin text-primary" />
               <span>Rendering chart...</span>
