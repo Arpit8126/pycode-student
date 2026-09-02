@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { ExternalLink, Maximize2, RefreshCw } from 'lucide-react'
+import { Camera, ZoomIn, Move, RotateCcw, ExternalLink, Maximize2, RefreshCw, X } from 'lucide-react'
 
 interface PlotlyChartProps {
   dataJson: string
@@ -9,6 +9,8 @@ interface PlotlyChartProps {
   className?: string
   isDark?: boolean
   hideHeader?: boolean
+  title?: string
+  onClose?: () => void
   onExpandFullscreen?: () => void
 }
 
@@ -137,9 +139,9 @@ export function openPlotlyInNewTab(jsonStr: string) {
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #0e1117;
-      color: #e6edf3;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #181715;
+      color: #faf9f5;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     #plot-header {
       height: 48px;
@@ -147,25 +149,53 @@ export function openPlotlyInNewTab(jsonStr: string) {
       align-items: center;
       justify-content: space-between;
       padding: 0 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      background: #161b22;
+      border-bottom: 1px solid #2d2b28;
+      background: #1f1e1b;
     }
     .brand {
       display: flex;
       align-items: center;
       gap: 10px;
       font-weight: 700;
-      font-size: 14px;
-      letter-spacing: -0.01em;
+      font-size: 13px;
+      color: #faf9f5;
     }
-    .badge {
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #cc785c;
+    }
+    .tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn {
+      background: #252320;
+      border: 1px solid #2d2b28;
+      color: #a09d96;
+      padding: 6px 12px;
+      border-radius: 8px;
       font-size: 11px;
-      padding: 2px 10px;
-      background: rgba(14, 165, 233, 0.2);
-      color: #38bdf8;
-      border-radius: 999px;
-      font-weight: 600;
-      font-family: monospace;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .btn:hover {
+      background: #2d2b28;
+      color: #faf9f5;
+    }
+    .btn.primary {
+      background: rgba(204, 120, 92, 0.15);
+      border-color: rgba(204, 120, 92, 0.35);
+      color: #cc785c;
+    }
+    .btn.primary:hover {
+      background: rgba(204, 120, 92, 0.25);
     }
     #plot-container {
       width: 100vw;
@@ -176,11 +206,14 @@ export function openPlotlyInNewTab(jsonStr: string) {
 <body>
   <div id="plot-header">
     <div class="brand">
-      <span>PyCode Plotly Canvas</span>
-      <span class="badge">Interactive</span>
+      <span class="dot"></span>
+      <span>PyCode Visualization Canvas</span>
     </div>
-    <div style="font-size: 12px; color: #8b949e;">
-      Zoom & Pan (drag / scroll) • Hover for data tooltips • Click legend items to toggle traces
+    <div class="tools">
+      <button class="btn" onclick="Plotly.relayout('plot-container', { dragmode: 'zoom' })">Box Zoom</button>
+      <button class="btn" onclick="Plotly.relayout('plot-container', { dragmode: 'pan' })">Pan</button>
+      <button class="btn" onclick="Plotly.relayout('plot-container', { 'xaxis.autorange': true, 'yaxis.autorange': true })">Reset View</button>
+      <button class="btn primary" onclick="Plotly.downloadImage('plot-container', { format: 'png', filename: 'plot', width: 1200, height: 750 })">Download PNG</button>
     </div>
   </div>
   <div id="plot-container"></div>
@@ -191,9 +224,9 @@ export function openPlotlyInNewTab(jsonStr: string) {
     const layout = {
       ...userLayout,
       autosize: true,
-      paper_bgcolor: '#0e1117',
-      plot_bgcolor: '#0e1117',
-      font: { color: '#e6edf3', family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 12 },
+      paper_bgcolor: '#181715',
+      plot_bgcolor: '#1f1e1b',
+      font: { color: '#faf9f5', family: 'Inter, system-ui, sans-serif', size: 11 },
       margin: {
         l: userLayout.margin?.l ?? 60,
         r: userLayout.margin?.r ?? (hasLegend ? 180 : 50),
@@ -201,23 +234,34 @@ export function openPlotlyInNewTab(jsonStr: string) {
         b: userLayout.margin?.b ?? 50,
         pad: 4
       },
+      xaxis: {
+        ...userLayout.xaxis,
+        gridcolor: '#2d2b28',
+        zerolinecolor: '#3d3a36',
+        tickfont: { color: '#8e8b82' }
+      },
+      yaxis: {
+        ...userLayout.yaxis,
+        gridcolor: '#2d2b28',
+        zerolinecolor: '#3d3a36',
+        tickfont: { color: '#8e8b82' }
+      },
       legend: {
         ...userLayout.legend,
         x: 1.02,
         xanchor: 'left',
-        y: 1,
+        y: 0.98,
         yanchor: 'top',
-        bgcolor: 'rgba(22, 27, 34, 0.75)',
-        bordercolor: 'rgba(255, 255, 255, 0.1)',
+        bgcolor: 'rgba(31, 30, 27, 0.85)',
+        bordercolor: '#2d2b28',
         borderwidth: 1,
-        font: { size: 11, color: '#94a3b8' }
+        font: { size: 11, color: '#a09d96' }
       }
     };
     const config = {
       responsive: true,
-      displayModeBar: 'hover',
-      displaylogo: false,
-      modeBarButtonsToRemove: ['sendDataToCloud', 'lasso2d', 'select2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
+      displayModeBar: false,
+      displaylogo: false
     };
     Plotly.newPlot('plot-container', parsedData, layout, config);
     window.addEventListener('resize', () => Plotly.Plots.resize('plot-container'));
@@ -234,15 +278,46 @@ export function openPlotlyInNewTab(jsonStr: string) {
 
 export default function PlotlyChart({
   dataJson,
-  height = 420,
+  height = 440,
   className = '',
   isDark = true,
   hideHeader = false,
+  title = 'Interactive Visualization',
+  onClose,
   onExpandFullscreen
 }: PlotlyChartProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [dragMode, setDragMode] = useState<'zoom' | 'pan'>('zoom')
+
+  const handleDownloadPNG = () => {
+    if (containerRef.current && window.Plotly?.downloadImage) {
+      window.Plotly.downloadImage(containerRef.current, {
+        format: 'png',
+        filename: 'pycode_visualization',
+        height: 800,
+        width: 1200
+      })
+    }
+  }
+
+  const handleResetAxes = () => {
+    if (containerRef.current && window.Plotly?.relayout) {
+      window.Plotly.relayout(containerRef.current, {
+        'xaxis.autorange': true,
+        'yaxis.autorange': true,
+        'scene.camera': null
+      })
+    }
+  }
+
+  const handleSetDragMode = (mode: 'zoom' | 'pan') => {
+    setDragMode(mode)
+    if (containerRef.current && window.Plotly?.relayout) {
+      window.Plotly.relayout(containerRef.current, { dragmode: mode })
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -271,19 +346,31 @@ export default function PlotlyChart({
           ...userLayout,
           autosize: true,
           paper_bgcolor: 'transparent',
-          plot_bgcolor: isDark ? '#0e1117' : '#ffffff',
+          plot_bgcolor: isDark ? '#1f1e1b' : '#f5f0e8',
           font: {
-            color: isDark ? '#cbd5e1' : '#334155',
+            color: isDark ? '#faf9f5' : '#141413',
             family: 'Inter, system-ui, -apple-system, sans-serif',
             size: 11
           },
-          // Spacing: give ample right margin so legend never collides with chart points or modebar
+          // Spacing: generous right margin so legend never collides with chart points
           margin: {
             l: userMargin.l ?? 60,
-            r: userMargin.r ?? (hasLegend ? 180 : 40),
+            r: userMargin.r ?? (hasLegend ? 180 : 45),
             t: userMargin.t ?? 50,
             b: userMargin.b ?? 50,
             pad: 4
+          },
+          xaxis: {
+            ...userLayout.xaxis,
+            gridcolor: isDark ? '#2d2b28' : '#e6dfd8',
+            zerolinecolor: isDark ? '#3d3a36' : '#d4cdc5',
+            tickfont: { color: isDark ? '#8e8b82' : '#6c6a64' }
+          },
+          yaxis: {
+            ...userLayout.yaxis,
+            gridcolor: isDark ? '#2d2b28' : '#e6dfd8',
+            zerolinecolor: isDark ? '#3d3a36' : '#d4cdc5',
+            tickfont: { color: isDark ? '#8e8b82' : '#6c6a64' }
           },
           legend: {
             ...userLayout.legend,
@@ -291,29 +378,21 @@ export default function PlotlyChart({
             xanchor: 'left',
             y: 0.98,
             yanchor: 'top',
-            bgcolor: isDark ? 'rgba(18, 20, 26, 0.75)' : 'rgba(255, 255, 255, 0.85)',
-            bordercolor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+            bgcolor: isDark ? 'rgba(31, 30, 27, 0.85)' : 'rgba(245, 240, 232, 0.85)',
+            bordercolor: isDark ? '#2d2b28' : '#e6dfd8',
             borderwidth: 1,
             font: {
               family: 'Inter, system-ui, sans-serif',
               size: 11,
-              color: isDark ? '#94a3b8' : '#64748b'
+              color: isDark ? '#a09d96' : '#6c6a64'
             }
           }
         }
 
         const config = {
           responsive: true,
-          displayModeBar: 'hover', // Only show modebar on hover, eliminating permanent clutter
-          displaylogo: false,
-          modeBarButtonsToRemove: [
-            'sendDataToCloud',
-            'lasso2d',
-            'select2d',
-            'hoverClosestCartesian',
-            'hoverCompareCartesian',
-            'toggleSpikelines'
-          ]
+          displayModeBar: false, // COMPLETELY REMOVES FLOATING BLACK MODEBAR!
+          displaylogo: false
         }
 
         await Plotly.newPlot(containerRef.current, parsed.data || [], layoutTheme, config)
@@ -354,34 +433,100 @@ export default function PlotlyChart({
   }, [dataJson, isDark])
 
   const rootClass = hideHeader
-    ? `relative w-full h-full ${className}`
-    : `relative flex flex-col w-full rounded-xl overflow-hidden border border-hairline/80 bg-surface-soft/30 dark:bg-[#121318] ${className}`
+    ? `relative w-full h-full flex flex-col ${className}`
+    : `relative flex flex-col w-full h-full rounded-2xl overflow-hidden border border-hairline dark:border-[#2d2b28] bg-canvas dark:bg-[#181715] shadow-xl ${className}`
 
   return (
     <div className={rootClass}>
-      {/* Top Action Bar (only shown when not embedded in a modal that has its own header) */}
+      {/* Unified Header Action Bar */}
       {!hideHeader && (
-        <div className="flex items-center justify-between px-3 py-1.5 border-b border-hairline/60 bg-surface-soft/60 dark:bg-[#16181f] text-xs">
-          <div className="flex items-center gap-2 font-mono text-[11px] text-gray-500 dark:text-gray-400">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            <span>Plotly Interactive Chart</span>
+        <div className="h-12 px-4 border-b border-hairline dark:border-[#2d2b28] bg-surface-card dark:bg-[#1f1e1b] flex items-center justify-between shrink-0 select-none">
+          {/* Left Title & Status */}
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-xs font-bold text-ink dark:text-[#faf9f5] font-mono tracking-tight">
+              {title}
+            </span>
           </div>
-          <div className="flex items-center gap-1">
+
+          {/* Right Toolbar Controls (All options beside Fullscreen & New Tab) */}
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            {/* Box Zoom Button */}
+            <button
+              onClick={() => handleSetDragMode('zoom')}
+              className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer flex items-center gap-1 ${
+                dragMode === 'zoom'
+                  ? 'bg-primary/15 border-primary/30 text-primary font-semibold'
+                  : 'border-hairline dark:border-[#2d2b28] text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-[#252320]'
+              }`}
+              title="Box Zoom (drag rectangle on chart to zoom in)"
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Pan Button */}
+            <button
+              onClick={() => handleSetDragMode('pan')}
+              className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer flex items-center gap-1 ${
+                dragMode === 'pan'
+                  ? 'bg-primary/15 border-primary/30 text-primary font-semibold'
+                  : 'border-hairline dark:border-[#2d2b28] text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-[#252320]'
+              }`}
+              title="Pan Tool (drag to slide axes)"
+            >
+              <Move className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Reset Axes Button */}
+            <button
+              onClick={handleResetAxes}
+              className="p-1.5 rounded-lg border border-hairline dark:border-[#2d2b28] text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-[#252320] text-xs transition-colors cursor-pointer"
+              title="Reset View / Auto-fit Axes"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Download PNG Button */}
+            <button
+              onClick={handleDownloadPNG}
+              className="p-1.5 rounded-lg border border-hairline dark:border-[#2d2b28] text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-[#252320] text-xs transition-colors cursor-pointer"
+              title="Download Plot as High-Res PNG"
+            >
+              <Camera className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Vertical Divider */}
+            <div className="w-[1px] h-4 bg-hairline dark:bg-[#2d2b28] mx-0.5" />
+
+            {/* New Tab Button */}
             <button
               onClick={() => openPlotlyInNewTab(dataJson)}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-mono text-gray-500 hover:text-ink hover:bg-surface-soft dark:hover:bg-white/5 transition-colors cursor-pointer"
-              title="Open Interactive Plot in New Tab"
+              className="px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/25 text-primary text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Open Interactive Plot in Standalone New Tab"
             >
-              <ExternalLink className="w-3.5 h-3.5 text-cyan-400" />
-              <span>New Tab</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">New Tab</span>
             </button>
+
+            {/* Fullscreen Button */}
             {onExpandFullscreen && (
               <button
                 onClick={onExpandFullscreen}
-                className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-mono text-gray-500 hover:text-ink hover:bg-surface-soft dark:hover:bg-white/5 transition-colors cursor-pointer"
-                title="Expand Fullscreen"
+                className="p-1.5 rounded-lg border border-hairline dark:border-[#2d2b28] text-muted hover:text-ink hover:bg-surface-soft dark:hover:bg-[#252320] text-xs transition-colors cursor-pointer"
+                title="Fullscreen View"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {/* Close Button (if inside modal) */}
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-lg border border-hairline dark:border-[#2d2b28] text-muted hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/5 text-xs transition-colors cursor-pointer ml-1"
+                title="Close"
+              >
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -389,12 +534,12 @@ export default function PlotlyChart({
       )}
 
       {/* Plot Container */}
-      <div className="relative w-full h-full flex-1" style={{ minHeight: typeof height === 'number' ? `${height}px` : height }}>
+      <div className="relative w-full h-full flex-1 bg-canvas dark:bg-[#181715] p-2" style={{ minHeight: typeof height === 'number' ? `${height}px` : height }}>
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-canvas/40 backdrop-blur-xs z-10">
-            <div className="flex items-center gap-2 font-mono text-xs text-gray-500">
+          <div className="absolute inset-0 flex items-center justify-center bg-canvas/60 dark:bg-[#181715]/60 backdrop-blur-xs z-10">
+            <div className="flex items-center gap-2 font-mono text-xs text-muted">
               <RefreshCw className="w-4 h-4 animate-spin text-primary" />
-              <span>Rendering interactive chart...</span>
+              <span>Rendering chart...</span>
             </div>
           </div>
         )}
