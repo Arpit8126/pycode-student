@@ -451,10 +451,10 @@ export default function PlotlyChart({
             {/* Download Plot Button */}
             <button
               onClick={handleDownloadPNG}
-              className="px-2.5 py-1.5 rounded-lg border border-hairline bg-canvas hover:bg-surface-soft text-muted hover:text-ink transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono"
+              className="px-2.5 py-1.5 rounded-lg border border-hairline bg-surface-soft text-ink font-semibold transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono shadow-xs hover:border-primary/50"
               title={`Download Plot (${resolvedFileName}.png)`}
             >
-              <Camera className="w-3.5 h-3.5 text-primary" />
+              <Camera className="w-3.5 h-3.5 text-primary shrink-0" />
               <span className="hidden sm:inline">Download</span>
             </button>
 
@@ -464,10 +464,10 @@ export default function PlotlyChart({
             {/* New Tab Button */}
             <button
               onClick={() => openPlotlyInNewTab(dataJson, resolvedFileName, isDark)}
-              className="px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/25 text-primary text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg bg-primary/15 hover:bg-primary/25 border border-primary/30 text-primary text-xs font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
               title="Open in Standalone New Tab"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden sm:inline">New Tab</span>
             </button>
 
@@ -475,7 +475,7 @@ export default function PlotlyChart({
             {onExpandFullscreen && (
               <button
                 onClick={onExpandFullscreen}
-                className="p-1.5 rounded-lg border border-hairline bg-canvas hover:bg-surface-soft text-muted hover:text-ink transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-ink hover:text-primary hover:border-primary/50 transition-colors cursor-pointer shadow-xs"
                 title="Fullscreen View"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
@@ -486,7 +486,7 @@ export default function PlotlyChart({
             {onClose && (
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg border border-hairline bg-canvas hover:bg-red-500/15 hover:border-red-500/30 text-muted hover:text-red-500 transition-colors cursor-pointer ml-1"
+                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-ink hover:bg-red-500/15 hover:border-red-500/30 hover:text-red-500 transition-colors cursor-pointer ml-1 shadow-xs"
                 title="Close"
               >
                 <X className="w-3.5 h-3.5" />

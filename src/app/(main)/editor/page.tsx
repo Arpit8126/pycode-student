@@ -1037,6 +1037,43 @@ export default function CodeEditorPage() {
   const [plotUrl, setPlotUrl] = useState('')
   const [showPlotModal, setShowPlotModal] = useState(false)
 
+  // Browser native fullscreen synchronization helpers
+  const enterFullscreenWithBrowser = async (callback: () => void) => {
+    callback()
+    try {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen()
+      }
+    } catch (err) {
+      console.warn('Native browser fullscreen request:', err)
+    }
+  }
+
+  const exitFullscreenWithBrowser = async (callback: () => void) => {
+    callback()
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        await document.exitFullscreen()
+      }
+    } catch (err) {
+      console.warn('Native browser exit fullscreen:', err)
+    }
+  }
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        // User exited via Esc key or browser UI
+        setFullscreenPlotUrl(null)
+        setFullscreenPlotlyData(null)
+      }
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    }
+  }, [])
+
 
   
   // Theme sync
@@ -4483,7 +4520,7 @@ export default function CodeEditorPage() {
                                     isDark={theme === 'dark'}
                                     title="Notebook Plot Output"
                                     downloadFileName={activeFileName || 'plot'}
-                                    onExpandFullscreen={() => setFullscreenPlotlyData(cell.plotly || null)}
+                                    onExpandFullscreen={() => enterFullscreenWithBrowser(() => setFullscreenPlotlyData(cell.plotly || null))}
                                   />
                                 </div>
                               )}
@@ -4492,7 +4529,7 @@ export default function CodeEditorPage() {
                                   <img
                                     src={cell.plot}
                                     alt="Plot"
-                                    onClick={() => setFullscreenPlotUrl(cell.plot)}
+                                    onClick={() => enterFullscreenWithBrowser(() => setFullscreenPlotUrl(cell.plot))}
                                     className="max-h-[360px] object-contain rounded-lg border border-hairline/80 dark:border-[#2a2927] cursor-zoom-in bg-white p-2 hover:opacity-98 shadow-sm transition-all"
                                   />
                                   <div className="absolute top-3 right-3 flex items-center gap-1.5 opacity-0 group-hover/plot:opacity-100 transition-opacity">
@@ -4513,7 +4550,7 @@ export default function CodeEditorPage() {
                                       <Camera className="w-3 h-3 text-primary" />
                                     </button>
                                     <button
-                                      onClick={() => setFullscreenPlotUrl(cell.plot)}
+                                      onClick={() => enterFullscreenWithBrowser(() => setFullscreenPlotUrl(cell.plot))}
                                       className="p-1.5 rounded-lg bg-black/60 hover:bg-black/85 text-white transition-colors cursor-pointer shadow-md"
                                       title="Fullscreen View"
                                     >
@@ -4809,7 +4846,7 @@ export default function CodeEditorPage() {
                   setPlotUrl('')
                   setPlotlyData(null)
                 }}
-                onExpandFullscreen={() => setFullscreenPlotlyData(plotlyData)}
+                onExpandFullscreen={() => enterFullscreenWithBrowser(() => setFullscreenPlotlyData(plotlyData))}
               />
             ) : (
               <div className="flex flex-col w-full h-full">
@@ -4832,15 +4869,15 @@ export default function CodeEditorPage() {
                         document.body.removeChild(a)
                       }}
                       title={`Download Plot (${activeFileName ? activeFileName.replace(/\.[^/.]+$/, '') : 'plot'}.png)`}
-                      className="px-2.5 py-1.5 rounded-lg border border-hairline bg-canvas hover:bg-surface-soft text-muted hover:text-ink transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono"
+                      className="px-2.5 py-1.5 rounded-lg border border-hairline bg-surface-soft text-ink font-semibold hover:border-primary/50 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono shadow-xs"
                     >
-                      <Camera className="w-3.5 h-3.5 text-primary" />
+                      <Camera className="w-3.5 h-3.5 text-primary shrink-0" />
                       <span className="hidden sm:inline">Download</span>
                     </button>
                     <button
-                      onClick={() => setFullscreenPlotUrl(plotUrl)}
+                      onClick={() => enterFullscreenWithBrowser(() => setFullscreenPlotUrl(plotUrl))}
                       title="Show in Full Screen"
-                      className="p-1.5 rounded-lg border border-hairline bg-canvas hover:bg-surface-soft text-muted hover:text-ink transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-ink hover:text-primary hover:border-primary/50 transition-colors cursor-pointer shadow-xs"
                     >
                       <Maximize2 className="w-3.5 h-3.5" />
                     </button>
@@ -4850,7 +4887,7 @@ export default function CodeEditorPage() {
                         setPlotUrl('')
                       }}
                       title="Close Plot"
-                      className="p-1.5 rounded-lg border border-hairline bg-canvas hover:bg-red-500/15 text-muted hover:text-red-500 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-ink hover:bg-red-500/15 hover:border-red-500/30 hover:text-red-500 transition-colors cursor-pointer shadow-xs"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -5653,14 +5690,14 @@ export default function CodeEditorPage() {
                   document.body.removeChild(a)
                 }}
                 title={`Download Plot (${activeFileName ? activeFileName.replace(/\.[^/.]+$/, '') : 'plot'}.png)`}
-                className="px-2.5 py-1.5 rounded-lg border border-hairline bg-canvas hover:bg-surface-soft text-muted hover:text-ink transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono"
+                className="px-2.5 py-1.5 rounded-lg border border-hairline bg-surface-soft text-ink font-semibold hover:border-primary/50 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono shadow-xs"
               >
-                <Camera className="w-3.5 h-3.5 text-primary" />
+                <Camera className="w-3.5 h-3.5 text-primary shrink-0" />
                 <span className="hidden sm:inline">Download</span>
               </button>
               <button
-                onClick={() => setFullscreenPlotUrl(null)}
-                className="p-1.5 rounded-lg border border-hairline bg-canvas hover:bg-red-500/15 text-muted hover:text-red-500 transition-colors cursor-pointer"
+                onClick={() => exitFullscreenWithBrowser(() => setFullscreenPlotUrl(null))}
+                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-ink hover:bg-red-500/15 hover:border-red-500/30 hover:text-red-500 transition-colors cursor-pointer shadow-xs"
                 title="Close Fullscreen"
               >
                 <X className="w-4 h-4" />
@@ -5688,7 +5725,7 @@ export default function CodeEditorPage() {
             isDark={theme === 'dark'}
             title="Plotly Interactive Canvas — Fullscreen"
             downloadFileName={activeFileName || 'plot'}
-            onClose={() => setFullscreenPlotlyData(null)}
+            onClose={() => exitFullscreenWithBrowser(() => setFullscreenPlotlyData(null))}
           />
         </div>
       )}
