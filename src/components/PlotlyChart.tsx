@@ -8,6 +8,7 @@ interface PlotlyChartProps {
   height?: number | string
   className?: string
   isDark?: boolean
+  hideHeader?: boolean
   onExpandFullscreen?: () => void
 }
 
@@ -184,16 +185,41 @@ export function openPlotlyInNewTab(jsonStr: string) {
   </div>
   <div id="plot-container"></div>
   <script>
-    const data = ${JSON.stringify(parsed.data || [])};
-    const layout = ${JSON.stringify({
-      ...parsed.layout,
+    const parsedData = ${JSON.stringify(parsed.data || [])};
+    const userLayout = ${JSON.stringify(parsed.layout || {})};
+    const hasLegend = parsedData.some(d => d.showlegend !== false && (d.name || userLayout.showlegend));
+    const layout = {
+      ...userLayout,
       autosize: true,
       paper_bgcolor: '#0e1117',
       plot_bgcolor: '#0e1117',
-      font: { color: '#e6edf3', family: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif' }
-    })};
-    const config = { responsive: true, displayModeBar: true, displaylogo: false };
-    Plotly.newPlot('plot-container', data, layout, config);
+      font: { color: '#e6edf3', family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 12 },
+      margin: {
+        l: userLayout.margin?.l ?? 60,
+        r: userLayout.margin?.r ?? (hasLegend ? 180 : 50),
+        t: userLayout.margin?.t ?? 50,
+        b: userLayout.margin?.b ?? 50,
+        pad: 4
+      },
+      legend: {
+        ...userLayout.legend,
+        x: 1.02,
+        xanchor: 'left',
+        y: 1,
+        yanchor: 'top',
+        bgcolor: 'rgba(22, 27, 34, 0.75)',
+        bordercolor: 'rgba(255, 255, 255, 0.1)',
+        borderwidth: 1,
+        font: { size: 11, color: '#94a3b8' }
+      }
+    };
+    const config = {
+      responsive: true,
+      displayModeBar: 'hover',
+      displaylogo: false,
+      modeBarButtonsToRemove: ['sendDataToCloud', 'lasso2d', 'select2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
+    };
+    Plotly.newPlot('plot-container', parsedData, layout, config);
     window.addEventListener('resize', () => Plotly.Plots.resize('plot-container'));
   </script>
 </body>
@@ -211,6 +237,7 @@ export default function PlotlyChart({
   height = 420,
   className = '',
   isDark = true,
+  hideHeader = false,
   onExpandFullscreen
 }: PlotlyChartProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -232,24 +259,61 @@ export default function PlotlyChart({
         }
 
         const parsed = typeof dataJson === 'string' ? JSON.parse(dataJson) : dataJson
+        const userLayout = parsed.layout || {}
+        const userMargin = userLayout.margin || {}
+
+        // Check if there are legend items to display
+        const hasLegend = parsed.data && Array.isArray(parsed.data)
+          ? parsed.data.some((d: any) => d.showlegend !== false && (d.name || userLayout.showlegend))
+          : true
 
         const layoutTheme = {
-          ...parsed.layout,
+          ...userLayout,
           autosize: true,
-          paper_bgcolor: isDark ? 'rgba(0,0,0,0)' : '#ffffff',
-          plot_bgcolor: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc',
+          paper_bgcolor: 'transparent',
+          plot_bgcolor: isDark ? '#0e1117' : '#ffffff',
           font: {
-            color: isDark ? '#e6edf3' : '#1e293b',
-            family: 'Inter, system-ui, sans-serif',
+            color: isDark ? '#cbd5e1' : '#334155',
+            family: 'Inter, system-ui, -apple-system, sans-serif',
             size: 11
+          },
+          // Spacing: give ample right margin so legend never collides with chart points or modebar
+          margin: {
+            l: userMargin.l ?? 60,
+            r: userMargin.r ?? (hasLegend ? 180 : 40),
+            t: userMargin.t ?? 50,
+            b: userMargin.b ?? 50,
+            pad: 4
+          },
+          legend: {
+            ...userLayout.legend,
+            x: 1.02,
+            xanchor: 'left',
+            y: 0.98,
+            yanchor: 'top',
+            bgcolor: isDark ? 'rgba(18, 20, 26, 0.75)' : 'rgba(255, 255, 255, 0.85)',
+            bordercolor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+            borderwidth: 1,
+            font: {
+              family: 'Inter, system-ui, sans-serif',
+              size: 11,
+              color: isDark ? '#94a3b8' : '#64748b'
+            }
           }
         }
 
         const config = {
           responsive: true,
-          displayModeBar: true,
+          displayModeBar: 'hover', // Only show modebar on hover, eliminating permanent clutter
           displaylogo: false,
-          modeBarButtonsToRemove: ['sendDataToCloud']
+          modeBarButtonsToRemove: [
+            'sendDataToCloud',
+            'lasso2d',
+            'select2d',
+            'hoverClosestCartesian',
+            'hoverCompareCartesian',
+            'toggleSpikelines'
+          ]
         }
 
         await Plotly.newPlot(containerRef.current, parsed.data || [], layoutTheme, config)
@@ -289,37 +353,43 @@ export default function PlotlyChart({
     }
   }, [dataJson, isDark])
 
+  const rootClass = hideHeader
+    ? `relative w-full h-full ${className}`
+    : `relative flex flex-col w-full rounded-xl overflow-hidden border border-hairline/80 bg-surface-soft/30 dark:bg-[#121318] ${className}`
+
   return (
-    <div className={`relative flex flex-col w-full rounded-xl overflow-hidden border border-hairline/80 bg-surface-soft/30 dark:bg-[#121318] ${className}`}>
-      {/* Top Action Bar */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-hairline/60 bg-surface-soft/60 dark:bg-[#16181f] text-xs">
-        <div className="flex items-center gap-2 font-mono text-[11px] text-gray-500 dark:text-gray-400">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-          <span>Plotly Interactive Chart</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => openPlotlyInNewTab(dataJson)}
-            className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-mono text-gray-500 hover:text-ink hover:bg-surface-soft dark:hover:bg-white/5 transition-colors cursor-pointer"
-            title="Open Interactive Plot in New Tab"
-          >
-            <ExternalLink className="w-3.5 h-3.5 text-cyan-400" />
-            <span>New Tab</span>
-          </button>
-          {onExpandFullscreen && (
+    <div className={rootClass}>
+      {/* Top Action Bar (only shown when not embedded in a modal that has its own header) */}
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-hairline/60 bg-surface-soft/60 dark:bg-[#16181f] text-xs">
+          <div className="flex items-center gap-2 font-mono text-[11px] text-gray-500 dark:text-gray-400">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span>Plotly Interactive Chart</span>
+          </div>
+          <div className="flex items-center gap-1">
             <button
-              onClick={onExpandFullscreen}
-              className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-mono text-gray-500 hover:text-ink hover:bg-surface-soft dark:hover:bg-white/5 transition-colors cursor-pointer"
-              title="Expand Fullscreen"
+              onClick={() => openPlotlyInNewTab(dataJson)}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-mono text-gray-500 hover:text-ink hover:bg-surface-soft dark:hover:bg-white/5 transition-colors cursor-pointer"
+              title="Open Interactive Plot in New Tab"
             >
-              <Maximize2 className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3.5 h-3.5 text-cyan-400" />
+              <span>New Tab</span>
             </button>
-          )}
+            {onExpandFullscreen && (
+              <button
+                onClick={onExpandFullscreen}
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-mono text-gray-500 hover:text-ink hover:bg-surface-soft dark:hover:bg-white/5 transition-colors cursor-pointer"
+                title="Expand Fullscreen"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Plot Container */}
-      <div className="relative w-full" style={{ height: typeof height === 'number' ? `${height}px` : height }}>
+      <div className="relative w-full h-full flex-1" style={{ minHeight: typeof height === 'number' ? `${height}px` : height }}>
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-canvas/40 backdrop-blur-xs z-10">
             <div className="flex items-center gap-2 font-mono text-xs text-gray-500">

@@ -4777,62 +4777,79 @@ export default function CodeEditorPage() {
 
       {/* Visualization Overlay Modal */}
       {showPlotModal && (plotUrl || plotlyData) && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-canvas border border-hairline p-6 rounded-3xl max-w-4xl w-full flex flex-col items-center justify-center relative shadow-2xl animate-scale-in">
-            {/* Top-right button group: New Tab + Fullscreen + Close */}
-            <div className="absolute top-4 right-4 flex items-center gap-1.5 z-20">
-              {plotlyData && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-6 animate-fade-in">
+          <div className="bg-[#0e1117] border border-white/10 rounded-2xl max-w-5xl lg:max-w-6xl w-full h-[88vh] max-h-[880px] flex flex-col shadow-2xl overflow-hidden animate-scale-in">
+            {/* Unified Modal Header Bar */}
+            <div className="h-13 px-5 border-b border-white/10 bg-[#161b22] flex items-center justify-between shrink-0 select-none">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
+                  <h3 className="text-xs font-bold text-white font-mono tracking-wide">
+                    {plotlyData ? 'Interactive Visualization Canvas' : 'Visualization Output'}
+                  </h3>
+                </div>
+                {plotlyData && (
+                  <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] text-cyan-300 bg-cyan-500/10 border border-cyan-500/25 px-2.5 py-0.5 rounded-full font-mono">
+                    <span>Plotly Interactive</span>
+                    <span className="text-gray-500">•</span>
+                    <span className="text-gray-400">Hover • Zoom • Legend Filter</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Action Buttons: New Tab + Fullscreen + Close */}
+              <div className="flex items-center gap-2">
+                {plotlyData && (
+                  <button
+                    onClick={() => openPlotlyInNewTab(plotlyData)}
+                    title="Open Interactive Plot in Standalone New Tab"
+                    className="px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">New Tab</span>
+                  </button>
+                )}
                 <button
-                  onClick={() => openPlotlyInNewTab(plotlyData)}
-                  title="Open Interactive Plot in New Tab"
-                  className="p-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 cursor-pointer transition-colors flex items-center justify-center"
+                  onClick={() => {
+                    if (plotlyData) {
+                      setFullscreenPlotlyData(plotlyData)
+                    } else {
+                      setFullscreenPlotUrl(plotUrl)
+                    }
+                  }}
+                  title="Show in Full Screen"
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  <Maximize2 className="w-4 h-4" />
                 </button>
-              )}
-              <button
-                onClick={() => {
-                  if (plotlyData) {
-                    setFullscreenPlotlyData(plotlyData)
-                  } else {
-                    setFullscreenPlotUrl(plotUrl)
-                  }
-                }}
-                title="Show in Full Screen"
-                className="p-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-colors flex items-center justify-center"
-              >
-                <Maximize2 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => {
-                  setShowPlotModal(false)
-                  setPlotUrl('')
-                  setPlotlyData(null)
-                }}
-                title="Close Plot"
-                className="p-1.5 rounded-full border border-hairline bg-canvas hover:bg-surface-soft text-gray-500 hover:text-ink cursor-pointer transition-colors flex items-center justify-center"
-              >
-                <X className="w-4 h-4" />
-              </button>
+                <button
+                  onClick={() => {
+                    setShowPlotModal(false)
+                    setPlotUrl('')
+                    setPlotlyData(null)
+                  }}
+                  title="Close Plot"
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 hover:border-red-500/30 text-gray-400 hover:text-red-400 border border-transparent transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            
-            <div className="w-full text-center space-y-4">
-              <h3 className="text-sm font-extrabold text-ink flex items-center justify-center gap-2">
-                <CheckCircle className="w-4 h-4 text-success" />
-                {plotlyData ? 'Interactive Plotly Visualization' : 'Visualization Output'}
-              </h3>
+
+            {/* Modal Body - 100% full bleed, zero nested border clutter */}
+            <div className="flex-1 w-full h-full p-2 sm:p-4 overflow-hidden bg-[#0e1117] flex flex-col min-h-0">
               {plotlyData ? (
-                <div className="w-full">
+                <div className="w-full h-full flex-1 min-h-0">
                   <PlotlyChart
                     dataJson={plotlyData}
-                    height={500}
-                    isDark={theme === 'dark'}
-                    onExpandFullscreen={() => setFullscreenPlotlyData(plotlyData)}
+                    height="100%"
+                    isDark={true}
+                    hideHeader={true}
                   />
                 </div>
               ) : (
-                <div className="border border-hairline rounded-2xl overflow-hidden bg-white p-2">
-                  <img src={plotUrl} alt="Matplotlib Plot Output" className="w-full max-h-[520px] object-contain rounded-lg mx-auto" />
+                <div className="w-full h-full flex items-center justify-center p-4">
+                  <img src={plotUrl} alt="Matplotlib Plot Output" className="max-w-full max-h-full object-contain rounded-lg shadow-sm" />
                 </div>
               )}
             </div>
@@ -5655,7 +5672,7 @@ export default function CodeEditorPage() {
             </div>
           </div>
           <div className="flex-1 w-full h-full p-4 overflow-hidden">
-            <PlotlyChart dataJson={fullscreenPlotlyData} height="100%" isDark={true} />
+            <PlotlyChart dataJson={fullscreenPlotlyData} height="100%" isDark={true} hideHeader={true} />
           </div>
         </div>
       )}
