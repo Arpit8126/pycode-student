@@ -21,7 +21,40 @@ export default function PracticeListPage() {
   const [isOnline, setIsOnline] = useState<boolean>(true)
   const [disqualifiedMessage, setDisqualifiedMessage] = useState<string | null>(null)
   const [lastVisitedId, setLastVisitedId] = useState<number | null>(null)
+  const [arpitAvatar, setArpitAvatar] = useState<string>('/arpit-dev.jpg')
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    // 1. Check local storage cache first to save network & egress
+    const cached = localStorage.getItem('pycode_dev_arpit_avatar_b64')
+    if (cached) {
+      setArpitAvatar(cached)
+      return
+    }
+
+    // 2. If not cached, convert the static asset into base64 and save to localStorage
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.src = '/arpit-dev.jpg'
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas')
+        canvas.width = img.naturalWidth || 120
+        canvas.height = img.naturalHeight || 120
+        const ctx = canvas.getContext('2d')
+        if (ctx) {
+          ctx.drawImage(img, 0, 0)
+          const b64 = canvas.toDataURL('image/jpeg', 0.85)
+          localStorage.setItem('pycode_dev_arpit_avatar_b64', b64)
+          setArpitAvatar(b64)
+        }
+      } catch (e) {
+        console.warn('Could not cache avatar to base64:', e)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -380,8 +413,18 @@ export default function PracticeListPage() {
           </div>
 
           {/* Right Column: Developer Info Box utilizing the entire height */}
-          <div className="flex items-center gap-4 bg-white dark:bg-surface-card border border-hairline px-6 py-4 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.04)] dark:shadow-none self-stretch justify-center">
-            <div className="space-y-0.5 text-left md:text-right">
+          <div className="flex items-center gap-3.5 bg-white dark:bg-surface-card border border-hairline px-5 py-3 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.04)] dark:shadow-none self-stretch justify-center">
+            {/* Developer Profile Picture (@code_with_arpit) */}
+            <div className="relative shrink-0">
+              <img
+                src={arpitAvatar}
+                alt="Arpit Pandey (@code_with_arpit)"
+                className="w-11 h-11 rounded-full object-cover border-2 border-primary/40 shadow-sm"
+              />
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-surface-card rounded-full" title="Active Developer" />
+            </div>
+
+            <div className="space-y-0.5 text-left">
               <p className="text-[9px] font-extrabold uppercase tracking-widest text-gray-500 dark:text-gray-400 font-mono">Developed By</p>
               <h4 className="text-sm font-extrabold text-ink dark:text-white">Arpit Pandey</h4>
               <p className="text-xs text-gray-700 dark:text-gray-300 font-medium leading-none">Student at GLA University</p>
