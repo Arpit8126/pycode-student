@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { ExternalLink, Maximize2, RefreshCw, Download } from 'lucide-react'
+import { ExternalLink, Maximize2, RefreshCw } from 'lucide-react'
 
 interface PlotlyChartProps {
   dataJson: string
@@ -14,29 +14,104 @@ interface PlotlyChartProps {
 declare global {
   interface Window {
     Plotly?: any
+    require?: any
+    define?: any
   }
 }
 
 let plotlyLoadPromise: Promise<any> | null = null
 
 export function loadPlotlyLibrary(): Promise<any> {
-  if (typeof window === 'undefined') return Promise.reject()
-  if (window.Plotly) return Promise.resolve(window.Plotly)
+  if (typeof window === 'undefined') return Promise.reject(new Error('Window not available'))
+  const win = window as any
+  if (win.Plotly && typeof win.Plotly.newPlot === 'function') {
+    return Promise.resolve(win.Plotly)
+  }
 
   if (!plotlyLoadPromise) {
-    plotlyLoadPromise = new Promise((resolve, reject) => {
-      const existing = document.getElementById('plotly-cdn-script')
-      if (existing) {
-        existing.addEventListener('load', () => resolve(window.Plotly))
-        return
+    plotlyLoadPromise = (async () => {
+      if (win.Plotly && typeof win.Plotly.newPlot === 'function') {
+        return win.Plotly
       }
-      const script = document.createElement('script')
-      script.id = 'plotly-cdn-script'
-      script.src = 'https://cdn.plot.ly/plotly-2.35.2.min.js'
-      script.async = true
-      script.onload = () => resolve(window.Plotly)
-      script.onerror = (e) => reject(e)
-      document.head.appendChild(script)
+
+      // 1. Check if Monaco's AMD loader already registered Plotly
+      if (typeof win.require === 'function' && typeof win.define === 'function') {
+        try {
+          const amdMod = await new Promise<any>((res) => {
+            try {
+              win.require(['Plotly'], (p: any) => res(p), () => res(null))
+            } catch {
+              res(null)
+            }
+          })
+          const resolved = amdMod?.newPlot ? amdMod : amdMod?.default
+          if (resolved && typeof resolved.newPlot === 'function') {
+            win.Plotly = resolved
+            return win.Plotly
+          }
+        } catch (e) {}
+      }
+
+      // 2. Fetch CDN script and evaluate with shadowed define
+      // This guarantees Monaco's global `define` cannot intercept Plotly's UMD wrapper
+      try {
+        const res = await fetch('https://cdn.plot.ly/plotly-2.35.2.min.js')
+        if (res.ok) {
+          const code = await res.text()
+          const runner = new Function('define', code)
+          runner.call(win, undefined)
+
+          if (win.Plotly && typeof win.Plotly.newPlot === 'function') {
+            return win.Plotly
+          }
+        }
+      } catch (fetchErr) {
+        console.warn('[PlotlyChart] Fetch evaluation fallback:', fetchErr)
+      }
+
+      // 3. Fallback: DOM script element with temporary window.define override
+      return new Promise<any>((resolve, reject) => {
+        if (win.Plotly && typeof win.Plotly.newPlot === 'function') {
+          return resolve(win.Plotly)
+        }
+
+        const savedDefine = win.define
+        try {
+          win.define = undefined
+        } catch (e) {}
+
+        const script = document.createElement('script')
+        script.id = 'plotly-cdn-script'
+        script.src = 'https://cdn.plot.ly/plotly-2.35.2.min.js'
+        script.async = true
+
+        const cleanup = () => {
+          if (savedDefine && !win.define) {
+            try {
+              win.define = savedDefine
+            } catch (e) {}
+          }
+        }
+
+        script.onload = () => {
+          cleanup()
+          if (win.Plotly && typeof win.Plotly.newPlot === 'function') {
+            resolve(win.Plotly)
+          } else {
+            reject(new Error('Plotly script loaded but window.Plotly is not accessible'))
+          }
+        }
+
+        script.onerror = (err) => {
+          cleanup()
+          reject(err)
+        }
+
+        document.head.appendChild(script)
+      })
+    })().catch((err) => {
+      plotlyLoadPromise = null // allow retry on error
+      throw err
     })
   }
 
@@ -152,6 +227,10 @@ export default function PlotlyChart({
         const Plotly = await loadPlotlyLibrary()
         if (cancelled || !containerRef.current) return
 
+        if (!Plotly || typeof Plotly.newPlot !== 'function') {
+          throw new Error('Plotly graphics engine could not be initialized.')
+        }
+
         const parsed = typeof dataJson === 'string' ? JSON.parse(dataJson) : dataJson
 
         const layoutTheme = {
@@ -188,7 +267,7 @@ export default function PlotlyChart({
 
     // Handle container resize
     const observer = new ResizeObserver(() => {
-      if (containerRef.current && window.Plotly) {
+      if (containerRef.current && window.Plotly && typeof window.Plotly.Plots?.resize === 'function') {
         try {
           window.Plotly.Plots.resize(containerRef.current)
         } catch (e) {}
@@ -202,7 +281,7 @@ export default function PlotlyChart({
     return () => {
       cancelled = true
       observer.disconnect()
-      if (containerRef.current && window.Plotly) {
+      if (containerRef.current && window.Plotly && typeof window.Plotly.purge === 'function') {
         try {
           window.Plotly.purge(containerRef.current)
         } catch (e) {}
