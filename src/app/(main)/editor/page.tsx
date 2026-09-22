@@ -3082,16 +3082,7 @@ export default function CodeEditorPage() {
           </div>
         </div>
 
-        {/* Unsaved Changes Indicator Explanation (Centered) */}
-        {(() => {
-          const hasUnsaved = tabs.some(t => t.isDirty)
-          return (
-            <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/30 text-[11px] font-semibold tracking-tight text-amber-800 dark:text-amber-300 select-none">
-              <span className={`w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 ${hasUnsaved ? 'animate-pulse' : ''}`}></span>
-              <span>Dot (●) on tab indicates unsaved changes</span>
-            </div>
-          )
-        })()}
+
 
         <div>
           {pyodideState !== 'ready' ? (
@@ -3521,7 +3512,7 @@ export default function CodeEditorPage() {
                               </button>
                               <button
                                 onClick={() => handleOpenShareModal('folder', currentExplorerFolder)}
-                                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-gray-500 hover:text-primary hover:bg-surface-card cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-gray-500 hover:text-ink hover:bg-surface-card cursor-pointer transition-colors flex items-center justify-center shrink-0"
                                 title="Share this folder"
                               >
                                 <Share2 className="w-3.5 h-3.5" />
@@ -3600,7 +3591,7 @@ export default function CodeEditorPage() {
                                       <div className="flex items-center gap-0.5 opacity-80 md:opacity-0 md:group-hover/folder:opacity-100 transition-opacity">
                                         <button
                                           onClick={() => handleOpenShareModal('folder', folderName)}
-                                          className="p-2 text-gray-400 hover:text-primary hover:bg-surface-soft rounded-xl cursor-pointer shrink-0 transition-colors"
+                                          className="p-2 text-gray-400 hover:text-ink hover:bg-surface-soft rounded-xl cursor-pointer shrink-0 transition-colors"
                                           title="Share folder"
                                         >
                                           <Share2 className="w-3.5 h-3.5" />
@@ -3610,7 +3601,7 @@ export default function CodeEditorPage() {
                                             setRenamingFolder(folderName)
                                             setRenameFolderInput(folderName)
                                           }}
-                                          className="p-2 text-gray-400 hover:text-primary hover:bg-surface-soft rounded-xl cursor-pointer shrink-0"
+                                          className="p-2 text-gray-400 hover:text-ink hover:bg-surface-soft rounded-xl cursor-pointer shrink-0"
                                           title="Rename folder"
                                         >
                                           <Edit2 className="w-3.5 h-3.5" />
@@ -6056,30 +6047,20 @@ export default function CodeEditorPage() {
 
       {/* Share Material Modal Dialog */}
       {shareModal && shareModal.isOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-md bg-canvas border border-hairline rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-in text-ink">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-[420px] bg-canvas border border-hairline rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 animate-scale-in text-ink">
             
-            {/* Modal Header */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                  <Share2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-extrabold text-ink tracking-tight flex items-center gap-2">
-                    Share {shareModal.itemType === 'folder' ? 'Folder' : 'File'}
-                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-md font-bold bg-surface-soft text-gray-600 dark:text-gray-300 border border-hairline">
-                      {shareModal.itemType === 'folder' ? 'Folder' : (shareModal.title.endsWith('.ipynb') ? 'Jupyter' : 'Python')}
-                    </span>
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
-                    Anyone with the link can view and run this on Pycode.
-                  </p>
-                </div>
+            {/* Clean Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-hairline">
+              <div className="flex items-center gap-2">
+                <Share2 className="w-4 h-4 text-ink" />
+                <h3 className="text-sm font-bold text-ink">
+                  Share {shareModal.itemType === 'folder' ? 'Folder' : 'File'}
+                </h3>
               </div>
               <button
                 onClick={() => setShareModal(null)}
-                className="p-1.5 rounded-xl border border-hairline bg-surface-soft text-gray-400 hover:text-ink hover:bg-surface-card transition-colors cursor-pointer"
+                className="p-1 rounded-lg text-gray-400 hover:text-ink hover:bg-surface-soft transition-colors cursor-pointer"
                 title="Close"
               >
                 <X className="w-4 h-4" />
@@ -6087,9 +6068,9 @@ export default function CodeEditorPage() {
             </div>
 
             {/* Target Card Overview */}
-            <div className="p-4 rounded-2xl border border-hairline bg-surface-soft/60 space-y-3">
+            <div className="rounded-xl border border-hairline bg-surface-soft/40 p-3.5 space-y-2.5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 overflow-hidden">
+                <div className="flex items-center gap-2 min-w-0">
                   {shareModal.itemType === 'folder' ? (
                     <Folder className="w-4 h-4 text-amber-500 shrink-0" />
                   ) : shareModal.title.endsWith('.ipynb') ? (
@@ -6097,38 +6078,31 @@ export default function CodeEditorPage() {
                   ) : (
                     <PythonIcon className="w-4 h-4 shrink-0" />
                   )}
-                  <span className="font-mono text-xs font-bold text-ink truncate">
+                  <span className="font-semibold text-xs text-ink truncate font-mono">
                     {shareModal.title}
                   </span>
                 </div>
-                <span className="text-[11px] font-mono text-gray-500 dark:text-gray-400 shrink-0 font-semibold px-2 py-0.5 rounded bg-canvas border border-hairline">
+                <span className="text-[10px] font-mono text-gray-500 dark:text-gray-400 shrink-0 px-2 py-0.5 rounded bg-canvas border border-hairline">
                   {shareModal.files.length} {shareModal.files.length === 1 ? 'file' : 'files'}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] pt-2 border-t border-hairline text-gray-500">
-                <span>Shared by: <strong className="text-ink font-semibold">{shareModal.senderName}</strong></span>
-                <span className="font-mono font-bold text-primary">Pycode</span>
-              </div>
-
-              {/* Collapsible files list preview for folders */}
+              {/* Clean, compact files list for folders */}
               {shareModal.itemType === 'folder' && shareModal.files.length > 0 && (
-                <div className="pt-1">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 font-mono mb-1.5">
-                    Files inside this folder ({shareModal.files.length}):
-                  </div>
-                  <div className="max-h-28 overflow-y-auto space-y-1 pr-1">
-                    {shareModal.files.map((f, idx) => (
-                      <div key={idx} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-canvas border border-hairline text-[11px] font-mono">
+                <div className="max-h-32 overflow-y-auto space-y-1 pt-1 border-t border-hairline/60">
+                  {shareModal.files.map((f, idx) => {
+                    const cleanName = f.name.includes('/') ? f.name.substring(f.name.lastIndexOf('/') + 1) : f.name
+                    return (
+                      <div key={idx} className="flex items-center gap-2 px-2 py-1 rounded-lg text-[11px] font-mono text-gray-700 dark:text-gray-300 hover:bg-surface-soft transition-colors">
                         {f.name.endsWith('.ipynb') ? (
                           <JupyterIcon className="w-3.5 h-3.5 shrink-0" />
                         ) : (
                           <PythonIcon className="w-3.5 h-3.5 shrink-0" />
                         )}
-                        <span className="truncate text-gray-700 dark:text-gray-300 font-medium">{f.name}</span>
+                        <span className="truncate">{cleanName}</span>
                       </div>
-                    ))}
-                  </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -6139,19 +6113,12 @@ export default function CodeEditorPage() {
                 Direct Share Link
               </label>
               <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    readOnly
-                    value={shareModal.isGenerating ? 'Generating share link...' : shareModal.shareUrl}
-                    className="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border border-hairline bg-surface-soft text-ink select-all outline-none focus:border-primary transition-colors"
-                  />
-                  {shareModal.isGenerating && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <span className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin inline-block" />
-                    </div>
-                  )}
-                </div>
+                <input
+                  type="text"
+                  readOnly
+                  value={shareModal.isGenerating ? 'Generating link...' : shareModal.shareUrl}
+                  className="flex-1 px-3 py-2 text-xs font-mono rounded-xl border border-hairline bg-surface-soft text-ink select-all outline-none focus:border-gray-400 dark:focus:border-gray-500 transition-colors"
+                />
                 <button
                   type="button"
                   disabled={shareModal.isGenerating || !shareModal.shareUrl}
@@ -6164,21 +6131,21 @@ export default function CodeEditorPage() {
                       setShareModal(prev => prev ? { ...prev, copied: false } : null)
                     }, 2500)
                   }}
-                  className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                  className={`px-3.5 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
                     shareModal.copied
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                      ? 'bg-emerald-500 text-white border-emerald-500'
                       : 'border-hairline bg-canvas hover:bg-surface-card text-ink'
                   }`}
                 >
                   {shareModal.copied ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-emerald-500" />
-                      <span>Copied!</span>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Copied</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5 text-primary" />
-                      <span>Copy Link</span>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy</span>
                     </>
                   )}
                 </button>
@@ -6195,13 +6162,13 @@ export default function CodeEditorPage() {
                   const url = getWhatsAppShareUrl(shareModal)
                   window.open(url, '_blank', 'noopener,noreferrer')
                 }}
-                className="w-full py-3 px-4 rounded-2xl bg-[#25D366] hover:bg-[#20BD5A] active:scale-[0.99] disabled:opacity-50 text-white font-bold text-xs shadow-[0_4px_16px_rgba(37,211,102,0.3)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.4)] transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20BD5A] active:scale-[0.99] disabled:opacity-50 text-white font-bold text-xs shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 <WhatsAppIcon className="w-4 h-4" />
                 <span>Share on WhatsApp</span>
               </button>
               <p className="text-[10px] text-gray-400 text-center">
-                Includes {shareModal.itemType === 'folder' ? `folder "${shareModal.title}" (${shareModal.files.length} files)` : `file "${shareModal.title}"`}, sender name, Pycode and link.
+                Shared by {shareModal.senderName} • Pycode
               </p>
             </div>
 
