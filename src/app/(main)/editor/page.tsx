@@ -37,8 +37,8 @@ const JupyterIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
   </svg>
 )
 const WhatsAppIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.971.53 1.764.819 2.796.819 3.18 0 5.767-2.587 5.768-5.766.001-3.182-2.585-5.806-5.768-5.806zm3.385 8.163c-.144.405-.837.774-1.17.825-.312.047-.698.077-2.029-.447-.946-.374-1.637-.996-2.228-1.587-.665-.665-1.077-1.428-1.258-1.849-.181-.421-.02-.65.1-.818.108-.152.241-.351.361-.512.121-.161.161-.274.241-.456.08-.182.04-.34-.02-.48-.06-.14-.541-1.305-.742-1.787-.195-.47-.394-.405-.542-.413-.14-.007-.3-.008-.461-.008s-.421.06-.642.301c-.221.241-.843.824-.843 2.008 0 1.185.863 2.33 0.984 2.491.12.161 1.698 2.593 4.113 3.636 1.936.837 2.331.671 2.752.631.422-.04 1.365-.558 1.557-1.096.192-.538.192-1.002.134-1.096-.057-.094-.214-.15-.455-.271zM12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.985-1.396C8.423 21.498 10.154 22 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.273c-1.666 0-3.21-.497-4.506-1.353l-.323-.214-2.969.83.828-2.906-.217-.346C3.896 14.938 3.364 13.498 3.364 12c0-4.762 3.874-8.636 8.636-8.636 4.762 0 8.636 3.874 8.636 8.636 0 4.762-3.874 8.636-8.636 8.636z"/>
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" className={className}>
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.82 11.82 0 00-3.48-8.413z"/>
   </svg>
 )
 
@@ -2587,13 +2587,20 @@ export default function CodeEditorPage() {
   }) => {
     const isFolder = modal.itemType === 'folder'
     const count = modal.files.length
-    const fileDetails = isFolder
-      ? `📁 *Folder:* ${modal.title} (${count} file${count > 1 ? 's' : ''})`
-      : `📄 *File:* ${modal.title}`
+    
+    const lines = [
+      `Check out this Python ${isFolder ? 'project' : 'file'} shared by ${modal.senderName} on Pycode!`,
+      ``,
+      `*${isFolder ? 'Folder' : 'File'}:* ${modal.title}${isFolder ? ` (${count} ${count === 1 ? 'file' : 'files'})` : ''}`,
+      `*Shared by:* ${modal.senderName}`,
+      ``,
+      `*Open & run directly in browser:*`,
+      modal.shareUrl,
+      ``,
+      `Pycode - Interactive Python & Data Science Playground`
+    ]
 
-    const message = `🚀 *Check out this Python ${isFolder ? 'project' : 'code'} shared by ${modal.senderName} on Pycode!*\n\n${fileDetails}\n\n🔗 *Open & run directly in browser:*\n${modal.shareUrl}\n\n💻 *Pycode* - Interactive Python & Data Science Playground`
-
-    return `https://wa.me/?text=${encodeURIComponent(message)}`
+    return `https://api.whatsapp.com/send?text=${encodeURIComponent(lines.join('\n'))}`
   }
 
   const handleCreateFileExplorer = async (fileName: string) => {
@@ -3569,17 +3576,17 @@ export default function CodeEditorPage() {
                               </button>
                               <button
                                 onClick={() => handleDownloadFolder(currentExplorerFolder)}
-                                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-gray-500 hover:text-emerald-600 hover:border-emerald-200 cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-gray-500 hover:text-ink hover:bg-surface-card cursor-pointer transition-colors flex items-center justify-center shrink-0"
                                 title="Download entire folder as ZIP"
                               >
                                 <Download className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => handleOpenShareModal('folder', currentExplorerFolder)}
-                                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-gray-500 hover:text-cyan-500 hover:border-cyan-200 cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-gray-500 hover:text-primary hover:bg-surface-card cursor-pointer transition-colors flex items-center justify-center shrink-0"
                                 title="Share this folder"
                               >
-                                <Share2 className="w-3.5 h-3.5 text-cyan-500" />
+                                <Share2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </div>
@@ -3655,7 +3662,7 @@ export default function CodeEditorPage() {
                                       <div className="flex items-center gap-0.5 opacity-80 md:opacity-0 md:group-hover/folder:opacity-100 transition-opacity">
                                         <button
                                           onClick={() => handleOpenShareModal('folder', folderName)}
-                                          className="p-2 text-gray-400 hover:text-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 rounded-xl cursor-pointer shrink-0 transition-colors"
+                                          className="p-2 text-gray-400 hover:text-primary hover:bg-surface-soft rounded-xl cursor-pointer shrink-0 transition-colors"
                                           title="Share folder"
                                         >
                                           <Share2 className="w-3.5 h-3.5" />
@@ -3672,7 +3679,7 @@ export default function CodeEditorPage() {
                                         </button>
                                         <button
                                           onClick={() => handleDownloadFolder(folderName)}
-                                          className="p-2 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-xl cursor-pointer shrink-0"
+                                          className="p-2 text-gray-400 hover:text-ink hover:bg-surface-soft rounded-xl cursor-pointer shrink-0"
                                           title="Download folder as ZIP"
                                         >
                                           <Download className="w-3.5 h-3.5" />
@@ -4212,8 +4219,7 @@ export default function CodeEditorPage() {
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               )}
-              <span className="text-[9px] font-bold text-ink bg-canvas px-2.5 py-1 rounded-full border border-hairline flex items-center gap-1.5 uppercase tracking-widest font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-semantic-success animate-pulse"></span>
+              <span className="text-[9px] font-bold text-ink bg-canvas px-2.5 py-1 rounded-full border border-hairline uppercase tracking-widest font-mono select-none">
                 Python 3
               </span>
             </div>
@@ -5733,9 +5739,9 @@ export default function CodeEditorPage() {
                       setActiveDropdownFile(null)
                       setDropdownPos(null)
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 rounded-xl transition-colors cursor-pointer text-left"
+                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-ink hover:bg-surface-soft rounded-xl transition-colors cursor-pointer text-left"
                   >
-                    <Share2 className="w-3 h-3 text-cyan-500" />
+                    <Share2 className="w-3 h-3 text-primary" />
                     Share
                   </button>
                   <button
@@ -6112,8 +6118,8 @@ export default function CodeEditorPage() {
 
       {/* Share Material Modal Dialog */}
       {shareModal && shareModal.isOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-lg bg-canvas border border-hairline rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-in text-ink">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-md bg-canvas border border-hairline rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-in text-ink">
             
             {/* Modal Header */}
             <div className="flex items-start justify-between">
@@ -6124,12 +6130,12 @@ export default function CodeEditorPage() {
                 <div>
                   <h3 className="text-base font-extrabold text-ink tracking-tight flex items-center gap-2">
                     Share {shareModal.itemType === 'folder' ? 'Folder' : 'File'}
-                    <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded-full font-bold bg-primary/10 text-primary border border-primary/20">
+                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-md font-bold bg-surface-soft text-gray-600 dark:text-gray-300 border border-hairline">
                       {shareModal.itemType === 'folder' ? 'Folder' : (shareModal.title.endsWith('.ipynb') ? 'Jupyter' : 'Python')}
                     </span>
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
-                    Anyone with the direct link can view and run this code on Pycode without an account.
+                    Anyone with the link can view and run this on Pycode.
                   </p>
                 </div>
               </div>
@@ -6143,7 +6149,7 @@ export default function CodeEditorPage() {
             </div>
 
             {/* Target Card Overview */}
-            <div className="p-4 rounded-2xl border border-hairline bg-surface-soft space-y-2.5">
+            <div className="p-4 rounded-2xl border border-hairline bg-surface-soft/60 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 overflow-hidden">
                   {shareModal.itemType === 'folder' ? (
@@ -6157,25 +6163,25 @@ export default function CodeEditorPage() {
                     {shareModal.title}
                   </span>
                 </div>
-                <span className="text-[11px] font-mono text-gray-500 dark:text-gray-400 shrink-0 font-semibold">
+                <span className="text-[11px] font-mono text-gray-500 dark:text-gray-400 shrink-0 font-semibold px-2 py-0.5 rounded bg-canvas border border-hairline">
                   {shareModal.files.length} {shareModal.files.length === 1 ? 'file' : 'files'}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-hairline text-gray-500">
+              <div className="flex items-center justify-between text-[11px] pt-2 border-t border-hairline text-gray-500">
                 <span>Shared by: <strong className="text-ink font-semibold">{shareModal.senderName}</strong></span>
                 <span className="font-mono font-bold text-primary">Pycode</span>
               </div>
 
               {/* Collapsible files list preview for folders */}
               {shareModal.itemType === 'folder' && shareModal.files.length > 0 && (
-                <div className="pt-2">
+                <div className="pt-1">
                   <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 font-mono mb-1.5">
                     Files inside this folder ({shareModal.files.length}):
                   </div>
                   <div className="max-h-28 overflow-y-auto space-y-1 pr-1">
                     {shareModal.files.map((f, idx) => (
-                      <div key={idx} className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-canvas border border-hairline text-[11px] font-mono">
+                      <div key={idx} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-canvas border border-hairline text-[11px] font-mono">
                         {f.name.endsWith('.ipynb') ? (
                           <JupyterIcon className="w-3.5 h-3.5 shrink-0" />
                         ) : (
@@ -6251,13 +6257,13 @@ export default function CodeEditorPage() {
                   const url = getWhatsAppShareUrl(shareModal)
                   window.open(url, '_blank', 'noopener,noreferrer')
                 }}
-                className="w-full py-3 px-4 rounded-2xl bg-[#25D366] hover:bg-[#20BD5A] disabled:opacity-50 text-white font-bold text-xs shadow-[0_4px_16px_rgba(37,211,102,0.3)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.4)] transition-all cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
+                className="w-full py-3 px-4 rounded-2xl bg-[#25D366] hover:bg-[#20BD5A] active:scale-[0.99] disabled:opacity-50 text-white font-bold text-xs shadow-[0_4px_16px_rgba(37,211,102,0.3)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.4)] transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 <WhatsAppIcon className="w-4 h-4" />
                 <span>Share on WhatsApp</span>
               </button>
               <p className="text-[10px] text-gray-400 text-center">
-                Includes {shareModal.itemType === 'folder' ? `folder name "${shareModal.title}" (${shareModal.files.length} files)` : `file name "${shareModal.title}"`}, sender name ({shareModal.senderName}), Pycode and link.
+                Includes {shareModal.itemType === 'folder' ? `folder "${shareModal.title}" (${shareModal.files.length} files)` : `file "${shareModal.title}"`}, sender name, Pycode and link.
               </p>
             </div>
 
