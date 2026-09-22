@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Camera, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen, Columns, Rows, Minimize2, Copy, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Camera, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen, Columns, Rows, Minimize2, Copy, ExternalLink, Share2 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
@@ -34,6 +34,11 @@ const JupyterIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
     <path d="M65.758 96.79c-20.098 0-37.649-7.364-46.766-18.267a49.95 49.95 0 0018.102 24.254 49.251 49.251 0 0028.676 9.215 49.279 49.279 0 0028.675-9.215 49.917 49.917 0 0018.094-24.254C103.406 89.426 85.855 96.79 65.758 96.79zm0 0M65.75 25.883c20.098 0 37.652 7.367 46.766 18.265a49.95 49.95 0 00-18.102-24.253 49.27 49.27 0 00-28.672-9.22 49.27 49.27 0 00-28.672 9.22A49.909 49.909 0 0018.97 44.148C28.102 33.27 45.652 25.883 65.75 25.883zm0 0" fill="#f37726"/>
     <path d="M38.164 117.984a9.671 9.671 0 01-1.371 5.399 9.5 9.5 0 01-9.59 4.504 9.405 9.405 0 01-4.98-2.418 9.671 9.671 0 01-2.809-4.797 9.73 9.73 0 01.313-5.567 9.624 9.624 0 013.328-4.453 9.466 9.466 0 0112.043.688 9.63 9.63 0 013.066 6.648zm0 0" fill="#989798"/>
     <path d="M21.285 23.418a5.53 5.53 0 01-3.14-.816 5.627 5.627 0 01-2.618-5.672 5.612 5.612 0 011.407-2.95 5.593 5.593 0 012.789-1.664 5.46 5.46 0 013.238.184 5.539 5.539 0 012.586 1.969 5.66 5.66 0 01-.399 7.129 5.557 5.557 0 01-3.867 1.82zm0 0" fill="#6f7070"/>
+  </svg>
+)
+const WhatsAppIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.971.53 1.764.819 2.796.819 3.18 0 5.767-2.587 5.768-5.766.001-3.182-2.585-5.806-5.768-5.806zm3.385 8.163c-.144.405-.837.774-1.17.825-.312.047-.698.077-2.029-.447-.946-.374-1.637-.996-2.228-1.587-.665-.665-1.077-1.428-1.258-1.849-.181-.421-.02-.65.1-.818.108-.152.241-.351.361-.512.121-.161.161-.274.241-.456.08-.182.04-.34-.02-.48-.06-.14-.541-1.305-.742-1.787-.195-.47-.394-.405-.542-.413-.14-.007-.3-.008-.461-.008s-.421.06-.642.301c-.221.241-.843.824-.843 2.008 0 1.185.863 2.33 0.984 2.491.12.161 1.698 2.593 4.113 3.636 1.936.837 2.331.671 2.752.631.422-.04 1.365-.558 1.557-1.096.192-.538.192-1.002.134-1.096-.057-.094-.214-.15-.455-.271zM12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.985-1.396C8.423 21.498 10.154 22 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.273c-1.666 0-3.21-.497-4.506-1.353l-.323-.214-2.969.83.828-2.906-.217-.346C3.896 14.938 3.364 13.498 3.364 12c0-4.762 3.874-8.636 8.636-8.636 4.762 0 8.636 3.874 8.636 8.636 0 4.762-3.874 8.636-8.636 8.636z"/>
   </svg>
 )
 
@@ -638,7 +643,46 @@ export default function CodeEditorPage() {
   const [isWaitingForInput, setIsWaitingForInput] = useState(false)
   const [isRestored, setIsRestored] = useState(false)
 
+  const [userName, setUserName] = useState<string>('Pycode User')
+  const [shareModal, setShareModal] = useState<{
+    isOpen: boolean
+    itemType: 'file' | 'folder'
+    title: string
+    files: { name: string; code: string; format?: 'terminal' | 'cell' }[]
+    shareUrl: string
+    isGenerating: boolean
+    copied: boolean
+    senderName: string
+  } | null>(null)
+  const [sharedBanner, setSharedBanner] = useState<{
+    senderName: string
+    title: string
+    itemType: 'file' | 'folder'
+    fileCount: number
+  } | null>(null)
+
   const [customFolders, setCustomFolders] = useState<string[]>([])
+
+  // Fetch current user's profile display name for sharing attribution
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: prof } = await (supabase.from('profiles') as any)
+            .select('full_name, username')
+            .eq('id', user.id)
+            .maybeSingle()
+
+          const name = prof?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || prof?.username || user.email?.split('@')[0] || 'Pycode User'
+          setUserName(name)
+        }
+      } catch (e) {
+        console.warn("Failed to fetch user name for share:", e)
+      }
+    }
+    fetchUserName()
+  }, [])
 
   const getAllFolders = () => {
     const folders = new Set<string>()
@@ -716,9 +760,104 @@ export default function CodeEditorPage() {
     setInnerFileSearch('')
   }, [currentExplorerFolder, leftSidebarTab])
 
-  // Load open tabs and restore active file state on mount
+  // Load open tabs and restore active file state on mount (with support for incoming share links)
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search)
+      const shareId = searchParams.get('share')
+      const shareDataRaw = searchParams.get('share_data')
+
+      if (shareId || shareDataRaw) {
+        const loadSharedContent = async () => {
+          try {
+            let payload: {
+              sender_name?: string
+              senderName?: string
+              item_type?: 'file' | 'folder'
+              itemType?: 'file' | 'folder'
+              title: string
+              files: { name: string; code: string; format?: 'terminal' | 'cell' }[]
+            } | null = null
+
+            if (shareId) {
+              const { data, error } = await (supabase.from('shared_items') as any)
+                .select('*')
+                .eq('id', shareId)
+                .maybeSingle()
+
+              if (!error && data) {
+                payload = {
+                  senderName: data.sender_name,
+                  itemType: data.item_type,
+                  title: data.title,
+                  files: data.files
+                }
+              }
+            }
+
+            if (!payload && shareDataRaw) {
+              try {
+                const decoded = decodeURIComponent(escape(atob(shareDataRaw)))
+                payload = JSON.parse(decoded)
+              } catch (e) {
+                console.error("Failed to decode share_data parameter:", e)
+              }
+            }
+
+            if (payload && Array.isArray(payload.files) && payload.files.length > 0) {
+              const openedTabs: Tab[] = payload.files.map((file) => {
+                const isNotebook = file.name.endsWith('.ipynb')
+                let cellsData: CellType[] = [{ id: 'cell_default', code: '', output: '', plot: '', error: '', isRunning: false, hasRun: false, type: 'code' }]
+                if (isNotebook) {
+                  try {
+                    cellsData = notebookToCells(JSON.parse(file.code))
+                  } catch (err) {
+                    console.error("Failed to parse shared notebook JSON:", err)
+                  }
+                }
+                return {
+                  name: file.name,
+                  code: isNotebook ? '' : file.code,
+                  cells: cellsData,
+                  format: isNotebook ? 'cell' : 'terminal',
+                  isDirty: true,
+                  isNew: true
+                }
+              })
+
+              ignoreChangeRef.current = true
+              setTabs(openedTabs)
+              const primaryTab = openedTabs[0]
+              setActiveFileName(primaryTab.name)
+              setEditorFormat(primaryTab.format)
+              setCells(primaryTab.cells)
+              setCode(primaryTab.code)
+              if (primaryTab.format === 'terminal' && editorRef.current) {
+                editorRef.current.setValue(primaryTab.code)
+              }
+
+              const sender = payload.senderName || payload.sender_name || 'A Pycode User'
+              const type = payload.itemType || payload.item_type || (payload.files.length > 1 ? 'folder' : 'file')
+              setSharedBanner({
+                senderName: sender,
+                title: payload.title,
+                itemType: type,
+                fileCount: payload.files.length
+              })
+
+              setIsRestored(true)
+              setTimeout(() => {
+                ignoreChangeRef.current = false
+              }, 100)
+              return
+            }
+          } catch (err) {
+            console.error("Failed to load shared content:", err)
+          }
+        }
+        loadSharedContent()
+      }
+
       const savedFormat = localStorage.getItem('pycode_editor_format') as 'terminal' | 'cell' | null
       const storedFolders = localStorage.getItem('pycode_custom_folders')
       if (storedFolders) {
@@ -2329,6 +2468,134 @@ export default function CodeEditorPage() {
     triggerToast(`Folder "${folderName}" and its files deleted.`, "success")
   }
 
+  const handleOpenShareModal = async (itemType: 'file' | 'folder', itemName: string) => {
+    let filesToShare: { name: string; code: string; format?: 'terminal' | 'cell' }[] = []
+    const displayTitle = itemName
+
+    if (itemType === 'file') {
+      const file = savedFiles.find(f => f.name === itemName)
+      const openTab = tabs.find(t => t.name === itemName)
+      let content = file ? file.code : ''
+      if (openTab) {
+        content = openTab.format === 'cell' ? JSON.stringify(cellsToNotebook(openTab.cells), null, 2) : openTab.code
+      } else if (activeFileName === itemName) {
+        content = editorFormat === 'cell' ? JSON.stringify(cellsToNotebook(cells), null, 2) : code
+      }
+
+      if (!content && file) {
+        content = file.code
+      }
+
+      filesToShare.push({
+        name: itemName,
+        code: content || '# Empty Python script\n',
+        format: itemName.endsWith('.ipynb') ? 'cell' : 'terminal'
+      })
+    } else {
+      // Folder sharing — collect all files inside folder and its subfolders
+      const prefix = itemName.endsWith('/') ? itemName : `${itemName}/`
+      const matching = savedFiles.filter(f => f.name.startsWith(prefix) || f.name === itemName)
+
+      if (matching.length === 0) {
+        triggerToast(`Folder "${itemName}" has no saved files to share.`, "error")
+        return
+      }
+
+      matching.forEach(f => {
+        const openTab = tabs.find(t => t.name === f.name)
+        let content = f.code
+        if (openTab) {
+          content = openTab.format === 'cell' ? JSON.stringify(cellsToNotebook(openTab.cells), null, 2) : openTab.code
+        } else if (activeFileName === f.name) {
+          content = editorFormat === 'cell' ? JSON.stringify(cellsToNotebook(cells), null, 2) : code
+        }
+        filesToShare.push({
+          name: f.name,
+          code: content,
+          format: f.name.endsWith('.ipynb') ? 'cell' : 'terminal'
+        })
+      })
+    }
+
+    const sender = userName || 'Pycode User'
+
+    setShareModal({
+      isOpen: true,
+      itemType,
+      title: displayTitle,
+      files: filesToShare,
+      shareUrl: '',
+      isGenerating: true,
+      copied: false,
+      senderName: sender
+    })
+
+    let generatedUrl = ''
+
+    // Attempt Supabase insert for clean short UUID link
+    try {
+      const { data, error } = await (supabase.from('shared_items') as any)
+        .insert({
+          sender_name: sender,
+          item_type: itemType,
+          title: displayTitle,
+          files: filesToShare,
+          file_count: filesToShare.length
+        })
+        .select('id')
+        .single()
+
+      if (!error && data && data.id) {
+        const origin = typeof window !== 'undefined' ? window.location.origin : ''
+        generatedUrl = `${origin}/editor?share=${data.id}`
+      }
+    } catch (e) {
+      console.warn("Supabase shared_items insert failed, falling back to URL payload:", e)
+    }
+
+    // Fallback: URL payload for instant offline / table-free resilience
+    if (!generatedUrl) {
+      try {
+        const payloadObj = {
+          senderName: sender,
+          itemType,
+          title: displayTitle,
+          files: filesToShare
+        }
+        const rawJson = JSON.stringify(payloadObj)
+        const encoded = btoa(unescape(encodeURIComponent(rawJson)))
+        const origin = typeof window !== 'undefined' ? window.location.origin : ''
+        generatedUrl = `${origin}/editor?share_data=${encodeURIComponent(encoded)}`
+      } catch (err) {
+        console.error("Payload encoding fallback error:", err)
+      }
+    }
+
+    setShareModal(prev => prev ? {
+      ...prev,
+      shareUrl: generatedUrl,
+      isGenerating: false
+    } : null)
+  }
+
+  const getWhatsAppShareUrl = (modal: {
+    itemType: 'file' | 'folder'
+    title: string
+    files: { name: string; code: string }[]
+    shareUrl: string
+    senderName: string
+  }) => {
+    const isFolder = modal.itemType === 'folder'
+    const count = modal.files.length
+    const fileDetails = isFolder
+      ? `📁 *Folder:* ${modal.title} (${count} file${count > 1 ? 's' : ''})`
+      : `📄 *File:* ${modal.title}`
+
+    const message = `🚀 *Check out this Python ${isFolder ? 'project' : 'code'} shared by ${modal.senderName} on Pycode!*\n\n${fileDetails}\n\n🔗 *Open & run directly in browser:*\n${modal.shareUrl}\n\n💻 *Pycode* - Interactive Python & Data Science Playground`
+
+    return `https://wa.me/?text=${encodeURIComponent(message)}`
+  }
+
   const handleCreateFileExplorer = async (fileName: string) => {
     let name = fileName.trim()
     if (!name) return
@@ -3307,6 +3574,13 @@ export default function CodeEditorPage() {
                               >
                                 <Download className="w-3.5 h-3.5" />
                               </button>
+                              <button
+                                onClick={() => handleOpenShareModal('folder', currentExplorerFolder)}
+                                className="p-1.5 rounded-lg border border-hairline bg-surface-soft text-gray-500 hover:text-cyan-500 hover:border-cyan-200 cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                                title="Share this folder"
+                              >
+                                <Share2 className="w-3.5 h-3.5 text-cyan-500" />
+                              </button>
                             </div>
                           </div>
                           
@@ -3379,6 +3653,13 @@ export default function CodeEditorPage() {
                                         <span className="text-xs font-bold text-ink truncate">{folderName.split('/').pop()}</span>
                                       </button>
                                       <div className="flex items-center gap-0.5 opacity-80 md:opacity-0 md:group-hover/folder:opacity-100 transition-opacity">
+                                        <button
+                                          onClick={() => handleOpenShareModal('folder', folderName)}
+                                          className="p-2 text-gray-400 hover:text-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 rounded-xl cursor-pointer shrink-0 transition-colors"
+                                          title="Share folder"
+                                        >
+                                          <Share2 className="w-3.5 h-3.5" />
+                                        </button>
                                         <button
                                           onClick={() => {
                                             setRenamingFolder(folderName)
@@ -3575,6 +3856,13 @@ export default function CodeEditorPage() {
                                       <span className="text-xs font-bold text-ink truncate">{folderName}</span>
                                     </button>
                                     <div className="flex items-center gap-0.5 opacity-80 md:opacity-0 md:group-hover/folder:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={() => handleOpenShareModal('folder', folderName)}
+                                        className="p-2 text-gray-400 hover:text-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 rounded-xl cursor-pointer shrink-0 transition-colors"
+                                        title="Share folder"
+                                      >
+                                        <Share2 className="w-3.5 h-3.5" />
+                                      </button>
                                       <button
                                         onClick={() => {
                                           setRenamingFolder(folderName)
@@ -4030,6 +4318,31 @@ export default function CodeEditorPage() {
               )}
             </div>
           </div>
+
+          {/* Shared Material Notification Banner */}
+          {sharedBanner && (
+            <div className="bg-gradient-to-r from-cyan-500/10 via-primary/10 to-amber-500/10 border-b border-primary/20 px-4 py-2 flex items-center justify-between animate-fade-in text-xs shrink-0">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <div className="w-6 h-6 rounded-lg bg-primary/20 text-primary flex items-center justify-center shrink-0">
+                  <Share2 className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex items-center gap-1.5 truncate">
+                  <span className="font-semibold text-ink">Shared by <span className="text-primary font-bold">{sharedBanner.senderName}</span>:</span>
+                  <span className="font-mono bg-canvas px-2 py-0.5 rounded border border-hairline text-ink font-bold">{sharedBanner.title}</span>
+                  <span className="text-gray-500 font-mono text-[11px]">({sharedBanner.fileCount} {sharedBanner.fileCount === 1 ? 'file' : 'files'} opened in active tabs)</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => setSharedBanner(null)}
+                  className="p-1 rounded-md text-gray-400 hover:text-ink hover:bg-surface-soft transition-colors cursor-pointer"
+                  title="Dismiss banner"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Tabs Bar */}
           <div className="flex items-center justify-between border-b border-hairline bg-canvas dark:bg-[#181715] select-none shrink-0 h-10 overflow-hidden">
@@ -5416,6 +5729,18 @@ export default function CodeEditorPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
+                      handleOpenShareModal('file', file.name)
+                      setActiveDropdownFile(null)
+                      setDropdownPos(null)
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[10px] font-bold text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 rounded-xl transition-colors cursor-pointer text-left"
+                  >
+                    <Share2 className="w-3 h-3 text-cyan-500" />
+                    Share
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
                       handleDownloadFile(file)
                       setActiveDropdownFile(null)
                       setDropdownPos(null)
@@ -5782,6 +6107,161 @@ export default function CodeEditorPage() {
               setPlotlyData(null)
             })}
           />
+        </div>
+      )}
+
+      {/* Share Material Modal Dialog */}
+      {shareModal && shareModal.isOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-lg bg-canvas border border-hairline rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-in text-ink">
+            
+            {/* Modal Header */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                  <Share2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-ink tracking-tight flex items-center gap-2">
+                    Share {shareModal.itemType === 'folder' ? 'Folder' : 'File'}
+                    <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded-full font-bold bg-primary/10 text-primary border border-primary/20">
+                      {shareModal.itemType === 'folder' ? 'Folder' : (shareModal.title.endsWith('.ipynb') ? 'Jupyter' : 'Python')}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
+                    Anyone with the direct link can view and run this code on Pycode without an account.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShareModal(null)}
+                className="p-1.5 rounded-xl border border-hairline bg-surface-soft text-gray-400 hover:text-ink hover:bg-surface-card transition-colors cursor-pointer"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Target Card Overview */}
+            <div className="p-4 rounded-2xl border border-hairline bg-surface-soft space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 overflow-hidden">
+                  {shareModal.itemType === 'folder' ? (
+                    <Folder className="w-4 h-4 text-amber-500 shrink-0" />
+                  ) : shareModal.title.endsWith('.ipynb') ? (
+                    <JupyterIcon className="w-4 h-4 shrink-0" />
+                  ) : (
+                    <PythonIcon className="w-4 h-4 shrink-0" />
+                  )}
+                  <span className="font-mono text-xs font-bold text-ink truncate">
+                    {shareModal.title}
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono text-gray-500 dark:text-gray-400 shrink-0 font-semibold">
+                  {shareModal.files.length} {shareModal.files.length === 1 ? 'file' : 'files'}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-hairline text-gray-500">
+                <span>Shared by: <strong className="text-ink font-semibold">{shareModal.senderName}</strong></span>
+                <span className="font-mono font-bold text-primary">Pycode</span>
+              </div>
+
+              {/* Collapsible files list preview for folders */}
+              {shareModal.itemType === 'folder' && shareModal.files.length > 0 && (
+                <div className="pt-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 font-mono mb-1.5">
+                    Files inside this folder ({shareModal.files.length}):
+                  </div>
+                  <div className="max-h-28 overflow-y-auto space-y-1 pr-1">
+                    {shareModal.files.map((f, idx) => (
+                      <div key={idx} className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-canvas border border-hairline text-[11px] font-mono">
+                        {f.name.endsWith('.ipynb') ? (
+                          <JupyterIcon className="w-3.5 h-3.5 shrink-0" />
+                        ) : (
+                          <PythonIcon className="w-3.5 h-3.5 shrink-0" />
+                        )}
+                        <span className="truncate text-gray-700 dark:text-gray-300 font-medium">{f.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Direct Link Section */}
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider font-mono">
+                Direct Share Link
+              </label>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    readOnly
+                    value={shareModal.isGenerating ? 'Generating share link...' : shareModal.shareUrl}
+                    className="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border border-hairline bg-surface-soft text-ink select-all outline-none focus:border-primary transition-colors"
+                  />
+                  {shareModal.isGenerating && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <span className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin inline-block" />
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  disabled={shareModal.isGenerating || !shareModal.shareUrl}
+                  onClick={() => {
+                    if (!shareModal.shareUrl) return
+                    navigator.clipboard.writeText(shareModal.shareUrl)
+                    setShareModal(prev => prev ? { ...prev, copied: true } : null)
+                    triggerToast("Direct link copied to clipboard!", "success")
+                    setTimeout(() => {
+                      setShareModal(prev => prev ? { ...prev, copied: false } : null)
+                    }, 2500)
+                  }}
+                  className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                    shareModal.copied
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                      : 'border-hairline bg-canvas hover:bg-surface-card text-ink'
+                  }`}
+                >
+                  {shareModal.copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-primary" />
+                      <span>Copy Link</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* WhatsApp Share Button */}
+            <div className="pt-2 border-t border-hairline space-y-2">
+              <button
+                type="button"
+                disabled={shareModal.isGenerating || !shareModal.shareUrl}
+                onClick={() => {
+                  if (!shareModal.shareUrl) return
+                  const url = getWhatsAppShareUrl(shareModal)
+                  window.open(url, '_blank', 'noopener,noreferrer')
+                }}
+                className="w-full py-3 px-4 rounded-2xl bg-[#25D366] hover:bg-[#20BD5A] disabled:opacity-50 text-white font-bold text-xs shadow-[0_4px_16px_rgba(37,211,102,0.3)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.4)] transition-all cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
+              >
+                <WhatsAppIcon className="w-4 h-4" />
+                <span>Share on WhatsApp</span>
+              </button>
+              <p className="text-[10px] text-gray-400 text-center">
+                Includes {shareModal.itemType === 'folder' ? `folder name "${shareModal.title}" (${shareModal.files.length} files)` : `file name "${shareModal.title}"`}, sender name ({shareModal.senderName}), Pycode and link.
+              </p>
+            </div>
+
+          </div>
         </div>
       )}
 
