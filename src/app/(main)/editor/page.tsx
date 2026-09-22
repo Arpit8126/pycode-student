@@ -663,7 +663,16 @@ export default function CodeEditorPage() {
 
   const [customFolders, setCustomFolders] = useState<string[]>([])
 
-  // Fetch current user's profile display name for sharing attribution
+  const addCustomFolder = (folderName: string) => {
+    const trimmed = folderName.trim()
+    if (!trimmed) return
+    setCustomFolders(prev => {
+      if (prev.includes(trimmed)) return prev
+      return [...prev, trimmed]
+    })
+  }
+
+  // Fetch current user's profile display name & listen for auth state changes
   useEffect(() => {
     const fetchUserName = async () => {
       try {
@@ -676,12 +685,41 @@ export default function CodeEditorPage() {
 
           const name = prof?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || prof?.username || user.email?.split('@')[0] || 'Pycode User'
           setUserName(name)
+        } else {
+          setSavedFiles([])
+          setCustomFolders([])
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('pycode_saved_files')
+            localStorage.removeItem('pycode_custom_folders')
+          }
         }
       } catch (e) {
         console.warn("Failed to fetch user name for share:", e)
       }
     }
     fetchUserName()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        loadSavedFiles()
+        if (session?.user) {
+          const prof = session.user.user_metadata
+          setUserName(prof?.full_name || prof?.name || session.user.email?.split('@')[0] || 'Pycode User')
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setSavedFiles([])
+        setCustomFolders([])
+        setCurrentExplorerFolder(null)
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('pycode_saved_files')
+          localStorage.removeItem('pycode_custom_folders')
+        }
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   const getAllFolders = () => {
@@ -739,16 +777,7 @@ export default function CodeEditorPage() {
   const [renameFolderInput, setRenameFolderInput] = useState('')
   const [activeDragFolder, setActiveDragFolder] = useState<string | null>(null)
 
-  const addCustomFolder = (folderName: string) => {
-    const trimmed = folderName.trim()
-    if (!trimmed) return
-    setCustomFolders(prev => {
-      if (prev.includes(trimmed)) return prev
-      const updated = [...prev, trimmed]
-      localStorage.setItem('pycode_custom_folders', JSON.stringify(updated))
-      return updated
-    })
-  }
+
 
   useEffect(() => {
     importedDatasetsRef.current = importedDatasets
@@ -859,14 +888,8 @@ export default function CodeEditorPage() {
       }
 
       const savedFormat = localStorage.getItem('pycode_editor_format') as 'terminal' | 'cell' | null
-      const storedFolders = localStorage.getItem('pycode_custom_folders')
-      if (storedFolders) {
-        try {
-          setCustomFolders(JSON.parse(storedFolders))
-        } catch (e) {
-          console.error(e)
-        }
-      }
+      localStorage.removeItem('pycode_saved_files')
+      localStorage.removeItem('pycode_custom_folders')
 
       const storedTabs = localStorage.getItem('pycode_open_tabs')
       const storedActiveTab = localStorage.getItem('pycode_active_tab')
@@ -1553,69 +1576,55 @@ export default function CodeEditorPage() {
     return lower.endsWith('.csv') || lower.endsWith('.xlsx') || lower.endsWith('.tsv') || lower.endsWith('.parquet')
   }
 
-  // Load saved files
+  // Load saved files from Supabase (never from localStorage cache)
   const loadSavedFiles = async (keepActive?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data, error } = await (supabase.from('saved_scripts') as any)
-          .select('*')
-          .order('last_modified', { ascending: false })
-        
-        if (!error && data) {
-          // Purge any leaked datasets from saved_scripts table
-          const datasetRows = data.filter((d: any) => isDatasetFilename(d.name))
-          if (datasetRows.length > 0) {
-            for (const row of datasetRows) {
-              ;(supabase.from('saved_scripts') as any).delete().eq('user_id', user.id).eq('name', row.name).catch(() => {})
-            }
-          }
-
-          const formatted = data
-            .filter((d: any) => !isDatasetFilename(d.name))
-            .map((d: any) => ({
-              name: d.name,
-              code: d.code,
-              lastModified: new Date(d.last_modified).toLocaleString()
-            }))
-          setSavedFiles(formatted)
-          // Only restore a specific file if explicitly requested (e.g. after saving)
-          // On initial load (no keepActive) — stay on blank default workspace
-          if (keepActive) {
-            const target = formatted.find((f: any) => f.name === keepActive)
-            if (target) {
-              handleLoadFile(target)
-            }
-          }
-          return
+      if (!user) {
+        setSavedFiles([])
+        setCustomFolders([])
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('pycode_saved_files')
+          localStorage.removeItem('pycode_custom_folders')
         }
+        return
+      }
+
+      const { data, error } = await (supabase.from('saved_scripts') as any)
+        .select('*')
+        .order('last_modified', { ascending: false })
+      
+      if (!error && data) {
+        // Purge any leaked datasets from saved_scripts table
+        const datasetRows = data.filter((d: any) => isDatasetFilename(d.name))
+        if (datasetRows.length > 0) {
+          for (const row of datasetRows) {
+            ;(supabase.from('saved_scripts') as any).delete().eq('user_id', user.id).eq('name', row.name).catch(() => {})
+          }
+        }
+
+        const formatted = data
+          .filter((d: any) => !isDatasetFilename(d.name))
+          .map((d: any) => ({
+            name: d.name,
+            code: d.code,
+            lastModified: new Date(d.last_modified).toLocaleString()
+          }))
+        setSavedFiles(formatted)
+        
+        if (keepActive) {
+          const target = formatted.find((f: any) => f.name === keepActive)
+          if (target) {
+            handleLoadFile(target)
+          }
+        }
+      } else if (error) {
+        console.error("Supabase fetch saved_scripts error:", error)
+        setSavedFiles([])
       }
     } catch (err) {
-      console.warn("Supabase fetch failed, falling back to localStorage:", err)
-    }
-
-    if (typeof window !== 'undefined') {
-      const filesStr = localStorage.getItem('pycode_saved_files')
-      if (filesStr) {
-        try {
-          const files = JSON.parse(filesStr)
-          if (Array.isArray(files)) {
-            const cleanedFiles = files.filter((f: any) => !isDatasetFilename(f.name))
-            if (cleanedFiles.length !== files.length) {
-              localStorage.setItem('pycode_saved_files', JSON.stringify(cleanedFiles))
-            }
-            setSavedFiles(cleanedFiles)
-            if (keepActive) {
-              const target = cleanedFiles.find((f: any) => f.name === keepActive)
-              if (target) {
-                handleLoadFile(target)
-              }
-            }
-          }
-        } catch (e) {
-          console.error(e)
-        }
-      }
+      console.warn("Supabase fetch failed:", err)
+      setSavedFiles([])
     }
   }
 
@@ -2118,44 +2127,14 @@ export default function CodeEditorPage() {
           console.error("Supabase save error:", error)
           triggerToast("Failed to save file.", "error")
         }
+      } else {
+        setShowGuestSaveModal(true)
       }
     } catch (err) {
-      console.warn("Supabase save failed, falling back to localStorage:", err)
-    }
-
-    // Optimistic local save
-    const newFile = {
-      name,
-      code: contentToSave,
-      lastModified: new Date().toLocaleString()
-    }
-    const updatedFiles = [...savedFiles]
-    const existingIndex = updatedFiles.findIndex(f => f.name.toLowerCase() === name.toLowerCase())
-    if (existingIndex > -1) {
-      updatedFiles[existingIndex] = newFile
-    } else {
-      updatedFiles.push(newFile)
-    }
-    setSavedFiles(updatedFiles)
-    localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
-    setTabs(prev => prev.map(t => t.name === activeFileName ? { ...t, name, isDirty: false, isNew: false } : t))
-    setLastSavedCode(contentToSave)
-    setActiveFileName(name)
-    if (targetFolder) {
-      setCurrentExplorerFolder(targetFolder)
-    } else {
-      setCurrentExplorerFolder(null)
-    }
-    setShowSaveModal(false)
-    setSaveFileName('')
-    setSaveToFolder('')
-    setNewSaveFolderName('')
-    setShowNewFolderSaveInput(false)
-    setIsSaving(false)
-    triggerToast("File saved successfully.", "success")
-    if (pendingCloseTabAfterSave) {
-      closeTab(name, true)
-      setPendingCloseTabAfterSave(null)
+      console.warn("Supabase save failed:", err)
+      triggerToast("Failed to save file.", "error")
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -2234,7 +2213,6 @@ export default function CodeEditorPage() {
 
     if (hasChanges) {
       setSavedFiles(updatedFiles)
-      localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
       
       if (tabsChanged) {
         setTabs(updatedTabs)
@@ -2276,30 +2254,15 @@ export default function CodeEditorPage() {
           console.error("Supabase direct save error:", error)
           triggerToast("Failed to save file.", "error")
         }
+      } else {
+        setShowGuestSaveModal(true)
       }
     } catch (err) {
-      console.warn("Supabase direct save failed, falling back to localStorage:", err)
+      console.warn("Supabase direct save failed:", err)
+      triggerToast("Failed to save file.", "error")
+    } finally {
+      setIsSaving(false)
     }
-
-    // Local storage fallback
-    const newFile = {
-      name: fileName,
-      code: contentToSave,
-      lastModified: new Date().toLocaleString()
-    }
-    const updatedFiles = [...savedFiles]
-    const existingIndex = updatedFiles.findIndex(f => f.name.toLowerCase() === fileName.toLowerCase())
-    if (existingIndex > -1) {
-      updatedFiles[existingIndex] = newFile
-    } else {
-      updatedFiles.push(newFile)
-    }
-    setSavedFiles(updatedFiles)
-    localStorage.setItem('pycode_saved_files', JSON.stringify(updatedFiles))
-    setTabs(prev => prev.map(t => t.name === fileName ? { ...t, isDirty: false } : t))
-    setLastSavedCode(contentToSave)
-    setIsSaving(false)
-    triggerToast("File saved successfully.", "success")
   }
 
   const handleRenameFile = async () => {
@@ -2340,32 +2303,17 @@ export default function CodeEditorPage() {
           console.error("Supabase rename error:", error)
           triggerToast("Failed to rename file.", "error")
         }
+      } else {
+        setShowGuestSaveModal(true)
       }
     } catch (err) {
-      console.warn("Supabase rename failed, falling back to localStorage:", err)
+      console.warn("Supabase rename failed:", err)
+      triggerToast("Failed to rename file.", "error")
+    } finally {
+      setRenameFileName(null)
+      setNewFileName('')
+      setIsSaving(false)
     }
-
-    // Local storage fallback
-    const filesStr = localStorage.getItem('pycode_saved_files')
-    if (filesStr) {
-      const files = JSON.parse(filesStr)
-      const updated = files.map((f: any) => {
-        if (f.name === renameFileName) {
-          return { ...f, name: newName }
-        }
-        return f
-      })
-      localStorage.setItem('pycode_saved_files', JSON.stringify(updated))
-      setTabs(prev => prev.map(t => t.name === renameFileName ? { ...t, name: newName } : t))
-      if (activeFileName === renameFileName) {
-        setActiveFileName(newName)
-      }
-      await loadSavedFiles()
-    }
-    setRenameFileName(null)
-    setNewFileName('')
-    setIsSaving(false)
-    triggerToast("File renamed successfully.", "success")
   }
 
   const handleLoadFile = (file: { name: string; code: string }) => {
@@ -2432,12 +2380,6 @@ export default function CodeEditorPage() {
           .delete()
           .eq('user_id', user.id)
           .eq('name', name)
-      } else {
-        const filesStr = localStorage.getItem('pycode_saved_files')
-        if (filesStr) {
-          const files = JSON.parse(filesStr).filter((f: any) => f.name !== name)
-          localStorage.setItem('pycode_saved_files', JSON.stringify(files))
-        }
       }
     } catch (err) {
       console.warn("Delete sync failed:", err)
@@ -2450,11 +2392,7 @@ export default function CodeEditorPage() {
     if (!window.confirm(`Are you sure you want to delete folder "${folderName}" and all scripts inside it?`)) return
 
     // Remove folder from custom folders list
-    setCustomFolders(prev => {
-      const updated = prev.filter(f => f !== folderName && !f.startsWith(folderName + '/'))
-      localStorage.setItem('pycode_custom_folders', JSON.stringify(updated))
-      return updated
-    })
+    setCustomFolders(prev => prev.filter(f => f !== folderName && !f.startsWith(folderName + '/')))
 
     // Find and delete all files in this folder
     const filesToDelete = savedFiles.filter(f => f.name.startsWith(`${folderName}/`))

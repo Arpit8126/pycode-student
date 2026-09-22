@@ -148,6 +148,10 @@ export default function Sidebar() {
   }, [supabase])
 
   const handleLogout = async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('pycode_saved_files')
+      localStorage.removeItem('pycode_custom_folders')
+    }
     await supabase.auth.signOut()
     window.location.href = '/practice'
   }
