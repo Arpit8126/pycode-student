@@ -1630,7 +1630,28 @@ export default function CodeEditorPage() {
 
   useEffect(() => {
     initWorker()
-    loadSavedFiles()
+
+    let targetToOpen: string | undefined = undefined
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search)
+      const targetFile = searchParams.get('file') || searchParams.get('open')
+      const targetFolder = searchParams.get('folder')
+
+      if (targetFolder) {
+        setCurrentExplorerFolder(targetFolder)
+        setExpandedFolders(prev => ({ ...prev, [targetFolder]: true }))
+      } else if (targetFile && targetFile.includes('/')) {
+        const folder = targetFile.substring(0, targetFile.lastIndexOf('/'))
+        setCurrentExplorerFolder(folder)
+        setExpandedFolders(prev => ({ ...prev, [folder]: true }))
+      }
+
+      if (targetFile) {
+        targetToOpen = targetFile
+      }
+    }
+
+    loadSavedFiles(targetToOpen)
     return () => {
       if (workerRef.current) {
         workerRef.current.terminate()

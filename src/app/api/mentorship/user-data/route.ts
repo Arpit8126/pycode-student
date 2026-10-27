@@ -72,6 +72,11 @@ async function handleUserData(request: NextRequest) {
 
     const targetEmail = email.trim().toLowerCase()
     const admin = createAdminClient()
+    const origin = request.headers.get('x-forwarded-host')
+      ? `https://${request.headers.get('x-forwarded-host')}`
+      : (request.nextUrl.origin && !request.nextUrl.origin.includes('localhost')
+          ? request.nextUrl.origin
+          : DEFAULT_MENTORSHIP_API_KEY ? 'https://pycode-student.vercel.app' : 'https://pycode-student.vercel.app')
 
     // 3. Look up user by email in Supabase Auth
     let foundAuthUser: any = null
@@ -164,12 +169,30 @@ async function handleUserData(request: NextRequest) {
         foldersSet.add(folderName)
       }
 
+      // Generate direct base64 share link for this file
+      let fileShareUrl = ''
+      try {
+        const payloadObj = {
+          senderName: resolvedFullName,
+          itemType: 'file',
+          title: filename,
+          files: [{ name: fullPath, code: s.code || '', format: 'terminal' }],
+        }
+        const b64 = Buffer.from(JSON.stringify(payloadObj)).toString('base64')
+        fileShareUrl = `${origin}/editor?share_data=${encodeURIComponent(b64)}`
+      } catch (_) {}
+
       return {
         name: fullPath,
         filename,
         folder,
         code: s.code || '',
         last_modified: s.last_modified,
+        // Direct link to open & edit this exact file inside PyCode editor
+        open_editor_url: `${origin}/editor?file=${encodeURIComponent(fullPath)}`,
+        edit_url: `${origin}/editor?file=${encodeURIComponent(fullPath)}`,
+        copy_url: `${origin}/editor?file=${encodeURIComponent(fullPath)}`,
+        share_url: fileShareUrl || `${origin}/editor?file=${encodeURIComponent(fullPath)}`,
       }
     })
 
@@ -239,6 +262,10 @@ async function handleUserData(request: NextRequest) {
         completed_at: att.completed_at,
         questions_answered: answeredCount,
         student_details: att.student_details || null,
+        attempt_url: `${origin}/codeathons/${att.quiz_id}/attempt`,
+        share_url: `${origin}/codeathons/${att.quiz_id}/attempt`,
+        copy_url: `${origin}/codeathons/${att.quiz_id}/attempt`,
+        leaderboard_url: `${origin}/api/codeathons/${att.quiz_id}/leaderboard`,
       }
     })
 
@@ -248,12 +275,6 @@ async function handleUserData(request: NextRequest) {
       .select('id, title, description, start_time, end_time, duration_minutes, coding_question_ids, difficulty')
       .gt('end_time', now.toISOString())
       .order('start_time', { ascending: true })
-
-    const origin = request.headers.get('x-forwarded-host')
-      ? `https://${request.headers.get('x-forwarded-host')}`
-      : (request.nextUrl.origin && !request.nextUrl.origin.includes('localhost')
-          ? request.nextUrl.origin
-          : 'https://pycode-student.vercel.app')
 
     const attemptedQuizIds = new Set(formattedTests.map((t: any) => t.test_id))
 
@@ -285,6 +306,33 @@ async function handleUserData(request: NextRequest) {
         has_already_attempted: attemptedQuizIds.has(q.id),
         // Direct redirect URL to attend codeathon in PyCode
         attempt_url: `${origin}/codeathons/${q.id}/attempt`,
+        share_url: `${origin}/codeathons/${q.id}/attempt`,
+        copy_url: `${origin}/codeathons/${q.id}/attempt`,
+        leaderboard_url: `${origin}/api/codeathons/${q.id}/leaderboard`,
+      }
+    })
+
+    // Compute detailed folder metadata with direct URLs
+    const folderDetails = Array.from(foldersSet).sort().map((folderName: string) => {
+      const folderFiles = formattedFiles.filter((f: any) => f.folder === folderName)
+      let folderShareUrl = ''
+      try {
+        const payloadObj = {
+          senderName: resolvedFullName,
+          itemType: 'folder',
+          title: folderName,
+          files: folderFiles.map((f: any) => ({ name: f.name, code: f.code, format: 'terminal' })),
+        }
+        const b64 = Buffer.from(JSON.stringify(payloadObj)).toString('base64')
+        folderShareUrl = `${origin}/editor?share_data=${encodeURIComponent(b64)}`
+      } catch (_) {}
+
+      return {
+        name: folderName,
+        files_count: folderFiles.length,
+        open_editor_url: `${origin}/editor?folder=${encodeURIComponent(folderName)}`,
+        copy_url: `${origin}/editor?folder=${encodeURIComponent(folderName)}`,
+        share_url: folderShareUrl || `${origin}/editor?folder=${encodeURIComponent(folderName)}`,
       }
     })
 
@@ -311,6 +359,7 @@ async function handleUserData(request: NextRequest) {
         workspace: {
           total_files: formattedFiles.length,
           folders: Array.from(foldersSet).sort(),
+          folder_details: folderDetails,
           files: formattedFiles,
           file_tree: fileTree,
         },

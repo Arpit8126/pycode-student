@@ -134,6 +134,9 @@ export async function GET(request: NextRequest) {
         is_ended: isEnded,
         // Direct redirect URL to attend and solve the codeathon in PyCode
         attempt_url: `${origin}/codeathons/${q.id}/attempt`,
+        share_url: `${origin}/codeathons/${q.id}/attempt`,
+        copy_url: `${origin}/codeathons/${q.id}/attempt`,
+        leaderboard_url: `${origin}/api/codeathons/${q.id}/leaderboard`,
         user_attempt: attempt,
       }
     })
