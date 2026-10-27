@@ -64,6 +64,13 @@ export default function ExamAttemptPage() {
   const [isGuest, setIsGuest] = useState(false)
   const lastWarningTimeRef = useRef<number>(0)
 
+  // Clipboard notice toast (copy/paste blocked without warning penalty)
+  const [clipboardNotice, setClipboardNotice] = useState<string | null>(null)
+  const showClipboardNotice = (msg: string = 'Copy and paste is not allowed in this codeathon.') => {
+    setClipboardNotice(msg)
+    setTimeout(() => setClipboardNotice(null), 3000)
+  }
+
   // Custom premium modal dialogs instead of native alert/confirm popups
   const [customDialog, setCustomDialog] = useState<{
     show: boolean
@@ -403,20 +410,23 @@ export default function ExamAttemptPage() {
       }
     })
 
-    // Prevent copy, cut, paste via browser events on the Monaco editor DOM node
+    // Prevent copy, cut, paste via browser events on the Monaco editor DOM node without warning penalty
     const domNode = editor.getDomNode()
     if (domNode) {
       domNode.addEventListener('paste', (e: any) => {
         e.preventDefault()
         e.stopPropagation()
+        showClipboardNotice('Copy and paste is not allowed in this codeathon.')
       }, true)
       domNode.addEventListener('copy', (e: any) => {
         e.preventDefault()
         e.stopPropagation()
+        showClipboardNotice('Copy and paste is not allowed in this codeathon.')
       }, true)
       domNode.addEventListener('cut', (e: any) => {
         e.preventDefault()
         e.stopPropagation()
+        showClipboardNotice('Copy and paste is not allowed in this codeathon.')
       }, true)
     }
   }
@@ -502,7 +512,7 @@ export default function ExamAttemptPage() {
           const inProgressAttempt = userAttempts?.find((a: any) => a.completed_at === null)
 
           if (existingAttempt) {
-            if (existingAttempt.is_disqualified || (existingAttempt.warnings_count || 0) >= 2) {
+            if (existingAttempt.is_disqualified || (existingAttempt.warnings_count || 0) >= 3) {
               setIsDisqualifiedUser(true)
               setLoading(false)
               return
@@ -514,7 +524,7 @@ export default function ExamAttemptPage() {
           }
 
           if (inProgressAttempt) {
-            if (inProgressAttempt.is_disqualified || (inProgressAttempt.warnings_count || 0) >= 2) {
+            if (inProgressAttempt.is_disqualified || (inProgressAttempt.warnings_count || 0) >= 3) {
               setIsDisqualifiedUser(true)
               setLoading(false)
               return
@@ -563,43 +573,47 @@ export default function ExamAttemptPage() {
         // Fetch questions included in this quiz
         const qIds = quizData.coding_question_ids || []
         if (qIds.length > 0) {
-          const { data: qData, error: qDataErr } = await supabase
+          const { data: qData } = await supabase
             .from('coding_questions')
             .select('*')
             .in('id', qIds)
 
-          if (!qDataErr && qData) {
-            // Merge clean local metadata (title, category, description, starter_code) with DB record
-            const localMap = new Map(LOCAL_QUESTIONS.map(q => [q.id, q]))
-            const mappedData = qData.map((q: any) => {
-              const localQ = localMap.get(q.id)
-              return {
-                ...q,
-                title: localQ?.title || q.title,
-                category: localQ?.category || q.category,
-                description: localQ?.description || q.description,
-                starter_code: localQ?.starter_code || q.starter_code
-              }
-            })
+          // Prioritize clean local questions and verification scripts so no DB dependency breaks test execution
+          const localMap = new Map(LOCAL_QUESTIONS.map(q => [q.id, q]))
+          const mappedData = qIds.map((id: number) => {
+            const dbQ = qData ? qData.find((q: any) => q.id === id) : null
+            const localQ = localMap.get(id)
+            if (!dbQ && !localQ) return null
+            return {
+              ...(dbQ || {}),
+              ...(localQ || {}),
+              id,
+              title: localQ?.title || dbQ?.title || `Question ${id}`,
+              category: localQ?.category || dbQ?.category || 'python-basics',
+              description: localQ?.description || dbQ?.description || '',
+              starter_code: localQ?.starter_code || dbQ?.starter_code || '',
+              verification_script: localQ?.verification_script || dbQ?.verification_script || '',
+              points: dbQ?.points || localQ?.points || 100,
+              difficulty: localQ?.difficulty || dbQ?.difficulty || 'easy',
+              dataset_name: localQ?.dataset_name || dbQ?.dataset_name || null
+            }
+          }).filter(Boolean)
 
-            // Reorder questions to match the quiz schedule question_ids order
-            const sortedQ = qIds.map((id: number) => mappedData.find((q: any) => q.id === id)).filter(Boolean)
-            setQuestions(sortedQ as any)
+          setQuestions(mappedData as any)
             
-            // Initialize answer inputs
-            const initialAnswers: Record<number, string> = {}
-            const savedAnswersStr = typeof window !== 'undefined' ? localStorage.getItem(`pycode_exam_answers_${quizId}`) : null
-            const savedAnswers = savedAnswersStr ? JSON.parse(savedAnswersStr) : null
+          // Initialize answer inputs
+          const initialAnswers: Record<number, string> = {}
+          const savedAnswersStr = typeof window !== 'undefined' ? localStorage.getItem(`pycode_exam_answers_${quizId}`) : null
+          const savedAnswers = savedAnswersStr ? JSON.parse(savedAnswersStr) : null
 
-            // EXPLICIT CODEATHON ISOLATION: Initialize each challenge editor with starter_code or draft exam answer.
-            // DO NOT preload previous student drafts or practice submissions.
-            sortedQ.forEach((q: any) => {
-              initialAnswers[q.id] = (savedAnswers && savedAnswers[q.id] !== undefined)
-                ? savedAnswers[q.id]
-                : (q.starter_code || '')
-            })
-            setAnswers(initialAnswers)
-          }
+          // EXPLICIT CODEATHON ISOLATION: Initialize each challenge editor with starter_code or draft exam answer.
+          // DO NOT preload previous student drafts or practice submissions.
+          mappedData.forEach((q: any) => {
+            initialAnswers[q.id] = (savedAnswers && savedAnswers[q.id] !== undefined)
+              ? savedAnswers[q.id]
+              : (q.starter_code || '')
+          })
+          setAnswers(initialAnswers)
         }
       } catch (err) {
         console.error("Quiz load crash:", err)
@@ -664,7 +678,15 @@ export default function ExamAttemptPage() {
     }
 
     const preventKeys = (e: KeyboardEvent) => {
-      // Prevent F12, Escape, Alt+Tab, command shortcuts
+      // Intercept copy/paste/cut keyboard shortcuts without giving a warning strike
+      if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'x'].includes(e.key.toLowerCase())) {
+        e.preventDefault()
+        e.stopPropagation()
+        showClipboardNotice('Copy and paste is not allowed in this codeathon.')
+        return
+      }
+
+      // Prevent F12, Escape, Alt+Tab, and other unauthorized system shortcuts
       const isAlt = e.altKey
       const isMeta = e.metaKey
       if (e.key === 'F12' || e.key === 'Escape' || (isAlt && e.key === 'Tab') || isMeta) {
@@ -676,6 +698,7 @@ export default function ExamAttemptPage() {
     const preventCopyPaste = (e: ClipboardEvent) => {
       e.preventDefault()
       e.stopPropagation()
+      showClipboardNotice('Copy and paste is not allowed in this codeathon.')
     }
 
     // Bind event listeners
@@ -762,7 +785,7 @@ export default function ExamAttemptPage() {
         .from('quiz_attempts')
         .update({ 
           warnings_count: nextWarnings,
-          is_disqualified: nextWarnings >= 2
+          is_disqualified: nextWarnings >= 3
         })
         .eq('id', attemptId)
         .then(({ error }: any) => {
@@ -770,8 +793,8 @@ export default function ExamAttemptPage() {
         })
     }
 
-    if (nextWarnings >= 2) {
-      // 2 strikes: Disqualify instantly
+    if (nextWarnings >= 3) {
+      // 3 strikes: Disqualify instantly
       isSubmittingRef.current = true
       handleSubmitQuiz(true, true)
     } else {
@@ -982,7 +1005,7 @@ export default function ExamAttemptPage() {
       const updatedEvalStates = { ...evalStates }
 
       for (const q of questions) {
-        if (!updatedSubmittedQuestions[q.id] && !disqualified && warnings < 2) {
+        if (!updatedSubmittedQuestions[q.id] && !disqualified && warnings < 3) {
           const userCode = answers[q.id] || ''
           try {
             const outcome = await runCode(userCode, q.verification_script || '')
@@ -1050,7 +1073,7 @@ export default function ExamAttemptPage() {
         score: Math.round(earnedPoints),
         score_percentage: scorePercentage,
         completed_at: completedAt,
-        is_disqualified: disqualified || warnings >= 2,
+        is_disqualified: disqualified || warnings >= 3,
         student_details: finalStudentDetails,
         answers: answers
       }
@@ -1123,7 +1146,7 @@ export default function ExamAttemptPage() {
       await attemptWritePromise
 
       // Navigate immediately — submissions continue in background
-      if (disqualified || warnings >= 2) {
+      if (disqualified || warnings >= 3) {
         router.push('/practice?disqualified=true')
       } else {
         router.push('/results')
@@ -1402,8 +1425,8 @@ export default function ExamAttemptPage() {
                       <XCircle className="w-3 h-3" />
                     </div>
                     <p className="leading-relaxed">
-                      <strong className="text-ink font-bold">2-Warnings Strike</strong><br />
-                      Exceeding 2 security warnings will disqualify your exam submission.
+                      <strong className="text-ink font-bold">3-Warnings Strike</strong><br />
+                      Exceeding 3 security warnings will disqualify your exam submission.
                     </p>
                   </div>
                 </div>
@@ -1525,7 +1548,7 @@ export default function ExamAttemptPage() {
             
             <div className="p-4 rounded-xl bg-surface-soft border border-hairline flex justify-between items-center text-xs">
               <span className="text-gray-500 uppercase tracking-wider font-semibold">Active Warnings</span>
-              <span className="font-bold text-lg text-red-500">{warnings} / 2</span>
+              <span className="font-bold text-lg text-red-500">{warnings} / 3</span>
             </div>
 
             <button
@@ -1561,7 +1584,7 @@ export default function ExamAttemptPage() {
             
             <div className="p-4 rounded-xl bg-surface-soft border border-hairline mb-6 flex justify-between items-center text-xs">
               <span className="text-gray-500 uppercase tracking-wider font-semibold">Active Warnings</span>
-              <span className="font-bold text-lg text-warning">{warnings} / 2</span>
+              <span className="font-bold text-lg text-warning">{warnings} / 3</span>
             </div>
 
             <button
@@ -1621,7 +1644,7 @@ export default function ExamAttemptPage() {
           {/* Warning count badge */}
           <div className="px-3.5 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 text-xs font-mono font-bold flex items-center gap-1.5 shadow-[0_2px_8px_rgba(239,68,68,0.06)]">
             <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Warnings: {warnings}/2</span>
+            <span>Warnings: {warnings}/3</span>
           </div>
 
           {/* Stop / Terminate button */}
@@ -2031,6 +2054,13 @@ export default function ExamAttemptPage() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {/* Non-intrusive Clipboard Notice Toast */}
+      {clipboardNotice && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-amber-500 text-white px-5 py-2.5 rounded-full shadow-2xl border border-amber-300/40 text-xs font-bold flex items-center gap-2 animate-bounce pointer-events-none">
+          <AlertTriangle className="w-4 h-4 text-white shrink-0" />
+          <span>{clipboardNotice}</span>
         </div>
       )}
     </div>

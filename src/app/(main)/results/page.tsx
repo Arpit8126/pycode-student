@@ -1058,12 +1058,27 @@ export default function ResultsPage() {
       })
 
       let questionMap: Record<number, any> = {}
+      const localMap = new Map(LOCAL_QUESTIONS.map(q => [q.id, q]))
       if (allQuestionIds.length > 0) {
         const { data: qData } = await supabase
           .from('coding_questions')
           .select('id, title, points, difficulty, verification_script')
           .in('id', allQuestionIds)
-        if (qData) qData.forEach((q: any) => { questionMap[q.id] = q })
+        if (qData) {
+          qData.forEach((q: any) => {
+            const localQ = localMap.get(q.id)
+            questionMap[q.id] = {
+              ...q,
+              title: localQ?.title || q.title,
+              verification_script: localQ?.verification_script || q.verification_script || ''
+            }
+          })
+        }
+        allQuestionIds.forEach((id: number) => {
+          if (!questionMap[id] && localMap.has(id)) {
+            questionMap[id] = localMap.get(id)
+          }
+        })
       }
 
       // Build results array
@@ -1278,7 +1293,7 @@ export default function ResultsPage() {
                       <p className="text-[8px] font-bold text-gray-500 dark:text-zinc-400 font-mono uppercase tracking-wider mt-0.5">Time</p>
                     </div>
                     <div className="p-2 rounded-xl border border-hairline bg-surface-soft text-center">
-                      <p className="text-sm font-black text-ink">{warnings}<span className="text-[9px] text-gray-500 font-light">/2</span></p>
+                      <p className="text-sm font-black text-ink">{warnings}<span className="text-[9px] text-gray-500 font-light">/3</span></p>
                       <p className="text-[8px] font-bold text-gray-500 dark:text-zinc-400 font-mono uppercase tracking-wider mt-0.5">Warnings</p>
                     </div>
                   </div>

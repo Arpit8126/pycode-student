@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { LOCAL_QUESTIONS } from '@/lib/localQuestions'
 
 function getQuestionTotalCases(verificationScript?: string): number {
   if (!verificationScript) return 1
@@ -79,7 +80,17 @@ export async function POST(request: NextRequest) {
         .from('coding_questions')
         .select('id, points, verification_script')
         .in('id', qIds)
-      questions = qData || []
+
+      const localMap = new Map(LOCAL_QUESTIONS.map(q => [q.id, q]))
+      questions = qIds.map((id: number) => {
+        const dbQ = qData ? (qData as any[]).find((q: any) => q.id === id) : null
+        const localQ = localMap.get(id)
+        return {
+          id,
+          points: (dbQ as any)?.points || localQ?.points || 100,
+          verification_script: localQ?.verification_script || (dbQ as any)?.verification_script || ''
+        }
+      })
     }
 
     // 3. Find all incomplete attempts (completed_at IS NULL)
@@ -128,7 +139,7 @@ export async function POST(request: NextRequest) {
       })
 
       const scorePercentage = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0
-      const isDisqualified = attempt.is_disqualified || (attempt.warnings_count || 0) >= 2
+      const isDisqualified = attempt.is_disqualified || (attempt.warnings_count || 0) >= 3
 
       const { error } = await (admin as any)
         .from('quiz_attempts')
