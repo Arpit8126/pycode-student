@@ -6277,107 +6277,133 @@ export default function CodeEditorPage() {
       )}
 
 
-      {/* Account Mismatch / Ownership Notice Modal */}
+      {/* Account Mismatch / Ownership Notice Modal - Large, Prominent Card */}
       {accountMismatchModal && accountMismatchModal.isOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-[460px] bg-canvas border border-hairline rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 animate-scale-in text-ink">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in">
+          <div className="w-full max-w-[620px] bg-canvas border border-hairline/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 animate-scale-in text-ink relative">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-hairline">
-              <div className="flex items-center gap-2.5">
+            <div className="flex items-start justify-between pb-4 border-b border-hairline">
+              <div className="flex items-center gap-4">
                 {accountMismatchModal.type === 'wrong_account' ? (
-                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                    <ShieldAlert className="w-4 h-4" />
+                  <div className="w-14 h-14 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 shadow-xs">
+                    <ShieldAlert className="w-7 h-7" />
                   </div>
                 ) : accountMismatchModal.type === 'not_logged_in' ? (
-                  <div className="w-8 h-8 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
-                    <Lock className="w-4 h-4" />
+                  <div className="w-14 h-14 rounded-2xl bg-primary/15 text-primary flex items-center justify-center shrink-0 shadow-xs">
+                    <Lock className="w-7 h-7" />
                   </div>
                 ) : (
-                  <div className="w-8 h-8 rounded-xl bg-gray-500/15 text-gray-500 flex items-center justify-center shrink-0">
-                    <FileQuestion className="w-4 h-4" />
+                  <div className="w-14 h-14 rounded-2xl bg-gray-500/15 text-gray-500 flex items-center justify-center shrink-0 shadow-xs">
+                    <FileQuestion className="w-7 h-7" />
                   </div>
                 )}
                 <div>
-                  <h3 className="text-sm font-bold text-ink">
+                  <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink">
                     {accountMismatchModal.type === 'wrong_account'
                       ? 'Account Mismatch'
                       : accountMismatchModal.type === 'not_logged_in'
                       ? 'Sign In Required'
                       : 'File Not Found'}
                   </h3>
-                  <p className="text-[11px] text-gray-500">
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                     {accountMismatchModal.type === 'wrong_account'
-                      ? 'File ownership verification notice'
+                      ? 'Ownership verification prevents unauthorized edits'
                       : accountMismatchModal.type === 'not_logged_in'
-                      ? 'Authentication needed to edit'
-                      : 'Workspace file lookup'}
+                      ? 'Sign in to access and edit this workspace file'
+                      : 'Requested file could not be located'}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setAccountMismatchModal(prev => prev ? { ...prev, isOpen: false } : null)}
-                className="p-1 rounded-lg text-gray-400 hover:text-ink hover:bg-surface-soft transition-colors cursor-pointer"
+                className="p-2 rounded-xl text-gray-400 hover:text-ink hover:bg-surface-soft transition-colors cursor-pointer"
                 title="Dismiss"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="space-y-3 text-xs leading-relaxed text-gray-700 dark:text-gray-300">
+            <div className="space-y-4 text-sm sm:text-base leading-relaxed text-gray-700 dark:text-gray-300">
               {accountMismatchModal.type === 'wrong_account' && (
                 <>
-                  <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 space-y-1">
-                    <p className="font-semibold text-xs flex items-center gap-1.5">
-                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                      Different account currently signed in:
+                  <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-900 dark:text-amber-200 space-y-1.5">
+                    <p className="font-bold text-xs sm:text-sm flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                      <AlertTriangle className="w-4 h-4 shrink-0" />
+                      Currently Signed In As:
                     </p>
-                    <p className="font-mono text-[11px] break-all font-bold">
+                    <p className="font-mono text-sm sm:text-base font-bold break-all text-ink">
                       {accountMismatchModal.currentEmail}
                     </p>
                   </div>
 
-                  <p>
-                    You requested to edit file <span className="font-mono font-bold text-ink bg-surface-soft px-1.5 py-0.5 rounded border border-hairline">{accountMismatchModal.requestedFile}</span>, which belongs to:
-                  </p>
-
-                  <div className="p-2.5 rounded-lg bg-surface-soft border border-hairline text-center font-mono font-bold text-primary break-all">
-                    {accountMismatchModal.ownerEmail}
+                  <div className="space-y-1.5">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                      Requested file:
+                    </p>
+                    <div className="flex items-center gap-3 p-3.5 rounded-xl bg-surface-soft border border-hairline font-mono font-bold text-sm sm:text-base text-ink">
+                      <FileCode className="w-5 h-5 text-primary shrink-0" />
+                      <span className="truncate">{accountMismatchModal.requestedFile}</span>
+                    </div>
                   </div>
 
-                  <p className="text-[11px] text-gray-500">
-                    To protect workspace files, only the account owner can make edits. Please switch accounts and log in with <span className="font-semibold text-ink">{accountMismatchModal.ownerEmail}</span>.
+                  <div className="space-y-1.5">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                      This file belongs to:
+                    </p>
+                    <div className="p-4 rounded-xl bg-primary/10 border border-primary/25 text-center font-mono font-extrabold text-base sm:text-lg text-primary break-all shadow-xs">
+                      {accountMismatchModal.ownerEmail}
+                    </div>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed pt-1">
+                    To protect workspace files, editing is restricted to the file owner. Please switch accounts and log in with <b className="text-ink font-semibold">{accountMismatchModal.ownerEmail}</b>.
                   </p>
                 </>
               )}
 
               {accountMismatchModal.type === 'not_logged_in' && (
                 <>
-                  <p>
-                    The file <span className="font-mono font-bold text-ink bg-surface-soft px-1.5 py-0.5 rounded border border-hairline">{accountMismatchModal.requestedFile}</span> belongs to:
-                  </p>
-                  <div className="p-2.5 rounded-lg bg-surface-soft border border-hairline text-center font-mono font-bold text-primary break-all">
-                    {accountMismatchModal.ownerEmail}
+                  <div className="space-y-1.5">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                      Requested file:
+                    </p>
+                    <div className="flex items-center gap-3 p-3.5 rounded-xl bg-surface-soft border border-hairline font-mono font-bold text-sm sm:text-base text-ink">
+                      <FileCode className="w-5 h-5 text-primary shrink-0" />
+                      <span className="truncate">{accountMismatchModal.requestedFile}</span>
+                    </div>
                   </div>
-                  <p className="text-[11px] text-gray-500">
-                    You are currently browsing as a guest. Please sign in with <span className="font-semibold text-ink">{accountMismatchModal.ownerEmail}</span> to access and edit this file.
+
+                  <div className="space-y-1.5">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                      This file belongs to:
+                    </p>
+                    <div className="p-4 rounded-xl bg-primary/10 border border-primary/25 text-center font-mono font-extrabold text-base sm:text-lg text-primary break-all shadow-xs">
+                      {accountMismatchModal.ownerEmail}
+                    </div>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed pt-1">
+                    You are currently browsing as a guest. Please sign in with <b className="text-ink font-semibold">{accountMismatchModal.ownerEmail}</b> to access and edit this file.
                   </p>
                 </>
               )}
 
               {accountMismatchModal.type === 'file_not_found' && (
-                <p>
-                  The file <span className="font-mono font-bold text-ink bg-surface-soft px-1.5 py-0.5 rounded border border-hairline">{accountMismatchModal.requestedFile}</span> was not found in your saved scripts.
-                </p>
+                <div className="p-4 rounded-xl bg-surface-soft border border-hairline">
+                  <p className="text-sm sm:text-base text-ink">
+                    The file <span className="font-mono font-bold text-primary">{accountMismatchModal.requestedFile}</span> was not found in your saved scripts.
+                  </p>
+                </div>
               )}
             </div>
 
             {/* Modal Actions */}
-            <div className="pt-2 flex items-center justify-end gap-2 border-t border-hairline">
+            <div className="pt-4 flex items-center justify-end gap-3 border-t border-hairline">
               <button
                 onClick={() => setAccountMismatchModal(prev => prev ? { ...prev, isOpen: false } : null)}
-                className="px-3.5 py-2 text-xs font-semibold text-gray-500 hover:text-ink hover:bg-surface-soft rounded-xl transition-colors cursor-pointer"
+                className="px-5 py-3 text-sm font-semibold text-gray-500 hover:text-ink hover:bg-surface-soft rounded-xl transition-colors cursor-pointer"
               >
                 {accountMismatchModal.type === 'wrong_account' ? 'Stay on This Account' : 'Dismiss'}
               </button>
@@ -6389,9 +6415,9 @@ export default function CodeEditorPage() {
                     const redirectUrl = `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`
                     window.location.href = redirectUrl
                   }}
-                  className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="px-6 py-3 text-sm sm:text-base font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  <LogOut className="w-4 h-4" />
                   Switch Account (Sign Out)
                 </button>
               )}
@@ -6402,9 +6428,9 @@ export default function CodeEditorPage() {
                     const redirectUrl = `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`
                     window.location.href = redirectUrl
                   }}
-                  className="px-4 py-2 text-xs font-bold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="px-6 py-3 text-sm sm:text-base font-bold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  <LogIn className="w-3.5 h-3.5" />
+                  <LogIn className="w-4 h-4" />
                   Sign In
                 </button>
               )}
