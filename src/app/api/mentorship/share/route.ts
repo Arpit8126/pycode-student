@@ -191,10 +191,11 @@ export async function POST(request: NextRequest) {
     }
 
     const finalShareUrl = shareUrl || fallbackUrl
+    const ownerParam = email ? `&owner=${encodeURIComponent(email)}` : ''
     const openEditorUrl =
       itemType === 'folder'
-        ? `${origin}/editor?folder=${encodeURIComponent(resolvedTitle)}`
-        : `${origin}/editor?file=${encodeURIComponent(filesToShare[0]?.name || '')}`
+        ? `${origin}/editor?folder=${encodeURIComponent(resolvedTitle)}${ownerParam}`
+        : `${origin}/editor?file=${encodeURIComponent(filesToShare[0]?.name || '')}${ownerParam}`
 
     return NextResponse.json(
       {

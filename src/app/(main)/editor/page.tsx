@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Monaco, useMonaco } from '@monaco-editor/react'
-import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Camera, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen, Columns, Rows, Minimize2, Copy, ExternalLink, Share2 } from 'lucide-react'
+import { ArrowLeft, Play, RefreshCw, Database, Terminal, CheckCircle, X, Sun, Moon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileCode, RotateCcw, Square, Save, MoreVertical, Download, Camera, Trash2, LogIn, UserPlus, LogOut, Edit2, Plus, Maximize2, Folder, Check, FolderPlus, Info, Bold, Italic, Heading, Code, List, BookOpen, Columns, Rows, Minimize2, Copy, ExternalLink, Share2, AlertTriangle, ShieldAlert, Lock, FileQuestion } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { DEFAULT_DATASETS as DATASETS } from '@/lib/datasetGenerator'
@@ -323,6 +323,12 @@ const MarkdownCellEditor = ({
 export default function CodeEditorPage() {
   const supabase = createClient()
   const [code, setCode] = useState(globalDraftCode)
+  const codeRef = useRef<string>(globalDraftCode)
+
+  useEffect(() => {
+    codeRef.current = code
+  }, [code])
+
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
     setIsClient(true)
@@ -661,6 +667,14 @@ export default function CodeEditorPage() {
     fileCount: number
   } | null>(null)
 
+  const [accountMismatchModal, setAccountMismatchModal] = useState<{
+    isOpen: boolean
+    type: 'wrong_account' | 'not_logged_in' | 'file_not_found'
+    requestedFile: string
+    ownerEmail: string
+    currentEmail?: string | null
+  } | null>(null)
+
   const [customFolders, setCustomFolders] = useState<string[]>([])
 
   const addCustomFolder = (folderName: string) => {
@@ -861,6 +875,7 @@ export default function CodeEditorPage() {
               setEditorFormat(primaryTab.format)
               setCells(primaryTab.cells)
               setCode(primaryTab.code)
+              codeRef.current = primaryTab.code
               if (primaryTab.format === 'terminal' && editorRef.current) {
                 editorRef.current.setValue(primaryTab.code)
               }
@@ -876,8 +891,11 @@ export default function CodeEditorPage() {
 
               setIsRestored(true)
               setTimeout(() => {
+                if (editorRef.current && primaryTab.format === 'terminal' && editorRef.current.getValue() !== primaryTab.code) {
+                  editorRef.current.setValue(primaryTab.code)
+                }
                 ignoreChangeRef.current = false
-              }, 100)
+              }, 150)
               return
             }
           } catch (err) {
@@ -885,6 +903,7 @@ export default function CodeEditorPage() {
           }
         }
         loadSharedContent()
+        return
       }
 
       const savedFormat = localStorage.getItem('pycode_editor_format') as 'terminal' | 'cell' | null
@@ -1270,6 +1289,11 @@ export default function CodeEditorPage() {
 
   const handleEditorDidMount = (editor: any, monaco: Monaco) => {
     editorRef.current = editor
+    if (codeRef.current !== undefined && codeRef.current !== null && codeRef.current !== '') {
+      if (editor.getValue() !== codeRef.current) {
+        editor.setValue(codeRef.current)
+      }
+    }
   }
 
   // Explicit Monaco theme bindings
@@ -1579,6 +1603,11 @@ export default function CodeEditorPage() {
   // Load saved files from Supabase (never from localStorage cache)
   const loadSavedFiles = async (keepActive?: string) => {
     try {
+      const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+      const targetOwner = urlParams?.get('owner')?.trim().toLowerCase()
+      const requestedFile = keepActive || urlParams?.get('file') || urlParams?.get('open') || urlParams?.get('folder')
+      const targetFolder = urlParams?.get('folder')
+
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         setSavedFiles([])
@@ -1586,6 +1615,15 @@ export default function CodeEditorPage() {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('pycode_saved_files')
           localStorage.removeItem('pycode_custom_folders')
+        }
+        if (requestedFile && targetOwner) {
+          setAccountMismatchModal({
+            isOpen: true,
+            type: 'not_logged_in',
+            requestedFile,
+            ownerEmail: targetOwner,
+            currentEmail: null,
+          })
         }
         return
       }
@@ -1616,6 +1654,29 @@ export default function CodeEditorPage() {
           const target = formatted.find((f: any) => f.name === keepActive)
           if (target) {
             handleLoadFile(target)
+          } else {
+            const userEmail = (user.email || '').trim().toLowerCase()
+            const isDifferentAccount = targetOwner && userEmail !== targetOwner
+            setAccountMismatchModal({
+              isOpen: true,
+              type: isDifferentAccount ? 'wrong_account' : 'file_not_found',
+              requestedFile: keepActive,
+              ownerEmail: targetOwner || 'another account',
+              currentEmail: user.email,
+            })
+          }
+        } else if (targetFolder) {
+          const folderPrefix = `${targetFolder}/`
+          const hasFilesInFolder = formatted.some((f: any) => f.name.startsWith(folderPrefix))
+          const userEmail = (user.email || '').trim().toLowerCase()
+          if (!hasFilesInFolder && targetOwner && userEmail !== targetOwner) {
+            setAccountMismatchModal({
+              isOpen: true,
+              type: 'wrong_account',
+              requestedFile: targetFolder,
+              ownerEmail: targetOwner,
+              currentEmail: user.email,
+            })
           }
         }
       } else if (error) {
@@ -4300,6 +4361,24 @@ export default function CodeEditorPage() {
             </div>
           )}
 
+          {/* Account Mismatch Dismissed Warning Ribbon */}
+          {accountMismatchModal && !accountMismatchModal.isOpen && accountMismatchModal.type === 'wrong_account' && (
+            <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-1.5 flex items-center justify-between text-xs text-amber-700 dark:text-amber-400 shrink-0">
+              <div className="flex items-center gap-2 overflow-hidden truncate">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span className="truncate">
+                  Logged in as <b>{accountMismatchModal.currentEmail}</b>. File <b>{accountMismatchModal.requestedFile}</b> belongs to <b>{accountMismatchModal.ownerEmail}</b>.
+                </span>
+              </div>
+              <button
+                onClick={() => setAccountMismatchModal(prev => prev ? { ...prev, isOpen: true } : null)}
+                className="font-bold underline hover:opacity-80 shrink-0 cursor-pointer ml-3 text-[11px]"
+              >
+                Switch Account
+              </button>
+            </div>
+          )}
+
           {/* Tabs Bar */}
           <div className="flex items-center justify-between border-b border-hairline bg-canvas dark:bg-[#181715] select-none shrink-0 h-10 overflow-hidden">
             <div ref={tabBarRef} className="flex items-center overflow-x-auto h-full scrollbar-none flex-1">
@@ -6191,6 +6270,144 @@ export default function CodeEditorPage() {
               <p className="text-[10px] text-gray-400 text-center">
                 Shared by {shareModal.senderName} • Pycode
               </p>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+
+      {/* Account Mismatch / Ownership Notice Modal */}
+      {accountMismatchModal && accountMismatchModal.isOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-[460px] bg-canvas border border-hairline rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 animate-scale-in text-ink">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-hairline">
+              <div className="flex items-center gap-2.5">
+                {accountMismatchModal.type === 'wrong_account' ? (
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                    <ShieldAlert className="w-4 h-4" />
+                  </div>
+                ) : accountMismatchModal.type === 'not_logged_in' ? (
+                  <div className="w-8 h-8 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 rounded-xl bg-gray-500/15 text-gray-500 flex items-center justify-center shrink-0">
+                    <FileQuestion className="w-4 h-4" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-sm font-bold text-ink">
+                    {accountMismatchModal.type === 'wrong_account'
+                      ? 'Account Mismatch'
+                      : accountMismatchModal.type === 'not_logged_in'
+                      ? 'Sign In Required'
+                      : 'File Not Found'}
+                  </h3>
+                  <p className="text-[11px] text-gray-500">
+                    {accountMismatchModal.type === 'wrong_account'
+                      ? 'File ownership verification notice'
+                      : accountMismatchModal.type === 'not_logged_in'
+                      ? 'Authentication needed to edit'
+                      : 'Workspace file lookup'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setAccountMismatchModal(prev => prev ? { ...prev, isOpen: false } : null)}
+                className="p-1 rounded-lg text-gray-400 hover:text-ink hover:bg-surface-soft transition-colors cursor-pointer"
+                title="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="space-y-3 text-xs leading-relaxed text-gray-700 dark:text-gray-300">
+              {accountMismatchModal.type === 'wrong_account' && (
+                <>
+                  <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 space-y-1">
+                    <p className="font-semibold text-xs flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      Different account currently signed in:
+                    </p>
+                    <p className="font-mono text-[11px] break-all font-bold">
+                      {accountMismatchModal.currentEmail}
+                    </p>
+                  </div>
+
+                  <p>
+                    You requested to edit file <span className="font-mono font-bold text-ink bg-surface-soft px-1.5 py-0.5 rounded border border-hairline">{accountMismatchModal.requestedFile}</span>, which belongs to:
+                  </p>
+
+                  <div className="p-2.5 rounded-lg bg-surface-soft border border-hairline text-center font-mono font-bold text-primary break-all">
+                    {accountMismatchModal.ownerEmail}
+                  </div>
+
+                  <p className="text-[11px] text-gray-500">
+                    To protect workspace files, only the account owner can make edits. Please switch accounts and log in with <span className="font-semibold text-ink">{accountMismatchModal.ownerEmail}</span>.
+                  </p>
+                </>
+              )}
+
+              {accountMismatchModal.type === 'not_logged_in' && (
+                <>
+                  <p>
+                    The file <span className="font-mono font-bold text-ink bg-surface-soft px-1.5 py-0.5 rounded border border-hairline">{accountMismatchModal.requestedFile}</span> belongs to:
+                  </p>
+                  <div className="p-2.5 rounded-lg bg-surface-soft border border-hairline text-center font-mono font-bold text-primary break-all">
+                    {accountMismatchModal.ownerEmail}
+                  </div>
+                  <p className="text-[11px] text-gray-500">
+                    You are currently browsing as a guest. Please sign in with <span className="font-semibold text-ink">{accountMismatchModal.ownerEmail}</span> to access and edit this file.
+                  </p>
+                </>
+              )}
+
+              {accountMismatchModal.type === 'file_not_found' && (
+                <p>
+                  The file <span className="font-mono font-bold text-ink bg-surface-soft px-1.5 py-0.5 rounded border border-hairline">{accountMismatchModal.requestedFile}</span> was not found in your saved scripts.
+                </p>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="pt-2 flex items-center justify-end gap-2 border-t border-hairline">
+              <button
+                onClick={() => setAccountMismatchModal(prev => prev ? { ...prev, isOpen: false } : null)}
+                className="px-3.5 py-2 text-xs font-semibold text-gray-500 hover:text-ink hover:bg-surface-soft rounded-xl transition-colors cursor-pointer"
+              >
+                {accountMismatchModal.type === 'wrong_account' ? 'Stay on This Account' : 'Dismiss'}
+              </button>
+
+              {accountMismatchModal.type === 'wrong_account' && (
+                <button
+                  onClick={async () => {
+                    await supabase.auth.signOut()
+                    const redirectUrl = `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`
+                    window.location.href = redirectUrl
+                  }}
+                  className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Switch Account (Sign Out)
+                </button>
+              )}
+
+              {accountMismatchModal.type === 'not_logged_in' && (
+                <button
+                  onClick={() => {
+                    const redirectUrl = `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`
+                    window.location.href = redirectUrl
+                  }}
+                  className="px-4 py-2 text-xs font-bold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  Sign In
+                </button>
+              )}
             </div>
 
           </div>

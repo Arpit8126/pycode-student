@@ -156,6 +156,85 @@ async function handleUserData(request: NextRequest) {
     })
 
     const foldersSet = new Set<string>()
+    nonDatasetScripts.forEach((s: any) => {
+      const fullPath = s.name
+      if (fullPath.includes('/')) {
+        const lastSlash = fullPath.lastIndexOf('/')
+        foldersSet.add(fullPath.substring(0, lastSlash))
+      }
+    })
+
+    // 5b. Lookup or generate clean short UUID share links via shared_items table (matching PyCode internal sharing)
+    const { data: existingShares } = await (admin.from('shared_items') as any)
+      .select('id, title, item_type')
+      .eq('sender_name', resolvedFullName)
+      .limit(300)
+
+    const existingFileShareMap = new Map<string, string>()
+    const existingFolderShareMap = new Map<string, string>()
+
+    ;(existingShares || []).forEach((row: any) => {
+      if (row.item_type === 'file' && !existingFileShareMap.has(row.title)) {
+        existingFileShareMap.set(row.title, row.id)
+      } else if (row.item_type === 'folder' && !existingFolderShareMap.has(row.title)) {
+        existingFolderShareMap.set(row.title, row.id)
+      }
+    })
+
+    const itemsToInsert: any[] = []
+
+    // Check files needing short share links
+    nonDatasetScripts.forEach((s: any) => {
+      const fullPath = s.name
+      const filename = fullPath.includes('/') ? fullPath.substring(fullPath.lastIndexOf('/') + 1) : fullPath
+      if (!existingFileShareMap.has(filename) && !existingFileShareMap.has(fullPath)) {
+        itemsToInsert.push({
+          sender_name: resolvedFullName,
+          item_type: 'file',
+          title: filename,
+          files: [{ name: fullPath, code: s.code || '', format: 'terminal' }],
+          file_count: 1,
+        })
+      }
+    })
+
+    // Check folders needing short share links
+    Array.from(foldersSet).forEach((folderName) => {
+      if (!existingFolderShareMap.has(folderName)) {
+        const folderPrefix = `${folderName}/`
+        const folderFiles = nonDatasetScripts.filter((s: any) => s.name.startsWith(folderPrefix))
+        if (folderFiles.length > 0) {
+          itemsToInsert.push({
+            sender_name: resolvedFullName,
+            item_type: 'folder',
+            title: folderName,
+            files: folderFiles.map((f: any) => ({ name: f.name, code: f.code || '', format: 'terminal' })),
+            file_count: folderFiles.length,
+          })
+        }
+      }
+    })
+
+    if (itemsToInsert.length > 0) {
+      try {
+        const { data: insertedRows, error: insertErr } = await (admin.from('shared_items') as any)
+          .insert(itemsToInsert)
+          .select('id, title, item_type')
+
+        if (!insertErr && insertedRows) {
+          insertedRows.forEach((row: any) => {
+            if (row.item_type === 'file') {
+              existingFileShareMap.set(row.title, row.id)
+            } else if (row.item_type === 'folder') {
+              existingFolderShareMap.set(row.title, row.id)
+            }
+          })
+        }
+      } catch (err) {
+        console.warn('Batch shared_items insert failed:', err)
+      }
+    }
+
     const formattedFiles = nonDatasetScripts.map((s: any) => {
       const fullPath = s.name
       let folder: string | null = null
@@ -163,24 +242,31 @@ async function handleUserData(request: NextRequest) {
 
       if (fullPath.includes('/')) {
         const lastSlash = fullPath.lastIndexOf('/')
-        const folderName = fullPath.substring(0, lastSlash)
-        folder = folderName
+        folder = fullPath.substring(0, lastSlash)
         filename = fullPath.substring(lastSlash + 1)
-        foldersSet.add(folderName)
       }
 
-      // Generate direct base64 share link for this file
+      // Check clean short UUID share ID
+      const shareId = existingFileShareMap.get(filename) || existingFileShareMap.get(fullPath)
       let fileShareUrl = ''
-      try {
-        const payloadObj = {
-          senderName: resolvedFullName,
-          itemType: 'file',
-          title: filename,
-          files: [{ name: fullPath, code: s.code || '', format: 'terminal' }],
-        }
-        const b64 = Buffer.from(JSON.stringify(payloadObj)).toString('base64')
-        fileShareUrl = `${origin}/editor?share_data=${encodeURIComponent(b64)}`
-      } catch (_) {}
+      if (shareId) {
+        fileShareUrl = `${origin}/editor?share=${shareId}`
+      } else {
+        // Fallback to base64 only if database insert failed
+        try {
+          const payloadObj = {
+            senderName: resolvedFullName,
+            itemType: 'file',
+            title: filename,
+            files: [{ name: fullPath, code: s.code || '', format: 'terminal' }],
+          }
+          const b64 = Buffer.from(JSON.stringify(payloadObj)).toString('base64')
+          fileShareUrl = `${origin}/editor?share_data=${encodeURIComponent(b64)}`
+        } catch (_) {}
+      }
+
+      const openUrl = `${origin}/editor?file=${encodeURIComponent(fullPath)}&owner=${encodeURIComponent(targetEmail)}`
+      const shortShare = fileShareUrl || openUrl
 
       return {
         name: fullPath,
@@ -188,11 +274,11 @@ async function handleUserData(request: NextRequest) {
         folder,
         code: s.code || '',
         last_modified: s.last_modified,
-        // Direct link to open & edit this exact file inside PyCode editor
-        open_editor_url: `${origin}/editor?file=${encodeURIComponent(fullPath)}`,
-        edit_url: `${origin}/editor?file=${encodeURIComponent(fullPath)}`,
-        copy_url: `${origin}/editor?file=${encodeURIComponent(fullPath)}`,
-        share_url: fileShareUrl || `${origin}/editor?file=${encodeURIComponent(fullPath)}`,
+        // Direct link to open & edit this exact file inside PyCode editor with ownership context
+        open_editor_url: openUrl,
+        edit_url: openUrl,
+        copy_url: shortShare,
+        share_url: shortShare,
       }
     })
 
@@ -315,24 +401,33 @@ async function handleUserData(request: NextRequest) {
     // Compute detailed folder metadata with direct URLs
     const folderDetails = Array.from(foldersSet).sort().map((folderName: string) => {
       const folderFiles = formattedFiles.filter((f: any) => f.folder === folderName)
+      const folderShareId = existingFolderShareMap.get(folderName)
       let folderShareUrl = ''
-      try {
-        const payloadObj = {
-          senderName: resolvedFullName,
-          itemType: 'folder',
-          title: folderName,
-          files: folderFiles.map((f: any) => ({ name: f.name, code: f.code, format: 'terminal' })),
-        }
-        const b64 = Buffer.from(JSON.stringify(payloadObj)).toString('base64')
-        folderShareUrl = `${origin}/editor?share_data=${encodeURIComponent(b64)}`
-      } catch (_) {}
+      if (folderShareId) {
+        folderShareUrl = `${origin}/editor?share=${folderShareId}`
+      } else {
+        try {
+          const payloadObj = {
+            senderName: resolvedFullName,
+            itemType: 'folder',
+            title: folderName,
+            files: folderFiles.map((f: any) => ({ name: f.name, code: f.code, format: 'terminal' })),
+          }
+          const b64 = Buffer.from(JSON.stringify(payloadObj)).toString('base64')
+          folderShareUrl = `${origin}/editor?share_data=${encodeURIComponent(b64)}`
+        } catch (_) {}
+      }
+
+      const openFolderUrl = `${origin}/editor?folder=${encodeURIComponent(folderName)}&owner=${encodeURIComponent(targetEmail)}`
+      const shortFolderShare = folderShareUrl || openFolderUrl
 
       return {
         name: folderName,
         files_count: folderFiles.length,
-        open_editor_url: `${origin}/editor?folder=${encodeURIComponent(folderName)}`,
-        copy_url: `${origin}/editor?folder=${encodeURIComponent(folderName)}`,
-        share_url: folderShareUrl || `${origin}/editor?folder=${encodeURIComponent(folderName)}`,
+        open_editor_url: openFolderUrl,
+        edit_url: openFolderUrl,
+        copy_url: shortFolderShare,
+        share_url: shortFolderShare,
       }
     })
 
@@ -418,6 +513,10 @@ function buildFileTree(files: any[], folders: string[]) {
         path: file.name,
         code: file.code,
         last_modified: file.last_modified,
+        open_editor_url: file.open_editor_url,
+        edit_url: file.edit_url,
+        copy_url: file.copy_url,
+        share_url: file.share_url,
       }
     } else {
       root.children[file.filename] = {
@@ -426,6 +525,10 @@ function buildFileTree(files: any[], folders: string[]) {
         path: file.name,
         code: file.code,
         last_modified: file.last_modified,
+        open_editor_url: file.open_editor_url,
+        edit_url: file.edit_url,
+        copy_url: file.copy_url,
+        share_url: file.share_url,
       }
     }
   })
